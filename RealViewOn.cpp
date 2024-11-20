@@ -41,14 +41,14 @@ std::wstring construirRutaRegistro(const std::string& version) {
 std::string obtenerRenderer(const std::wstring& rutaRegistro) {
     HKEY hKey = nullptr;
     if (RegOpenKeyEx(HKEY_CURRENT_USER, rutaRegistro.c_str(), 0, KEY_READ, &hKey) != ERROR_SUCCESS) {
-        std::cerr << u8"Error: No se pudo encontrar la clave." << std::endl;
+        std::cout << u8"Error: No se pudo encontrar la clave." << std::endl;
         return "";
     }
 
     wchar_t value[256];
     DWORD bufferSize = sizeof(value);
     if (RegQueryValueEx(hKey, L"renderer", NULL, NULL, (LPBYTE)value, &bufferSize) != ERROR_SUCCESS) {
-        std::cerr << u8"Error: No se pudo obtener el valor 'renderer' del registro." << std::endl;
+        std::cout << u8"Error: No se pudo obtener el valor 'renderer' del registro." << std::endl;
         RegCloseKey(hKey);
         return "";
     }
