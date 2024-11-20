@@ -5,6 +5,7 @@
 
 
 
+
 // Claves constantes para modificar en el registro
 const std::string clave1 = "40000";
 const std::string clave2 = "70408";
