@@ -115,7 +115,7 @@ void guardarArchivoReg(const std::string& contenido) {
         std::cout << u8"Archivo .reg creado con éxito!" << std::endl;
     }
     else {
-        std::cerr << u8"Error: No se pudo crear el archivo .reg." << std::endl;
+        std::cout << u8"Error: No se pudo crear el archivo .reg." << std::endl;
     }
 }
 
@@ -144,7 +144,7 @@ int main() {
         // Crear el contenido del archivo .reg
         std::string contenidoReg = crearContenidoReg(version, renderer);
         if (contenidoReg.empty()) {
-            std::cerr << u8"Error: No se pudo generar el contenido del archivo .reg." << std::endl;
+            std::cout << u8"Error: No se pudo generar el contenido del archivo .reg." << std::endl;
             return 1;
         }
 
@@ -152,7 +152,7 @@ int main() {
         guardarArchivoReg(contenidoReg);
     }
     else {
-        std::cerr << u8"Error: No se pudo encontrar la clave 'renderer' en ninguna de las rutas." << std::endl;
+        std::cout << u8"Error: No se pudo encontrar la clave 'renderer' en ninguna de las rutas." << std::endl;
     }
 
     // Pausar antes de salir
