@@ -4,6 +4,7 @@
 #include <string>
 #include "SolidWorks.h"
 #include "GPU.h"
+#include <conio.h> //TODO: Revisar para salir con escape en cualquier momento.
 
 // Prototipos de funciones
 bool versionInstalada(int v);
