@@ -1,6 +1,7 @@
 
 # Visual Studio
 .vs/
+.vscode/
 *.vcxproj.user
 *.vcxproj.filters
 *.suo

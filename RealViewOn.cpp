@@ -3,31 +3,36 @@
 #include <fstream>
 #include <string>
 #include "Registro.h"
-
-
-
+#include "SolidWorks.h"
 
 // Variables globales
-std::string version;
+std::string swVersion;
 
 // Prototipos de funciones
 void configurarConsola();
 
 
 // Definición de funciones
-
 void configurarConsola() {
     system("color 17"); // Azul
-    SetConsoleOutputCP(CP_UTF8);//soporte para UTF-8
+    SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
 }
 
 // Función principal
 int main() {
     configurarConsola();
 
-    std::cout << u8"RealView Cracker V0.3 by RF47\n";
-    std::cout << u8"Ingrese la versión de SolidWorks instalada (e.g., 2022): ";
-    std::cin >> version;
+    std::cout << "RealView Cracker V0.3 by RF47\n";
+    SolidWorks sw = SolidWorks();
+    sw.obtenerVersionesInstaladas();
+    
+
+    std::cout << "Ingrese la versión de SolidWorks instalada (e.g., 2024 o 0 para salir): ";
+    std::cin >> swVersion;
+    if (swVersion == "0") {
+        std::cout << "Saliendo..." << std::endl;
+        return 0;
+    }
 
     // Primero buscar en la ruta principal
     std::wstring rutaRegistro = L"SOFTWARE\\SolidWorks\\AllowList\\Current";
@@ -35,18 +40,18 @@ int main() {
 
     // Si no se encuentra el renderer en la ruta alternativa, buscar en la ruta original
     if (renderer.empty()) {
-        std::cout << u8"Buscando en ruta alternativa" << std::endl;
-        rutaRegistro = construirRutaRegistro(version);
+        std::cout << "Buscando en ruta alternativa" << std::endl;
+        rutaRegistro = construirRutaRegistro(swVersion);
         renderer = obtenerRenderer(rutaRegistro);
     }
 
     if (!renderer.empty()) {
-        std::cout << u8"GPU detectado: " << renderer << std::endl;
+        std::cout << "GPU detectado: " << renderer << std::endl;
 
         // Crear el contenido del archivo .reg
-        std::string contenidoReg = crearContenidoReg(version, renderer);
+        std::string contenidoReg = crearContenidoReg(swVersion, renderer);
         if (contenidoReg.empty()) {
-            std::cout << u8"Error: No se pudo generar el contenido del archivo .reg." << std::endl;
+            std::cout << "Error: No se pudo generar el contenido del archivo .reg." << std::endl;
             return 1;
         }
 
@@ -54,12 +59,12 @@ int main() {
         guardarArchivoReg(contenidoReg);
     }
     else {
-        std::cout << u8"Error: No se pudo encontrar la clave 'renderer' en ninguna de las rutas." << std::endl;
+        std::cout << "Error: No se pudo encontrar la clave 'renderer' en ninguna de las rutas." << std::endl;
     }
 
     // Pausar antes de salir
     std::cin.ignore();
-    std::cout << u8"Presione enter para salir..." << std::endl;
+    std::cout << "Presione enter para salir..." << std::endl;
     std::cin.get();
     return 0;
 }
