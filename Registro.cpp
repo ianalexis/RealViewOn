@@ -84,19 +84,3 @@ std::string crearContenidoReg(const std::string& version, const std::string& ren
 
     return contenido;
 }
-
-
-
-//Guarda el contenido generado en un archivo .reg y maneja posibles errores.
-
-void guardarArchivoReg(const std::string& contenido) {
-    std::ofstream regFile("RealViewEnabler.reg");
-    if (regFile.is_open()) {
-        regFile << contenido;
-        regFile.close();
-        std::cout << "Archivo .reg creado con éxito!" << std::endl;
-    }
-    else {
-        std::cout << "Error: No se pudo crear el archivo .reg." << std::endl;
-    }
-}

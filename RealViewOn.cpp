@@ -2,11 +2,17 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "Registro.h"
 #include "SolidWorks.h"
+#include "GPU.h"
+
+// Prototipos de funciones
+bool versionInstalada(int v);
+void guardarArchivoReg(const std::string& contenido);
+
 
 // Variables globales
-std::string swVersion;
+int swVersion;
+std::vector<std::pair<int, bool>> versionesInstaladas;
 
 // Prototipos de funciones
 void configurarConsola();
@@ -21,46 +27,52 @@ void configurarConsola() {
 // Función principal
 int main() {
     configurarConsola();
-
     std::cout << "RealView Cracker V0.3 by RF47\n";
     SolidWorks sw = SolidWorks();
-    sw.obtenerVersionesInstaladas();
+
+    try {
+        versionesInstaladas = sw.obtenerVersionesInstaladas();
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        for (int i = 10; i > 0; --i) {
+            std::cout << "Cerrando en " << i << "s..." << std::endl;
+            Sleep(1000); // Esperar 1 segundo
+        }
+        exit(1);
+    }
     
 
-    std::cout << "Ingrese la versión de SolidWorks instalada (e.g., 2024 o 0 para salir): ";
+    std::cout << "Ingrese el año de versión de SolidWorks instalada (e.g.,2023, 2024 o 0 para salir): ";
     std::cin >> swVersion;
-    if (swVersion == "0") {
-        std::cout << "Saliendo..." << std::endl;
+    if (swVersion <= 0) {
+        std::cout << "Cerrando..." << std::endl;
+        Sleep(250); // Esperar 0.25 segundos
         return 0;
     }
 
-    // Primero buscar en la ruta principal
-    std::wstring rutaRegistro = L"SOFTWARE\\SolidWorks\\AllowList\\Current";
-    std::string renderer = obtenerRenderer(rutaRegistro);
-
-    // Si no se encuentra el renderer en la ruta alternativa, buscar en la ruta original
-    if (renderer.empty()) {
-        std::cout << "Buscando en ruta alternativa" << std::endl;
-        rutaRegistro = construirRutaRegistro(swVersion);
-        renderer = obtenerRenderer(rutaRegistro);
-    }
-
-    if (!renderer.empty()) {
-        std::cout << "GPU detectado: " << renderer << std::endl;
-
-        // Crear el contenido del archivo .reg
-        std::string contenidoReg = crearContenidoReg(swVersion, renderer);
-        if (contenidoReg.empty()) {
-            std::cout << "Error: No se pudo generar el contenido del archivo .reg." << std::endl;
+    // Verificar si la versión de SolidWorks está instalada o si se desea continuar con una instalación forzada genérica.
+    if (!versionInstalada(swVersion)) {
+        std::cout << "Error: La versión de SolidWorks no está instalada." << std::endl;
+        std::cout << "Desea continuar con una instalacion forzada genérica? (Y/N): ";
+        char opcion;
+        std::cin >> opcion;
+        if (opcion == 'y' || opcion == 'Y') {
+            std::cout << "Continuando en modo genérico..." << std::endl;
+            sw.setGenerico(true);
+        } else {
+            std::cout << "Instalación cancelada." << std::endl;
+            Sleep(1000); // Esperar 1 segundo
             return 1;
         }
+    }
 
-        // Guardar el archivo .reg
-        guardarArchivoReg(contenidoReg);
-    }
-    else {
-        std::cout << "Error: No se pudo encontrar la clave 'renderer' en ninguna de las rutas." << std::endl;
-    }
+    sw.setVersion(swVersion);
+    std::string renderer = sw.obtenerRenderer();
+
+    GPU gpu = GPU(renderer);
+
+    guardarArchivoReg(gpu.completarContenidoReg(sw.obtenerRegBase()));
+
 
     // Pausar antes de salir
     std::cin.ignore();
@@ -69,3 +81,25 @@ int main() {
     return 0;
 }
 
+// Valida que la version esté en el listado de versiones instaladas
+bool versionInstalada (int v){
+    for (int i = 0; i < versionesInstaladas.size(); i++) {
+        if (versionesInstaladas[i].first == v) {
+            return true;
+        }
+    }
+    return false;
+}
+
+//Guarda el contenido generado en un archivo .reg y maneja posibles errores.
+void guardarArchivoReg(const std::string& contenido) {
+    std::ofstream regFile("RealViewEnabler.reg");
+    if (regFile.is_open()) {
+        regFile << contenido;
+        regFile.close();
+        std::cout << "Archivo .reg creado con éxito!" << std::endl;
+    }
+    else {
+        std::cout << "Error: No se pudo crear el archivo .reg." << std::endl;
+    }
+}
