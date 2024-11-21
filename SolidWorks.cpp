@@ -69,19 +69,26 @@ std::vector<std::pair<int, bool>> SolidWorks::obtenerVersionesInstaladas() {
 }
 
 std::string SolidWorks::obtenerRenderer() {
-    if (swVersion >= 2024) {
+    if (swVersion >= vCambioRaiz || generico) {
+        std::cout << "Probando con SW >= " << vCambioRaiz << " (renderer en carpeta raiz)" << std::endl; //TODO: Borrar
         renderer = obtenerRenderRaiz();
-    } else if (!generico) {
+    } 
+    if (swVersion < vCambioRaiz || generico || renderer.empty()) {
+        std::cout << "Probando con SW < " << vCambioRaiz << " (renderer en carpeta de version)" << std::endl; //TODO: Borrar
         renderer = obtenerRendererAno();
     }
     if (renderer.empty()) {
+        std::cout << "Probando con modo genérico (renderer en todo el registro)" << std::endl; //TODO: Borrar
         renderer = obtenerRendererGenerico();
+    }
+    if (renderer.empty()) {
+        throw std::runtime_error("No se encontró el renderer.");
     }
     std::cout << "Renderer: " << renderer << std::endl;
     return renderer;
 }
 
-// Busca render en carpeta raiz (SW >= 2024)
+// Busca render en carpeta raiz.
 std::string SolidWorks::obtenerRenderRaiz() {
     HKEY hKey;
     std::wstring regPath = L"SOFTWARE\\SolidWorks\\AllowList\\Current";
@@ -91,6 +98,7 @@ std::string SolidWorks::obtenerRenderRaiz() {
         if (RegQueryValueEx(hKey, L"renderer", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
             int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, &value[0], (int)wcslen(value), NULL, 0, NULL, NULL);
             renderer = std::string(sizeNeeded, 0);
+            std::cout << "Renderer encontrado en carpeta raiz: " << renderer << std::endl; // TODO: Borrar
             WideCharToMultiByte(CP_UTF8, 0, &value[0], (int)wcslen(value), &renderer[0], sizeNeeded, NULL, NULL);
         }
         RegCloseKey(hKey);
@@ -98,7 +106,7 @@ std::string SolidWorks::obtenerRenderRaiz() {
     return renderer;
 }
 
-// Busca render en carpeta de version (SW < 2024)
+// Busca render en carpeta de version.
 std::string SolidWorks::obtenerRendererAno() {
     HKEY hKey;
     std::wstring regPath = swRegRuta + std::to_wstring(swVersion) + L"\\Performance\\Graphics\\Hardware\\Current";
@@ -108,6 +116,7 @@ std::string SolidWorks::obtenerRendererAno() {
         if (RegQueryValueEx(hKey, L"renderer", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
             int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, &value[0], (int)wcslen(value), NULL, 0, NULL, NULL);
             renderer = std::string(sizeNeeded, 0);
+            std::cout << "Renderer encontrado en carpeta de version: " << renderer << std::endl; // TODO: Borrar
             WideCharToMultiByte(CP_UTF8, 0, &value[0], (int)wcslen(value), &renderer[0], sizeNeeded, NULL, NULL);
         }
         RegCloseKey(hKey);
@@ -116,42 +125,18 @@ std::string SolidWorks::obtenerRendererAno() {
 }
 
 // Busca render en todo el registro (modo generico)
-std::string SolidWorks::obtenerRendererGenerico() {
+std::string SolidWorks::obtenerRendererGenerico() { // TODO: Implementar una busqueda por todo el registro de solidworks.
     HKEY hKey;
-    std::wstring regPath = L"SOFTWARE\\SolidWorks";
-    if (RegOpenKeyEx(HKEY_CURRENT_USER, regPath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-        wchar_t subKeyName[256];
-        DWORD subKeyNameSize = sizeof(subKeyName) / sizeof(subKeyName[0]);
-        for (DWORD i = 0; RegEnumKeyEx(hKey, i, subKeyName, &subKeyNameSize, NULL, NULL, NULL, NULL) == ERROR_SUCCESS; i++) {
-            HKEY subKey;
-            std::wstring subKeyPath = regPath + L"\\" + subKeyName;
-            if (RegOpenKeyEx(HKEY_CURRENT_USER, subKeyPath.c_str(), 0, KEY_READ, &subKey) == ERROR_SUCCESS) {
-                wchar_t value[256];
-                DWORD bufferSize = sizeof(value);
-                if (RegQueryValueEx(subKey, L"renderer", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
-                    int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, &value[0], (int)wcslen(value), NULL, 0, NULL, NULL);
-                    renderer = std::string(sizeNeeded, 0);
-                    WideCharToMultiByte(CP_UTF8, 0, &value[0], (int)wcslen(value), &renderer[0], sizeNeeded, NULL, NULL);
-                    RegCloseKey(subKey);
-                    RegCloseKey(hKey);
-                    return renderer;
-                }
-                RegCloseKey(subKey);
-            }
-            subKeyNameSize = sizeof(subKeyName) / sizeof(subKeyName[0]);
-        }
-        RegCloseKey(hKey);
-    }
     return "";
 }
 
 // Obtiene la ruta base del registro para enviarle al completador de contenido de la GPU.
 std::vector<std::string> SolidWorks::obtenerRegBase(){
     regBase.clear();
-    if (swVersion >= 2024 || generico) {
+    if (swVersion >= 2022 || generico) {
         regBase.push_back(obtenerRegBaseRaiz());
     } 
-    if (swVersion < 2024 || !generico) {
+    if (swVersion < 2022 || generico) {
         regBase.push_back(obtenerRegBaseAno());
     } 
     return regBase;

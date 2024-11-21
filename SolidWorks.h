@@ -22,6 +22,7 @@ public:
 private:
     int vMin = 2019; // Versión mínima soportada
     int vMax = 2024; // Versión máxima soportada
+    int vCambioRaiz = 2022; // Año de cambio de ubicación del registro TODO: REVISAR, me confie por un comentario de reddit
     int anoActual = vMax; // Año actual + 1
     std::wstring swRegRuta = L"SOFTWARE\\SolidWorks\\SOLIDWORKS ";
     int swVersion = 0;

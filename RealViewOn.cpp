@@ -8,6 +8,7 @@
 // Prototipos de funciones
 bool versionInstalada(int v);
 void guardarArchivoReg(const std::string& contenido);
+void cerrar();
 
 
 // Variables globales
@@ -34,11 +35,7 @@ int main() {
         versionesInstaladas = sw.obtenerVersionesInstaladas();
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
-        for (int i = 10; i > 0; --i) {
-            std::cout << "Cerrando en " << i << "s..." << std::endl;
-            Sleep(1000); // Esperar 1 segundo
-        }
-        exit(1);
+        cerrar();
     }
     
 
@@ -50,28 +47,37 @@ int main() {
         return 0;
     }
 
-    // Verificar si la versión de SolidWorks está instalada o si se desea continuar con una instalación forzada genérica.
-    if (!versionInstalada(swVersion)) {
-        std::cout << "Error: La versión de SolidWorks no está instalada." << std::endl;
-        std::cout << "Desea continuar con una instalacion forzada genérica? (Y/N): ";
-        char opcion;
-        std::cin >> opcion;
-        if (opcion == 'y' || opcion == 'Y') {
-            std::cout << "Continuando en modo genérico..." << std::endl;
-            sw.setGenerico(true);
-        } else {
-            std::cout << "Instalación cancelada." << std::endl;
-            Sleep(1000); // Esperar 1 segundo
-            return 1;
-        }
+    try{
+       // Verificar si la versión de SolidWorks está instalada o si se desea continuar con una instalación forzada genérica.
+       if (!versionInstalada(swVersion)) {
+           std::cout << "Error: La versión de SolidWorks no está instalada." << std::endl;
+           std::cout << "Desea continuar con una instalacion forzada genérica? (Y/N): ";
+           char opcion;
+           std::cin >> opcion;
+           if (opcion == 'y' || opcion == 'Y') {
+               std::cout << "Continuando en modo genérico..." << std::endl;
+               sw.setGenerico(true);
+           } else {
+               std::cout << "Instalación cancelada." << std::endl;
+               Sleep(1000); // Esperar 1 segundo
+               return 1;
+           }
+       }
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        cerrar();
     }
 
-    sw.setVersion(swVersion);
-    std::string renderer = sw.obtenerRenderer();
 
-    GPU gpu = GPU(renderer);
-
-    guardarArchivoReg(gpu.completarContenidoReg(sw.obtenerRegBase()));
+    try{
+        sw.setVersion(swVersion);
+        std::string renderer = sw.obtenerRenderer();
+        GPU gpu = GPU(renderer);
+        guardarArchivoReg(gpu.completarContenidoReg(sw.obtenerRegBase()));
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        cerrar();
+    }
 
 
     // Pausar antes de salir
@@ -102,4 +108,13 @@ void guardarArchivoReg(const std::string& contenido) {
     else {
         std::cout << "Error: No se pudo crear el archivo .reg." << std::endl;
     }
+}
+
+//Cuenta regresiva de cerrado
+void cerrar() {
+    for (int i = 10; i > 0; --i) {
+        std::cout << "Cerrando en " << i << "s..." << std::endl;
+        Sleep(1000); // Esperar 1 segundo
+    }
+    exit(1);
 }
