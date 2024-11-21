@@ -143,12 +143,10 @@
   <ItemGroup>
     <ClCompile Include="GPU.cpp" />
     <ClCompile Include="RealViewOn.cpp" />
-    <ClCompile Include="Registro.cpp" />
     <ClCompile Include="SolidWorks.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GPU.h" />
-    <ClInclude Include="Registro.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SolidWorks.h" />
   </ItemGroup>
