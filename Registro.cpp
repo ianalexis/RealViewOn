@@ -10,7 +10,7 @@
 const std::string clave1 = "40000";
 const std::string clave2 = "70408";
 
-//Construye la ruta del registro basada en la versión de SolidWorks proporcionada.
+//Construye la ruta del registro basada en la versiÃ³n de SolidWorks proporcionada.
 
 std::wstring construirRutaRegistro(const std::string& version) {
     std::wstring basePath = L"SOFTWARE\\SolidWorks\\SOLIDWORKS ";
@@ -47,7 +47,7 @@ std::string obtenerRenderer(const std::wstring& rutaRegistro) {
 
 
 
-//Genera el contenido del archivo .reg basado en la versión y el renderer.
+//Genera el contenido del archivo .reg basado en la versiÃ³n y el renderer.
 
 std::string crearContenidoReg(const std::string& version, const std::string& renderer) {
     // Verificar si el renderer contiene palabras clave NVIDIA o AMD
@@ -77,7 +77,7 @@ std::string crearContenidoReg(const std::string& version, const std::string& ren
             "\"Workarounds\"=dword:" + clave2 + "\n";
     }
     else {
-        // Si no es NVIDIA ni AMD, devolver un mensaje de error vacío
+        // Si no es NVIDIA ni AMD, devolver un mensaje de error.
         std::cout << "Error: GPU no compatible." << std::endl;
         return "";
     }
@@ -94,7 +94,7 @@ void guardarArchivoReg(const std::string& contenido) {
     if (regFile.is_open()) {
         regFile << contenido;
         regFile.close();
-        std::cout << u8"Archivo .reg creado con éxito!" << std::endl;
+        std::cout << u8"Archivo .reg creado con Ã©xito!" << std::endl;
     }
     else {
         std::cout << u8"Error: No se pudo crear el archivo .reg." << std::endl;

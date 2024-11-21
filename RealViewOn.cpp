@@ -14,19 +14,19 @@ std::string version;
 void configurarConsola();
 
 
-// Definición de funciones
+// DefiniciÃ³n de funciones
 
 void configurarConsola() {
     system("color 17"); // Azul
     SetConsoleOutputCP(CP_UTF8);//soporte para UTF-8
 }
 
-// Función principal
+// FunciÃ³n principal
 int main() {
     configurarConsola();
 
     std::cout << u8"RealView Cracker V0.3 by RF47\n";
-    std::cout << u8"Ingrese la versión de SolidWorks instalada (e.g., 2022): ";
+    std::cout << u8"Ingrese la versiÃ³n de SolidWorks instalada (e.g., 2022): ";
     std::cin >> version;
 
     // Primero buscar en la ruta principal
