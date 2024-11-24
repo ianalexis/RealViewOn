@@ -30,70 +30,19 @@ void configurarConsola() {
     SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
 }
 
-// Función principal
-int main() {
-    configurarConsola();
-    cout << "RealView Cracker V0.3 by RF47\n";
-    SolidWorks sw = SolidWorks();
-
-    try {
-        versionesInstaladas = sw.obtenerVersionesInstaladas();
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        cerrar();
+bool checkEscape() {
+    if (_kbhit()) {
+        int ch = _getch();
+        if (ch == 27) { // 27 es el código ASCII para la tecla Escape
+            cout << "Saliendo del programa..." << std::endl;
+            Sleep(1000);
+            return true;
+        }
     }
-    
-
-    cout << "Ingrese el año de versión de SolidWorks instalada (e.g.,2023, 2024 o 0 para salir): ";
-    cin >> swVersion;
-    if (swVersion <= 0) {
-        cout << "Cerrando..." << std::endl;
-        Sleep(250); // Esperar 0.25 segundos
-        return 0;
-    }
-
-    try{
-       // Verificar si la versión de SolidWorks está instalada o si se desea continuar con una instalación forzada genérica.
-       if (!versionInstalada(swVersion)) {
-           cout << "Error: La versión de SolidWorks no está instalada." << std::endl;
-           cout << "Desea continuar con una instalacion forzada genérica? (Y/N): ";
-           char opcion;
-           cin >> opcion;
-           if (opcion == 'y' || opcion == 'Y') {
-               cout << "Continuando en modo genérico..." << std::endl;
-               sw.setGenerico(true);
-           } else {
-               cout << "Instalación cancelada." << std::endl;
-               Sleep(1000); // Esperar 1 segundo
-               return 1;
-           }
-       }
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        cerrar();
-    }
-
-
-    try{
-        sw.setVersion(swVersion);
-        string renderer = sw.obtenerRenderer();
-        GPU gpu = GPU(renderer);
-        guardarArchivoReg(gpu.completarContenidoReg(sw.obtenerRegBase()));
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        cerrar();
-    }
-
-
-    // Pausar antes de salir
-    cin.ignore();
-    cout << "Presione enter para salir..." << std::endl;
-    cin.get();
-    return 0;
+    return false;
 }
-
 // Valida que la version esté en el listado de versiones instaladas
-bool versionInstalada (int v){
+bool versionInstalada(int v) {
     for (int i = 0; i < versionesInstaladas.size(); i++) {
         if (versionesInstaladas[i].first == v) {
             return true;
@@ -119,7 +68,77 @@ void guardarArchivoReg(const string& contenido) {
 void cerrar() {
     for (int i = 10; i > 0; --i) {
         cout << "Cerrando en " << i << "s..." << std::endl;
-        Sleep(1000); // Esperar 1 segundo
+        Sleep(500); // Esperar 0,5 segundo
     }
     exit(1);
 }
+
+// Función principal
+int main() {
+    configurarConsola();
+    cout << "RealView Cracker V0.3 by RF47\n";
+    SolidWorks sw = SolidWorks();
+
+    try {
+        versionesInstaladas = sw.obtenerVersionesInstaladas();
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        cerrar();
+    }
+
+    while (true) {
+        cout << "Ingrese el año de versión de SolidWorks instalada (e.g.,2023, 2024 o ESC. para salir): ";
+
+        while (true) {
+            if (checkEscape()) return 0;
+            if (_kbhit()) {
+                cin >> swVersion;
+                break;
+            }
+        }
+
+        try {
+            // Verificar si la versión de SolidWorks está instalada o si se desea continuar con una instalación forzada genérica.
+            if (!versionInstalada(swVersion)) {
+                cout << "Error: La versión de SolidWorks no está instalada." << std::endl;
+                cout << "Desea continuar con una instalacion forzada genérica? (Y/N): ";
+                char opcion;
+                while (true) {
+                    if (checkEscape()) return 0;
+                    if (_kbhit()) {
+                        cin >> opcion;
+                        break;
+                    }
+                }
+                if (opcion == 'y' || opcion == 'Y') {
+                    cout << "Continuando en modo genérico..." << std::endl;
+                    sw.setGenerico(true);
+                }
+                else {
+                    cout << "Instalación cancelada." << std::endl;
+                    Sleep(1000);
+                    continue;  // Vuelve al inicio del bucle principal
+                }
+            }
+
+            sw.setVersion(swVersion);
+            string renderer = sw.obtenerRenderer();
+            GPU gpu = GPU(renderer);
+            guardarArchivoReg(gpu.completarContenidoReg(sw.obtenerRegBase()));
+
+            cout << "Presione enter para continuar o Escape para salir..." << std::endl;
+            while (true) {
+                if (checkEscape()) return 0;
+                if (_kbhit() && _getch() == '\r') break;
+            }
+        }
+        catch (const std::exception& e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+            cerrar();
+        }
+    }
+
+    return 0;
+}
+
