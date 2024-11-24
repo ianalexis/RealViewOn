@@ -4,8 +4,11 @@
 #include <map>
 #include <vector>
 
+using std::string;
+
+
 // Constructor
-GPU::GPU(std::string r) {
+GPU::GPU(string r) {
     renderer = r;
     setBrand();
 }
@@ -13,14 +16,14 @@ GPU::GPU(std::string r) {
 // Setea el fabricante de la GPU si el renderer contiene alguna palabra clave.
 void GPU::setBrand() {
     for (const auto& pair : rendererMap) {
-        if (renderer.find(pair.first) != std::string::npos) {
+        if (renderer.find(pair.first) != string::npos) {
             brand = pair.second;
             break;
         }
     }
 }
 
-std::string GPU::completarContenidoReg(const std::vector<std::string>& regBase) {
+string GPU::completarContenidoReg(const std::vector<string>& regBase) {
     regFull = "";
     switch (brand) {
     case Brand::NVIDIA:
@@ -37,7 +40,8 @@ std::string GPU::completarContenidoReg(const std::vector<std::string>& regBase) 
 }
 
 // Completa el contenido del archivo .reg para GPUs NVIDIA.
-std::string GPU::completarContenidoRegNVIDIA(const std::vector<std::string>& regBase) {
+
+string GPU::completarContenidoRegNVIDIA(const std::vector<string>& regBase) {
     for (const auto& reg : regBase) {
         regFull.append(reg + "\\NVIDIA Corporation\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKey + "\n");
         regFull.append(reg + "\\Gl2Shaders\\NV40\\" + renderer + "]\n\"Workarounds\"=dword:" + glKey + "\n");
@@ -46,7 +50,8 @@ std::string GPU::completarContenidoRegNVIDIA(const std::vector<std::string>& reg
 }
 
 // Completa el contenido del archivo .reg para GPUs AMD.
-std::string GPU::completarContenidoRegAMD(const std::vector<std::string>& regBase) {
+
+string GPU::completarContenidoRegAMD(const std::vector<string>& regBase) {
     for (const auto& reg : regBase) {
         regFull.append(reg + "\\ATI Technologies Inc.\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKey + "\n");
         regFull.append(reg + "\\Gl2Shaders\\RV900\\" + renderer + "]\n\"Workarounds\"=dword:" + glKey + "\n"); //TODO: Segun https://github.com/TrevorAvrett/SolidWorks-RealView-Enabler/blob/master/Source%20Code%20(c%23) es R420
@@ -55,7 +60,8 @@ std::string GPU::completarContenidoRegAMD(const std::vector<std::string>& regBas
 }
 
 // Completa el contenido del archivo .reg en modo genérico (INTEL). TODO: Revisar con placas raras?
-std::string GPU::completarContenidoRegGenerico(const std::vector<std::string>& regBase) {
+
+string GPU::completarContenidoRegGenerico(const std::vector<string>& regBase) {
     for (const auto& reg : regBase) {
         regFull.append(reg + "\\Intel\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKey + "\n");
         regFull.append(reg + "\\Gl2Shaders\\Other\\" + renderer + "]\n\"Workarounds\"=dword:" + glKey + "\n");

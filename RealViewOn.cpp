@@ -6,9 +6,13 @@
 #include "GPU.h"
 #include <conio.h> //TODO: Revisar para salir con escape en cualquier momento.
 
+using std::cin;
+using std::cout;
+using std::string;
+
 // Prototipos de funciones
 bool versionInstalada(int v);
-void guardarArchivoReg(const std::string& contenido);
+void guardarArchivoReg(const string& contenido);
 void cerrar();
 
 
@@ -29,7 +33,7 @@ void configurarConsola() {
 // Función principal
 int main() {
     configurarConsola();
-    std::cout << "RealView Cracker V0.3 by RF47\n";
+    cout << "RealView Cracker V0.3 by RF47\n";
     SolidWorks sw = SolidWorks();
 
     try {
@@ -40,10 +44,10 @@ int main() {
     }
     
 
-    std::cout << "Ingrese el año de versión de SolidWorks instalada (e.g.,2023, 2024 o 0 para salir): ";
-    std::cin >> swVersion;
+    cout << "Ingrese el año de versión de SolidWorks instalada (e.g.,2023, 2024 o 0 para salir): ";
+    cin >> swVersion;
     if (swVersion <= 0) {
-        std::cout << "Cerrando..." << std::endl;
+        cout << "Cerrando..." << std::endl;
         Sleep(250); // Esperar 0.25 segundos
         return 0;
     }
@@ -51,15 +55,15 @@ int main() {
     try{
        // Verificar si la versión de SolidWorks está instalada o si se desea continuar con una instalación forzada genérica.
        if (!versionInstalada(swVersion)) {
-           std::cout << "Error: La versión de SolidWorks no está instalada." << std::endl;
-           std::cout << "Desea continuar con una instalacion forzada genérica? (Y/N): ";
+           cout << "Error: La versión de SolidWorks no está instalada." << std::endl;
+           cout << "Desea continuar con una instalacion forzada genérica? (Y/N): ";
            char opcion;
-           std::cin >> opcion;
+           cin >> opcion;
            if (opcion == 'y' || opcion == 'Y') {
-               std::cout << "Continuando en modo genérico..." << std::endl;
+               cout << "Continuando en modo genérico..." << std::endl;
                sw.setGenerico(true);
            } else {
-               std::cout << "Instalación cancelada." << std::endl;
+               cout << "Instalación cancelada." << std::endl;
                Sleep(1000); // Esperar 1 segundo
                return 1;
            }
@@ -72,7 +76,7 @@ int main() {
 
     try{
         sw.setVersion(swVersion);
-        std::string renderer = sw.obtenerRenderer();
+        string renderer = sw.obtenerRenderer();
         GPU gpu = GPU(renderer);
         guardarArchivoReg(gpu.completarContenidoReg(sw.obtenerRegBase()));
     } catch (const std::exception& e) {
@@ -82,9 +86,9 @@ int main() {
 
 
     // Pausar antes de salir
-    std::cin.ignore();
-    std::cout << "Presione enter para salir..." << std::endl;
-    std::cin.get();
+    cin.ignore();
+    cout << "Presione enter para salir..." << std::endl;
+    cin.get();
     return 0;
 }
 
@@ -99,22 +103,22 @@ bool versionInstalada (int v){
 }
 
 //Guarda el contenido generado en un archivo .reg y maneja posibles errores.
-void guardarArchivoReg(const std::string& contenido) {
+void guardarArchivoReg(const string& contenido) {
     std::ofstream regFile("RealViewEnabler.reg");
     if (regFile.is_open()) {
         regFile << contenido;
         regFile.close();
-        std::cout << "Archivo .reg creado con éxito!" << std::endl;
+        cout << "Archivo .reg creado con éxito!" << std::endl;
     }
     else {
-        std::cout << "Error: No se pudo crear el archivo .reg." << std::endl;
+        cout << "Error: No se pudo crear el archivo .reg." << std::endl;
     }
 }
 
 //Cuenta regresiva de cerrado
 void cerrar() {
     for (int i = 10; i > 0; --i) {
-        std::cout << "Cerrando en " << i << "s..." << std::endl;
+        cout << "Cerrando en " << i << "s..." << std::endl;
         Sleep(1000); // Esperar 1 segundo
     }
     exit(1);
