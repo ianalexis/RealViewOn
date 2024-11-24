@@ -130,7 +130,7 @@ int main() {
                 }
             }
             else {
-                cout << "No se ingresó ninguna versión. Intente nuevamente.\n";
+                cout << "No se ingresó ninguna versión valida. Intente nuevamente.\n";
             }
         }
 
@@ -139,7 +139,7 @@ int main() {
             // Verificar si la versión de SolidWorks está instalada o si se desea continuar con una instalación forzada genérica.
             if (!versionInstalada(swVersion)) {
                 cout << "Error: La versión de SolidWorks no está instalada." << std::endl;
-                cout << "Desea continuar con una instalacion forzada genérica? (Y/N): ";
+                cout << "Desea continuar con una instalacion en modo compatibilidad? (Y/N): ";
                 char opcion;
                 while (true) {
                     if (checkEscape()) return 0;
@@ -149,7 +149,7 @@ int main() {
                     }
                 }
                 if (opcion == 'y' || opcion == 'Y') {
-                    cout << "Continuando en modo genérico..." << std::endl;
+                    cout << "Continuando en modo compatibilidad..." << std::endl;
                     sw.setGenerico(true);
                 }
                 else {
