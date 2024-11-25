@@ -30,15 +30,46 @@ void configurarConsola() {
     SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
 }
 
-bool checkEscape() {
-    if (_kbhit()) {
-        int ch = _getch(); // Captura tecla presionada
-        if (ch == 27) {    // Código ASCII para Escape
-            return true;   // Indica que Escape fue presionado
+// Funcion que lee por teclado la cantidad de caracteres recibidas y chequea que no sea la tecla escape. En caso de ser escape hace EXIT.
+string entradaTeclado(int caracteres) {
+    string entrada = "";
+    while (entrada.length() < caracteres) {
+        // Detectar Escape
+        if (_kbhit()) {
+            char ch = _getch();
+
+            if (ch == 27) { // Escape presionado
+                cout << "\nSaliendo del programa...\n";
+                exit(0);
+            }
+            else if (ch == '\r') { // Enter presionado
+                cout << "\n";
+                 // Terminar la entrada
+                            }
+            else if (isdigit(ch) || isalpha(ch)) { // Agregar dígitos y letras válidos
+                entrada += ch;
+                cout << ch; // Mostrarlo en pantalla
+            }
+            else if (ch == '\b' && !entrada.empty()) { // Retroceso
+                entrada.pop_back();
+                cout << "\b \b"; // Borrar en pantalla
+            }
         }
+        Sleep(50); // Pausa breve para evitar saturar el CPU
     }
-    return false; // No se presionó Escape
+    cout << "\n";
+    return entrada;
 }
+
+//bool checkEscape() {
+//    if (_kbhit()) {
+//        int ch = _getch(); // Captura tecla presionada
+//        if (ch == 27) {    // Código ASCII para Escape
+//            return true;   // Indica que Escape fue presionado
+//        }
+//    }
+//    return false; // No se presionó Escape
+//}
 
 // Valida que la version esté en el listado de versiones instaladas
 bool versionInstalada(int v) {
@@ -86,40 +117,15 @@ int main() {
         cerrar();
     }
 
+    //While para que el programa reinicie si no se presiona escape.
     while (true) {
         
+        // 
         while (true) {
             cout << "\nIngrese el año de versión de SolidWorks instalada (e.g., 2023, 2024) o presione ESC para salir: ";
-
-            string entrada;
-            while (true) {
-                // Detectar Escape
-                if (_kbhit()) {
-                    char ch = _getch();
-
-                    if (ch == 27) { // Escape presionado
-                        cout << "\nSaliendo del programa...\n";
-                        return 0;
-                    }
-                    else if (ch == '\r') { // Enter presionado
-                        cout << "\n";
-                        break; // Terminar la entrada
-                    }
-                    else if (isdigit(ch)) { // Agregar dígitos válidos
-                        entrada += ch;
-                        cout << ch; // Mostrarlo en pantalla
-                    }
-                    else if (ch == '\b' && !entrada.empty()) { // Retroceso
-                        entrada.pop_back();
-                        cout << "\b \b"; // Borrar en pantalla
-                    }
-                }
-
-                Sleep(50); // Pausa breve para evitar saturar el CPU
-            }
-
+            string entrada = entradaTeclado(4);
             // Validar entrada
-            if (!entrada.empty()) {
+            if (!entrada.empty()) { // TODO: Puede ser que no haga falta.
                 try {
                     swVersion = std::stoi(entrada);
                     cout << "Procesando la versión: " << swVersion << std::endl;
@@ -128,9 +134,8 @@ int main() {
                 catch (const std::exception&) {
                     cout << "Entrada inválida. Intente nuevamente.\n";
                 }
-            }
-            else {
-                cout << "No se ingresó ninguna versión valida. Intente nuevamente.\n";
+            } else {
+                cout << "Version de SolidWorks vacía. Intente nuevamente.\n";
             }
         }
 
@@ -140,19 +145,11 @@ int main() {
             if (!versionInstalada(swVersion)) {
                 cout << "Error: La versión de SolidWorks no está instalada." << std::endl;
                 cout << "Desea continuar con una instalacion en modo compatibilidad? (Y/N): ";
-                char opcion;
-                while (true) {
-                    if (checkEscape()) return 0;
-                    if (_kbhit()) {
-                        cin >> opcion;
-                        break;
-                    }
-                }
+                char opcion = entradaTeclado(1).at(0);
                 if (opcion == 'y' || opcion == 'Y') {
                     cout << "Continuando en modo compatibilidad..." << std::endl;
                     sw.setGenerico(true);
-                }
-                else {
+                } else {
                     cout << "Instalación cancelada." << std::endl;
                     Sleep(1000);
                     continue;  // Vuelve al inicio del bucle principal
@@ -165,17 +162,13 @@ int main() {
             guardarArchivoReg(gpu.completarContenidoReg(sw.obtenerRegBase()));
 
             cout << "Presione enter para continuar o Escape para salir..." << std::endl;
-            while (true) {
-                if (checkEscape()) return 0;
-                if (_kbhit() && _getch() == '\r') break;
-            }
+            entradaTeclado(1);
         }
         catch (const std::exception& e) {
             std::cerr << "Error: " << e.what() << std::endl;
             cerrar();
         }
     }
-
     return 0;
 }
 
