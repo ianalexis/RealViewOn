@@ -4,17 +4,11 @@
 #include <string>
 #include "SolidWorks.h"
 #include "GPU.h"
-#include <conio.h> //TODO: Revisar para salir con escape en cualquier momento.
+#include <conio.h>
 
 using std::cin;
 using std::cout;
 using std::string;
-
-// Prototipos de funciones
-bool versionInstalada(int v);
-void guardarArchivoReg(const string& contenido);
-void cerrar();
-
 
 // Variables globales
 int swVersion;
@@ -42,10 +36,10 @@ string entradaTeclado(int caracteres) {
                 cout << "\nSaliendo del programa...\n";
                 exit(0);
             }
-            else if (ch == '\r') { // Enter presionado
-                cout << "\n";
-                 // Terminar la entrada
-                            }
+            //else if (ch == '\r') { // Enter presionpado
+            //    //cout << "\n";
+            //     // Terminar la entrada
+            //                }
             else if (isdigit(ch) || isalpha(ch)) { // Agregar dígitos y letras válidos
                 entrada += ch;
                 cout << ch; // Mostrarlo en pantalla
@@ -61,16 +55,6 @@ string entradaTeclado(int caracteres) {
     return entrada;
 }
 
-//bool checkEscape() {
-//    if (_kbhit()) {
-//        int ch = _getch(); // Captura tecla presionada
-//        if (ch == 27) {    // Código ASCII para Escape
-//            return true;   // Indica que Escape fue presionado
-//        }
-//    }
-//    return false; // No se presionó Escape
-//}
-
 // Valida que la version esté en el listado de versiones instaladas
 bool versionInstalada(int v) {
     for (int i = 0; i < versionesInstaladas.size(); i++) {
@@ -82,8 +66,8 @@ bool versionInstalada(int v) {
 }
 
 //Guarda el contenido generado en un archivo .reg y maneja posibles errores.
-void guardarArchivoReg(const string& contenido) {
-    std::ofstream regFile("RealViewEnabler.reg");
+void guardarArchivoReg(int& version, const string& contenido) {
+    std::ofstream regFile("RealViewEnable" + std::to_string(version) + ".reg");
     if (regFile.is_open()) {
         regFile << contenido;
         regFile.close();
@@ -125,20 +109,18 @@ int main() {
             cout << "\nIngrese el año de versión de SolidWorks instalada (e.g., 2023, 2024) o presione ESC para salir: ";
             string entrada = entradaTeclado(4);
             // Validar entrada
-            if (!entrada.empty()) { // TODO: Puede ser que no haga falta.
-                try {
-                    swVersion = std::stoi(entrada);
-                    cout << "Procesando la versión: " << swVersion << std::endl;
-                    break; // Salir del bucle principal si todo es correcto
+            try {
+                swVersion = std::stoi(entrada);
+                if (!sw.esCompatible(swVersion)) {
+                    throw std::invalid_argument("Versión inválida");
                 }
-                catch (const std::exception&) {
-                    cout << "Entrada inválida. Intente nuevamente.\n";
-                }
-            } else {
-                cout << "Version de SolidWorks vacía. Intente nuevamente.\n";
+                cout << "Procesando la versión: " << swVersion << std::endl;
+                break; // Salir del bucle principal si todo es correcto
+            }
+            catch (const std::exception& e) {
+                cout << "Error: " << e.what() << ". Intente nuevamente." << std::endl;
             }
         }
-
 
         try {
             // Verificar si la versión de SolidWorks está instalada o si se desea continuar con una instalación forzada genérica.
@@ -159,10 +141,8 @@ int main() {
             sw.setVersion(swVersion);
             string renderer = sw.obtenerRenderer();
             GPU gpu = GPU(renderer);
-            guardarArchivoReg(gpu.completarContenidoReg(sw.obtenerRegBase()));
-
-            cout << "Presione enter para continuar o Escape para salir..." << std::endl;
-            entradaTeclado(1);
+            guardarArchivoReg(swVersion, gpu.completarContenidoReg(sw.obtenerRegBase()));
+            cout << "Finalizado..." << std::endl;
         }
         catch (const std::exception& e) {
             std::cerr << "Error: " << e.what() << std::endl;
