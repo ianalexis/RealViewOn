@@ -80,6 +80,7 @@ int main() {
             string entrada = entradaTeclado(4);
             // Validar entrada
             try {
+                sw.setGenerico(false);
                 swVersion = std::stoi(entrada);
                 if (!sw.esCompatible(swVersion)) {
                     throw std::invalid_argument("Versión inválida");
