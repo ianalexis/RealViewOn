@@ -4,6 +4,7 @@
 #include <Windows.h>
 #include <vector>
 #include <string>
+#include "teclado.h"
 
 
 using std::cin;
@@ -30,9 +31,7 @@ void SolidWorks::setVersion(int v) {
     if (!compatible) {
         cout << "La versión de SolidWorks no es compatible.";
         cout << "¿Desea continuar en modo genérico o cancelar la instalación? (Y/N): ";
-        char opcion;
-        cin >> opcion;
-        if (opcion == 'y' || opcion == 'Y') {
+        if (yesOrNo()) {
             cout << "Continuando en modo genérico..." << std::endl;
         } else {
             cout << "Instalación cancelada." << std::endl;
@@ -74,16 +73,17 @@ std::vector<std::pair<int, bool>> SolidWorks::obtenerVersionesInstaladas() {
 }
 
 string SolidWorks::obtenerRenderer() {
+    renderer.clear();
     if (swVersion >= vCambioRaiz || generico) {
-        cout << "Probando con SW >= " << vCambioRaiz << " (renderer en carpeta raiz)" << std::endl; //TODO: Borrar
+        cout << "Probando con SW >= " << vCambioRaiz << " (renderer en carpeta raiz)" << std::endl;
         renderer = obtenerRenderRaiz();
     } 
-    if (swVersion < vCambioRaiz || generico || renderer.empty()) {
-        cout << "Probando con SW < " << vCambioRaiz << " (renderer en carpeta de version)" << std::endl; //TODO: Borrar
+    if (renderer.empty() && (swVersion < vCambioRaiz || generico)) {
+        cout << "Probando con SW < " << vCambioRaiz << " (renderer en carpeta de version)" << std::endl;
         renderer = obtenerRendererAno();
     }
     if (renderer.empty()) {
-        cout << "Probando con modo genérico (renderer en todo el registro)" << std::endl; //TODO: Borrar
+        cout << "Probando con modo genérico (renderer en todo el registro)" << std::endl;
         renderer = obtenerRendererGenerico();
     }
     if (renderer.empty()) {
@@ -103,11 +103,11 @@ string SolidWorks::obtenerRenderRaiz() {
         if (RegQueryValueEx(hKey, L"renderer", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
             int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, &value[0], (int)wcslen(value), NULL, 0, NULL, NULL);
             renderer = string(sizeNeeded, 0);
-            cout << "Renderer encontrado en carpeta raiz: " << renderer << std::endl; // TODO: Borrar
             WideCharToMultiByte(CP_UTF8, 0, &value[0], (int)wcslen(value), &renderer[0], sizeNeeded, NULL, NULL);
         }
         RegCloseKey(hKey);
     }
+    cout << "Renderer encontrado en carpeta raiz: " << renderer << std::endl;
     return renderer;
 }
 
@@ -121,11 +121,11 @@ string SolidWorks::obtenerRendererAno() {
         if (RegQueryValueEx(hKey, L"renderer", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
             int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, &value[0], (int)wcslen(value), NULL, 0, NULL, NULL);
             renderer = string(sizeNeeded, 0);
-            cout << "Renderer encontrado en carpeta de version: " << renderer << std::endl; // TODO: Borrar
             WideCharToMultiByte(CP_UTF8, 0, &value[0], (int)wcslen(value), &renderer[0], sizeNeeded, NULL, NULL);
         }
         RegCloseKey(hKey);
     }
+    cout << "Renderer encontrado en carpeta de version: " << renderer << std::endl;
     return renderer;
 }
 
@@ -138,10 +138,10 @@ string SolidWorks::obtenerRendererGenerico() { // TODO: Implementar una busqueda
 // Obtiene la ruta base del registro para enviarle al completador de contenido de la GPU.
 std::vector<std::string> SolidWorks::obtenerRegBase(){
     regBase.clear();
-    if (swVersion >= 2022 || generico) {
+    if (swVersion >= vCambioRaiz || generico) {
         regBase.push_back(obtenerRegBaseRaiz());
     } 
-    if (swVersion < 2022 || generico) {
+    if (swVersion < vCambioRaiz || generico) {
         regBase.push_back(obtenerRegBaseAno());
     } 
     return regBase;

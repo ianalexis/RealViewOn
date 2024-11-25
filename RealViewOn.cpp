@@ -5,6 +5,7 @@
 #include "SolidWorks.h"
 #include "GPU.h"
 #include <conio.h>
+#include "teclado.h"
 
 using std::cin;
 using std::cout;
@@ -24,37 +25,6 @@ void configurarConsola() {
     SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
 }
 
-// Funcion que lee por teclado la cantidad de caracteres recibidas y chequea que no sea la tecla escape. En caso de ser escape hace EXIT.
-string entradaTeclado(int caracteres) {
-    string entrada = "";
-    while (entrada.length() < caracteres) {
-        // Detectar Escape
-        if (_kbhit()) {
-            char ch = _getch();
-
-            if (ch == 27) { // Escape presionado
-                cout << "\nSaliendo del programa...\n";
-                exit(0);
-            }
-            //else if (ch == '\r') { // Enter presionpado
-            //    //cout << "\n";
-            //     // Terminar la entrada
-            //                }
-            else if (isdigit(ch) || isalpha(ch)) { // Agregar dígitos y letras válidos
-                entrada += ch;
-                cout << ch; // Mostrarlo en pantalla
-            }
-            else if (ch == '\b' && !entrada.empty()) { // Retroceso
-                entrada.pop_back();
-                cout << "\b \b"; // Borrar en pantalla
-            }
-        }
-        Sleep(50); // Pausa breve para evitar saturar el CPU
-    }
-    cout << "\n";
-    return entrada;
-}
-
 // Valida que la version esté en el listado de versiones instaladas
 bool versionInstalada(int v) {
     for (int i = 0; i < versionesInstaladas.size(); i++) {
@@ -71,10 +41,10 @@ void guardarArchivoReg(int& version, const string& contenido) {
     if (regFile.is_open()) {
         regFile << contenido;
         regFile.close();
-        cout << "Archivo .reg creado con éxito!" << std::endl;
+        cout << "Archivo " << "RealViewEnable" + std::to_string(version) + ".reg creado exitosamente." << std::endl;
     }
     else {
-        cout << "Error: No se pudo crear el archivo .reg." << std::endl;
+        throw std::runtime_error("No se pudo crear el archivo .reg.");
     }
 }
 
@@ -98,7 +68,7 @@ int main() {
     }
     catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
-        cerrar();
+        cerrar(); // TODO: modificar para que reinicie la ejecución del programa.
     }
 
     //While para que el programa reinicie si no se presiona escape.
@@ -127,8 +97,7 @@ int main() {
             if (!versionInstalada(swVersion)) {
                 cout << "Error: La versión de SolidWorks no está instalada." << std::endl;
                 cout << "Desea continuar con una instalacion en modo compatibilidad? (Y/N): ";
-                char opcion = entradaTeclado(1).at(0);
-                if (opcion == 'y' || opcion == 'Y') {
+                if (yesOrNo()) {
                     cout << "Continuando en modo compatibilidad..." << std::endl;
                     sw.setGenerico(true);
                 } else {
@@ -146,7 +115,6 @@ int main() {
         }
         catch (const std::exception& e) {
             std::cerr << "Error: " << e.what() << std::endl;
-            cerrar();
         }
     }
     return 0;
