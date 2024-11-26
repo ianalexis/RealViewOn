@@ -26,17 +26,14 @@ int SolidWorks::obtenerAnoActual() {
 
 // Configura la versión de SolidWorks.
 void SolidWorks::setVersion(int v) {
+    setGenerico(false);
+    if (!esCompatible(v)) {
+        throw std::runtime_error("La versión de SolidWorks no es compatible.");
+    }
     swVersion = v;
-    compatible = esCompatible(v);
-    instalada = versionInstalada(v);
     // Verificar si la versión de SolidWorks está instalada o si se desea continuar con una instalación forzada genérica.
-    if (!instalada || !compatible) {
-        if (!instalada) {
-            cout << "Error: La versión de SolidWorks no está instalada." << std::endl;
-        }
-        if (!compatible) {
-            cout << "La versión de SolidWorks no es compatible." << std::endl;
-        }
+    if (!versionInstalada(v)) {
+        cout << "Error: La versión de SolidWorks no está instalada." << std::endl;
         cout << "¿Desea continuar en modo genérico o cancelar la instalación? (Y/N): ";
         if (yesOrNo()) {
             cout << "Continuando en modo genérico..." << std::endl;
@@ -47,11 +44,8 @@ void SolidWorks::setVersion(int v) {
     }
 }
 
-
-
 // Comprueba si una versión es compatible.
 bool SolidWorks::esCompatible(int v) {
-    setGenerico(false);
     return (v >= vMin && v <= vMax);
 }
 
@@ -65,6 +59,7 @@ void SolidWorks::setGenerico(bool g) {
 void SolidWorks::obtenerVersionesInstaladas() {
     versiones.clear();
     cout << "Versiones disponibles - Compatibilidad" << std::endl;
+    bool compatible;
     for (int i = vMin; i <= anoActual; i++) {
         string versionKey = string(swRegRuta.begin(), swRegRuta.end()) + std::to_string(i);
         HKEY hKey;
@@ -140,8 +135,8 @@ string SolidWorks::obtenerRendererAno() {
 
 // Busca render en todo el registro (modo generico)
 string SolidWorks::obtenerRendererGenerico() { // TODO: Implementar una busqueda por todo el registro de solidworks.
-    HKEY hKey;
-    return "";
+    //HKEY hKey;
+    return "INSERT GPU NAME HERE";
 }
 
 // Obtiene la ruta base del registro para enviarle al completador de contenido de la GPU.
@@ -164,7 +159,7 @@ string SolidWorks::obtenerRegBaseAno(){
     return "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\SOLIDWORKS " + std::to_string(swVersion) + "\\Performance\\Graphics\\Hardware\\";
 }
 
-// Valida que la version esté en el listado de versiones instaladas TODO: PASAR A CLASE SOLIDWORKS
+// Valida que la version esté en el listado de versiones instaladas
 bool SolidWorks::versionInstalada(int v) {
     if (versiones.empty()) {
         obtenerVersionesInstaladas();

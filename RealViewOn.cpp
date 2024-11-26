@@ -6,6 +6,7 @@
 #include "GPU.h"
 #include <conio.h>
 #include "teclado.h"
+#include "Registro.h"
 
 using std::cin;
 using std::cout;
@@ -24,27 +25,6 @@ void configurarConsola() {
     SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
 }
 
-//Guarda el contenido generado en un archivo .reg y maneja posibles errores.
-void guardarArchivoReg(int& version, const string& contenido) {
-    std::ofstream regFile("RealViewEnable" + std::to_string(version) + ".reg");
-    if (regFile.is_open()) {
-        regFile << contenido;
-        regFile.close();
-        cout << "Archivo " << "RealViewEnable" + std::to_string(version) + ".reg creado exitosamente." << std::endl;
-    }
-    else {
-        throw std::runtime_error("No se pudo crear el archivo .reg.");
-    }
-}
-
-//Cuenta regresiva de CERRADO TODO: Deprecar
-void cerrar() {
-    for (int i = 3; i > 0; --i) {
-        cout << "Cerrando en " << i << "s..." << std::endl;
-        Sleep(500); // Esperar 0,5 segundo
-    }
-    exit(1);
-}
 
 // Función principal
 int main() {
@@ -57,13 +37,14 @@ int main() {
     }
     catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
-        cerrar(); // TODO: modificar para que reinicie la ejecución del programa.
+        cout << "Presione cualquier tecla para salir..." << std::endl;
+        _getch();
+        return 1;
     }
 
-    //While para que el programa reinicie si no se presiona escape.
+    //While para que el programa reinicie si se desea probar otra versión.
     while (true) {
-        
-        // 
+        // Bucle principal para solicitar la versión de SolidWorks
         while (true) {
             cout << "\nIngrese el año de versión de SolidWorks instalada (e.g., 2023, 2024) o presione ESC para salir: ";
             string entrada = entradaTeclado(4);
@@ -80,11 +61,9 @@ int main() {
                 cout << "Error: " << e.what() << ". Intente nuevamente." << std::endl;
             }
         }
-
         try {
             sw.setVersion(swVersion);
-            string renderer = sw.obtenerRenderer();
-            GPU gpu = GPU(renderer);
+            GPU gpu = GPU(sw.obtenerRenderer());
             guardarArchivoReg(swVersion, gpu.completarContenidoReg(sw.obtenerRegBase()));
             cout << "Finalizado..." << std::endl;
         }

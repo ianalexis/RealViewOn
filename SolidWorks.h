@@ -28,8 +28,6 @@ private:
     std::wstring swRegRuta = L"SOFTWARE\\SolidWorks\\SOLIDWORKS ";
     int swVersion = 0;
     std::vector<std::pair<int, bool>> versiones;
-    bool compatible = false;
-    bool instalada = false;
     bool generico = false;
     std::string renderer;
     std::vector<std::string> regBase;

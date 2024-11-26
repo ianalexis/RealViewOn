@@ -7,10 +7,10 @@ class GPU
 {
 public:
     GPU(std::string renderer); // Constructor
-    std::string completarContenidoReg(const std::vector<std::string>& regBase);
-    std::string completarContenidoRegNVIDIA(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg para GPUs NVIDIA.
-    std::string completarContenidoRegAMD(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg para GPUs AMD.
-    std::string completarContenidoRegGenerico(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg en modo genérico.
+    std::vector<std::string> completarContenidoReg(const std::vector<std::string>& regBase);
+    std::vector<std::string> completarContenidoRegNVIDIA(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg para GPUs NVIDIA.
+    std::vector<std::string> completarContenidoRegAMD(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg para GPUs AMD.
+    std::vector<std::string> completarContenidoRegGenerico(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg en modo genérico.
     void setBrand(); // Declarar setBrand
 
 private:
@@ -24,7 +24,7 @@ private:
     std::string renderer;
     std::string brandKey = "40000"; // TODO: PROBAR SI EL VALOR NO CAMBIA POR VERSION DE SW O GPU.
     std::string glKey = "70408"; //TODO: PROBAR SI EL VALOR NO CAMBIA POR VERSION DE SW O GPU.
-    std::string regFull;
+    std::vector<std::string> regFull;
 
     // Mapeo de palabras clave a marcas de GPU
     std::map<std::string, Brand> rendererMap = {

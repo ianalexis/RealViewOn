@@ -5,7 +5,7 @@
 #include <vector>
 
 using std::string;
-
+using std::vector;
 
 // Constructor
 GPU::GPU(string r) {
@@ -23,8 +23,8 @@ void GPU::setBrand() {
     }
 }
 
-string GPU::completarContenidoReg(const std::vector<string>& regBase) {
-    regFull = "";
+vector<string> GPU::completarContenidoReg(const vector<string>& regBase) {
+    regFull.clear();
     switch (brand) {
     case Brand::NVIDIA:
         regFull = completarContenidoRegNVIDIA(regBase);
@@ -41,30 +41,32 @@ string GPU::completarContenidoReg(const std::vector<string>& regBase) {
 
 // Completa el contenido del archivo .reg para GPUs NVIDIA.
 
-string GPU::completarContenidoRegNVIDIA(const std::vector<string>& regBase) {
+vector<string> GPU::completarContenidoRegNVIDIA(const vector<string>& regBase) {
+    vector<string> result;
     for (const auto& reg : regBase) {
-        regFull.append(reg + "\\NVIDIA Corporation\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKey + "\n");
-        regFull.append(reg + "\\Gl2Shaders\\NV40\\" + renderer + "]\n\"Workarounds\"=dword:" + glKey + "\n");
+        result.push_back(reg + "\\NVIDIA Corporation\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKey);
+        result.push_back(reg + "\\Gl2Shaders\\NV40\\" + renderer + "]\n\"Workarounds\"=dword:" + glKey);
     }
-    return regFull;
+    return result;
 }
 
 // Completa el contenido del archivo .reg para GPUs AMD.
 
-string GPU::completarContenidoRegAMD(const std::vector<string>& regBase) {
+vector<string> GPU::completarContenidoRegAMD(const vector<string>& regBase) {
+    vector<string> result;
     for (const auto& reg : regBase) {
-        regFull.append(reg + "\\ATI Technologies Inc.\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKey + "\n");
-        regFull.append(reg + "\\Gl2Shaders\\RV900\\" + renderer + "]\n\"Workarounds\"=dword:" + glKey + "\n"); //TODO: Segun https://github.com/TrevorAvrett/SolidWorks-RealView-Enabler/blob/master/Source%20Code%20(c%23) es R420
+        result.push_back(reg + "\\ATI Technologies Inc.\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKey);
+        result.push_back(reg + "\\Gl2Shaders\\RV900\\" + renderer + "]\n\"Workarounds\"=dword:" + glKey); //TODO: Segun https://github.com/TrevorAvrett/SolidWorks-RealView-Enabler/blob/master/Source%20Code%20(c%23) es R420
     }
-    return regFull;
+    return result;
 }
 
 // Completa el contenido del archivo .reg en modo genérico (INTEL). TODO: Revisar con placas raras?
-
-string GPU::completarContenidoRegGenerico(const std::vector<string>& regBase) {
+vector<string> GPU::completarContenidoRegGenerico(const vector<string>& regBase) {
+    vector<string> result;
     for (const auto& reg : regBase) {
-        regFull.append(reg + "\\Intel\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKey + "\n");
-        regFull.append(reg + "\\Gl2Shaders\\Other\\" + renderer + "]\n\"Workarounds\"=dword:" + glKey + "\n");
+        result.push_back(reg + "\\Intel\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKey);
+        result.push_back(reg + "\\Gl2Shaders\\Other\\" + renderer + "]\n\"Workarounds\"=dword:" + glKey);
     }
-    return regFull;
+    return result;
 }
