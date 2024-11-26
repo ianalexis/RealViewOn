@@ -13,7 +13,6 @@ using std::string;
 
 // Variables globales
 int swVersion;
-std::vector<std::pair<int, bool>> versionesInstaladas;
 
 // Prototipos de funciones
 void configurarConsola();
@@ -23,16 +22,6 @@ void configurarConsola();
 void configurarConsola() {
     system("color 17"); // Azul
     SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
-}
-
-// Valida que la version esté en el listado de versiones instaladas TODO: PASAR A CLASE SOLIDWORKS
-bool versionInstalada(int v) {
-    for (int i = 0; i < versionesInstaladas.size(); i++) {
-        if (versionesInstaladas[i].first == v) {
-            return true;
-        }
-    }
-    return false;
 }
 
 //Guarda el contenido generado en un archivo .reg y maneja posibles errores.
@@ -64,7 +53,7 @@ int main() {
     SolidWorks sw = SolidWorks();
 
     try {
-        versionesInstaladas = sw.obtenerVersionesInstaladas();
+        sw.obtenerVersionesInstaladas();
     }
     catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
@@ -80,7 +69,6 @@ int main() {
             string entrada = entradaTeclado(4);
             // Validar entrada
             try {
-                sw.setGenerico(false); // TODO: Mover a clase solid works al setear la versión o algo por el estilo 
                 swVersion = std::stoi(entrada);
                 if (!sw.esCompatible(swVersion)) {
                     throw std::invalid_argument("Versión inválida");
@@ -94,20 +82,6 @@ int main() {
         }
 
         try {
-            // Verificar si la versión de SolidWorks está instalada o si se desea continuar con una instalación forzada genérica.
-            if (!versionInstalada(swVersion)) {
-                cout << "Error: La versión de SolidWorks no está instalada." << std::endl;
-                cout << "Desea continuar con una instalacion en modo compatibilidad? (Y/N): ";
-                if (yesOrNo()) {
-                    cout << "Continuando en modo compatibilidad..." << std::endl;
-                    sw.setGenerico(true);
-                } else {
-                    cout << "Instalación cancelada." << std::endl;
-                    Sleep(1000);
-                    continue;  // Vuelve al inicio del bucle principal
-                }
-            }
-
             sw.setVersion(swVersion);
             string renderer = sw.obtenerRenderer();
             GPU gpu = GPU(renderer);

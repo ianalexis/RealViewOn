@@ -28,21 +28,30 @@ int SolidWorks::obtenerAnoActual() {
 void SolidWorks::setVersion(int v) {
     swVersion = v;
     compatible = esCompatible(v);
-    if (!compatible) {
-        cout << "La versión de SolidWorks no es compatible.";
+    instalada = versionInstalada(v);
+    // Verificar si la versión de SolidWorks está instalada o si se desea continuar con una instalación forzada genérica.
+    if (!instalada || !compatible) {
+        if (!instalada) {
+            cout << "Error: La versión de SolidWorks no está instalada." << std::endl;
+        }
+        if (!compatible) {
+            cout << "La versión de SolidWorks no es compatible." << std::endl;
+        }
         cout << "¿Desea continuar en modo genérico o cancelar la instalación? (Y/N): ";
         if (yesOrNo()) {
             cout << "Continuando en modo genérico..." << std::endl;
+            setGenerico(true);
         } else {
-            cout << "Instalación cancelada." << std::endl;
-            Sleep(1000); // Esperar 1 segundo
-            exit(1);
+            throw std::runtime_error("Instalación cancelada por el usuario.");
         }
     }
 }
 
+
+
 // Comprueba si una versión es compatible.
 bool SolidWorks::esCompatible(int v) {
+    setGenerico(false);
     return (v >= vMin && v <= vMax);
 }
 
@@ -53,7 +62,7 @@ void SolidWorks::setGenerico(bool g) {
 
 
 // Recorre las versiones de SolidWorks instaladas y devuelve un listado con el año de la versión y si es compatible.
-std::vector<std::pair<int, bool>> SolidWorks::obtenerVersionesInstaladas() {
+void SolidWorks::obtenerVersionesInstaladas() {
     versiones.clear();
     cout << "Versiones disponibles - Compatibilidad" << std::endl;
     for (int i = vMin; i <= anoActual; i++) {
@@ -68,20 +77,20 @@ std::vector<std::pair<int, bool>> SolidWorks::obtenerVersionesInstaladas() {
     }
     if (versiones.empty()) {
         cout << "No se detectó ninguna versión instalada." << std::endl;
+        versiones.clear();
     }
-    return versiones;
 }
 
 string SolidWorks::obtenerRenderer() {
     renderer.clear();
-    if (swVersion >= vCambioRaiz || generico) {
-        cout << "Probando con SW >= " << vCambioRaiz << " (renderer en carpeta raiz)" << std::endl;
-        renderer = obtenerRenderRaiz();
-    } 
-    if (renderer.empty() && (swVersion < vCambioRaiz || generico)) {
+    if (swVersion < vCambioRaiz || generico) {
         cout << "Probando con SW < " << vCambioRaiz << " (renderer en carpeta de version)" << std::endl;
         renderer = obtenerRendererAno();
     }
+    if (renderer.empty() || swVersion >= vCambioRaiz || generico) {
+        cout << "Probando con SW >= " << vCambioRaiz << " (renderer en carpeta raiz)" << std::endl;
+        renderer = obtenerRenderRaiz();
+    } 
     if (renderer.empty()) {
         cout << "Probando con modo genérico (renderer en todo el registro)" << std::endl;
         renderer = obtenerRendererGenerico();
@@ -153,5 +162,18 @@ string SolidWorks::obtenerRegBaseRaiz(){
 
 string SolidWorks::obtenerRegBaseAno(){
     return "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\SOLIDWORKS " + std::to_string(swVersion) + "\\Performance\\Graphics\\Hardware\\";
+}
+
+// Valida que la version esté en el listado de versiones instaladas TODO: PASAR A CLASE SOLIDWORKS
+bool SolidWorks::versionInstalada(int v) {
+    if (versiones.empty()) {
+        obtenerVersionesInstaladas();
+    }
+    for (int i = 0; i < versiones.size(); i++) {
+        if (versiones[i].first == v) {
+            return true;
+        }
+    }
+    return false;
 }
 

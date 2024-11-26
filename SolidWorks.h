@@ -6,7 +6,7 @@ class SolidWorks
 {
 public:
     SolidWorks(); // Constructor
-    std::vector<std::pair<int, bool>> obtenerVersionesInstaladas(); // Devuelve una lista de versiones de SolidWorks instaladas y si son compatibles.
+    void obtenerVersionesInstaladas(); // Devuelve una lista de versiones de SolidWorks instaladas y si son compatibles.
     std::string obtenerRenderer(); // Lee el valor 'renderer' actual desde el registro.
     std::vector<std::string> obtenerRegBase(); // Obtiene la ruta base del registro para enviarle al completador de contenido de la GPU.
     int obtenerAnoActual(); // Obtiene el año actual del sistema operativo + 1.
@@ -18,6 +18,7 @@ public:
     std::string obtenerRendererGenerico();
     std::string obtenerRegBaseRaiz(); // Declaración del método
     std::string obtenerRegBaseAno(); // Declaración del método
+    bool versionInstalada(int v); // Declaración del método
 
 private:
     int vMin = 2010; // Versión mínima soportada
@@ -28,6 +29,7 @@ private:
     int swVersion = 0;
     std::vector<std::pair<int, bool>> versiones;
     bool compatible = false;
+    bool instalada = false;
     bool generico = false;
     std::string renderer;
     std::vector<std::string> regBase;
