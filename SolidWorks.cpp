@@ -71,8 +71,8 @@ void SolidWorks::obtenerVersionesInstaladas() {
         }
     }
     if (versiones.empty()) {
-        cout << "No se detectó ninguna versión instalada." << std::endl;
         versiones.clear();
+        throw std::runtime_error("No se encontraron versiones de SolidWorks instaladas.");
     }
 }
 

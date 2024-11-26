@@ -1,10 +1,9 @@
 #include <windows.h>
 #include <iostream>
-#include <fstream>
 #include <string>
+#include <conio.h>
 #include "SolidWorks.h"
 #include "GPU.h"
-#include <conio.h>
 #include "teclado.h"
 #include "Registro.h"
 
@@ -12,12 +11,8 @@ using std::cin;
 using std::cout;
 using std::string;
 
-// Variables globales
-int swVersion;
-
 // Prototipos de funciones
 void configurarConsola();
-
 
 // Definición de funciones
 void configurarConsola() {
@@ -25,12 +20,11 @@ void configurarConsola() {
     SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
 }
 
-
 // Función principal
 int main() {
     configurarConsola();
     cout << "RealView Cracker V0.3 by RF47\n";
-    SolidWorks sw = SolidWorks();
+    SolidWorks sw;
 
     try {
         sw.obtenerVersionesInstaladas();
@@ -42,7 +36,7 @@ int main() {
         return 1;
     }
 
-    //While para que el programa reinicie si se desea probar otra versión.
+    // While para que el programa reinicie si se desea probar otra versión.
     while (true) {
         // Bucle principal para solicitar la versión de SolidWorks
         while (true) {
@@ -50,27 +44,21 @@ int main() {
             string entrada = entradaTeclado(4);
             // Validar entrada
             try {
-                swVersion = std::stoi(entrada);
+                int swVersion = std::stoi(entrada);
                 if (!sw.esCompatible(swVersion)) {
                     throw std::invalid_argument("Versión inválida");
                 }
                 cout << "Procesando la versión: " << swVersion << std::endl;
+                sw.setVersion(swVersion);
+                GPU gpu(sw.obtenerRenderer());
+                guardarArchivoReg(swVersion, gpu.completarContenidoReg(sw.obtenerRegBase()));
+                cout << "Finalizado..." << std::endl;
                 break; // Salir del bucle principal si todo es correcto
             }
             catch (const std::exception& e) {
                 cout << "Error: " << e.what() << ". Intente nuevamente." << std::endl;
             }
         }
-        try {
-            sw.setVersion(swVersion);
-            GPU gpu = GPU(sw.obtenerRenderer());
-            guardarArchivoReg(swVersion, gpu.completarContenidoReg(sw.obtenerRegBase()));
-            cout << "Finalizado..." << std::endl;
-        }
-        catch (const std::exception& e) {
-            std::cerr << "Error: " << e.what() << std::endl;
-        }
     }
     return 0;
 }
-
