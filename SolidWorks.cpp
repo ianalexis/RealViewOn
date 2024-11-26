@@ -1,15 +1,12 @@
 #include "SolidWorks.h"
-#include "GPU.h"
 #include <iostream>
 #include <Windows.h>
-#include <vector>
 #include <string>
 #include "teclado.h"
 
-
-using std::cin;
 using std::cout;
 using std::string;
+using std::wstring;
 
 // Constructor
 SolidWorks::SolidWorks() {
@@ -23,7 +20,6 @@ int SolidWorks::obtenerAnoActual() {
     return (st.wYear + 1);
 }
 
-
 // Configura la versión de SolidWorks.
 void SolidWorks::setVersion(int v) {
     setGenerico(false);
@@ -31,12 +27,11 @@ void SolidWorks::setVersion(int v) {
         throw std::runtime_error("La versión de SolidWorks no es compatible.");
     }
     swVersion = v;
-    // Verificar si la versión de SolidWorks está instalada o si se desea continuar con una instalación forzada genérica.
     if (!versionInstalada(v)) {
-        cout << "Error: La versión de SolidWorks no está instalada." << std::endl;
+        cout << "Error: La versión de SolidWorks no está instalada.\n";
         cout << "¿Desea continuar en modo genérico o cancelar la instalación? (Y/N): ";
         if (yesOrNo()) {
-            cout << "Continuando en modo genérico..." << std::endl;
+            cout << "Continuando en modo genérico...\n";
             setGenerico(true);
         } else {
             throw std::runtime_error("Instalación cancelada por el usuario.");
@@ -54,24 +49,21 @@ void SolidWorks::setGenerico(bool g) {
     generico = g;
 }
 
-
 // Recorre las versiones de SolidWorks instaladas y devuelve un listado con el año de la versión y si es compatible.
 void SolidWorks::obtenerVersionesInstaladas() {
     versiones.clear();
-    cout << "Versiones disponibles - Compatibilidad" << std::endl;
-    bool compatible;
+    cout << "Versiones disponibles - Compatibilidad\n";
     for (int i = vMin; i <= anoActual; i++) {
-        string versionKey = string(swRegRuta.begin(), swRegRuta.end()) + std::to_string(i);
+        wstring versionKey = swRegRuta + std::to_wstring(i);
         HKEY hKey;
-        if (RegOpenKeyExA(HKEY_CURRENT_USER, versionKey.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-            compatible = esCompatible(i);
-            cout << "SOLIDWORKS " << i << " - " << (compatible ? "[OK]" : "[X]") << std::endl;
+        if (RegOpenKeyExW(HKEY_CURRENT_USER, versionKey.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+            bool compatible = esCompatible(i);
+            cout << "SOLIDWORKS " << i << " - " << (compatible ? "[OK]" : "[X]") << "\n";
             versiones.push_back(std::make_pair(i, compatible));
             RegCloseKey(hKey);
         }
     }
     if (versiones.empty()) {
-        versiones.clear();
         throw std::runtime_error("No se encontraron versiones de SolidWorks instaladas.");
     }
 }
@@ -79,21 +71,21 @@ void SolidWorks::obtenerVersionesInstaladas() {
 string SolidWorks::obtenerRenderer() {
     renderer.clear();
     if (swVersion < vCambioRaiz || generico) {
-        cout << "Probando con SW < " << vCambioRaiz << " (renderer en carpeta de version)" << std::endl;
+        cout << "Probando con SW < " << vCambioRaiz << " (renderer en carpeta de version)\n";
         renderer = obtenerRendererAno();
     }
     if (renderer.empty() || swVersion >= vCambioRaiz || generico) {
-        cout << "Probando con SW >= " << vCambioRaiz << " (renderer en carpeta raiz)" << std::endl;
+        cout << "Probando con SW >= " << vCambioRaiz << " (renderer en carpeta raiz)\n";
         renderer = obtenerRenderRaiz();
-    } 
+    }
     if (renderer.empty()) {
-        cout << "Probando con modo genérico (renderer en todo el registro)" << std::endl;
+        cout << "Probando con modo genérico (renderer en todo el registro)\n";
         renderer = obtenerRendererGenerico();
     }
     if (renderer.empty()) {
         throw std::runtime_error("No se encontró el renderer.");
     }
-    cout << "Renderer: " << renderer << std::endl;
+    cout << "Renderer: " << renderer << "\n";
     return renderer;
 }
 
@@ -105,13 +97,13 @@ string SolidWorks::obtenerRenderRaiz() {
         wchar_t value[256];
         DWORD bufferSize = sizeof(value);
         if (RegQueryValueEx(hKey, L"renderer", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
-            int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, &value[0], (int)wcslen(value), NULL, 0, NULL, NULL);
+            int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), NULL, 0, NULL, NULL);
             renderer = string(sizeNeeded, 0);
-            WideCharToMultiByte(CP_UTF8, 0, &value[0], (int)wcslen(value), &renderer[0], sizeNeeded, NULL, NULL);
+            WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &renderer[0], sizeNeeded, NULL, NULL);
         }
         RegCloseKey(hKey);
     }
-    cout << "Renderer encontrado en carpeta raiz: " << renderer << std::endl;
+    cout << "Renderer encontrado en carpeta raiz: " << renderer << "\n";
     return renderer;
 }
 
@@ -123,39 +115,38 @@ string SolidWorks::obtenerRendererAno() {
         wchar_t value[256];
         DWORD bufferSize = sizeof(value);
         if (RegQueryValueEx(hKey, L"renderer", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
-            int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, &value[0], (int)wcslen(value), NULL, 0, NULL, NULL);
+            int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), NULL, 0, NULL, NULL);
             renderer = string(sizeNeeded, 0);
-            WideCharToMultiByte(CP_UTF8, 0, &value[0], (int)wcslen(value), &renderer[0], sizeNeeded, NULL, NULL);
+            WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &renderer[0], sizeNeeded, NULL, NULL);
         }
         RegCloseKey(hKey);
     }
-    cout << "Renderer encontrado en carpeta de version: " << renderer << std::endl;
+    cout << "Renderer encontrado en carpeta de version: " << renderer << "\n";
     return renderer;
 }
 
 // Busca render en todo el registro (modo generico)
-string SolidWorks::obtenerRendererGenerico() { // TODO: Implementar una busqueda por todo el registro de solidworks.
-    //HKEY hKey;
+string SolidWorks::obtenerRendererGenerico() { // TODO: Implementar una búsqueda por todo el registro de SolidWorks.
     return "INSERT GPU NAME HERE";
 }
 
 // Obtiene la ruta base del registro para enviarle al completador de contenido de la GPU.
-std::vector<std::string> SolidWorks::obtenerRegBase(){
+std::vector<std::string> SolidWorks::obtenerRegBase() {
     regBase.clear();
     if (swVersion >= vCambioRaiz || generico) {
         regBase.push_back(obtenerRegBaseRaiz());
-    } 
+    }
     if (swVersion < vCambioRaiz || generico) {
         regBase.push_back(obtenerRegBaseAno());
-    } 
+    }
     return regBase;
 }
 
-string SolidWorks::obtenerRegBaseRaiz(){
+string SolidWorks::obtenerRegBaseRaiz() {
     return "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\AllowList\\";
 }
 
-string SolidWorks::obtenerRegBaseAno(){
+string SolidWorks::obtenerRegBaseAno() {
     return "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\SOLIDWORKS " + std::to_string(swVersion) + "\\Performance\\Graphics\\Hardware\\";
 }
 
@@ -164,11 +155,10 @@ bool SolidWorks::versionInstalada(int v) {
     if (versiones.empty()) {
         obtenerVersionesInstaladas();
     }
-    for (int i = 0; i < versiones.size(); i++) {
-        if (versiones[i].first == v) {
+    for (const auto& version : versiones) {
+        if (version.first == v) {
             return true;
         }
     }
     return false;
 }
-
