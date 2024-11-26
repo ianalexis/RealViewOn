@@ -22,3 +22,10 @@ void guardarArchivoReg(int& version, const vector<string>& contenido) {
         throw std::runtime_error("No se pudo crear el archivo .reg. \n Verifique que el programa tenga permisos de escritura en la carpeta y no haya un archivo con el mismo nombre abierto.");
     }
 }
+
+//Guarda en el registro directamente sin generar archivos de por medio.
+void escribirRegDirecto(const vector<string>& contenido) { // TODO: Ver como implementar.
+    for (const auto& line : contenido) {
+
+    }
+}
