@@ -3,31 +3,32 @@
 #include <vector>
 #include <map>
 
-class GPU
-{
+class GPU {
 public:
-    GPU(std::string renderer); // Constructor
+    GPU(const std::string& renderer); // Constructor
     std::vector<std::string> completarContenidoReg(const std::vector<std::string>& regBase);
-    std::vector<std::string> completarContenidoRegNVIDIA(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg para GPUs NVIDIA.
-    std::vector<std::string> completarContenidoRegAMD(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg para GPUs AMD.
-    std::vector<std::string> completarContenidoRegGenerico(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg en modo genérico.
-    void setBrand(); // Declarar setBrand
 
 private:
     enum class Brand {
         NVIDIA,
         AMD,
+        INTEL,
         UNKNOWN
     };
 
+    void setBrand(); // Declarar setBrand
+    std::vector<std::string> completarContenidoRegNVIDIA(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg para GPUs NVIDIA.
+    std::vector<std::string> completarContenidoRegAMD(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg para GPUs AMD.
+    std::vector<std::string> completarContenidoRegIntel(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg en modo genérico.
+
     Brand brand = Brand::UNKNOWN;
     std::string renderer;
-    std::string brandKey = "40000"; // TODO: PROBAR SI EL VALOR NO CAMBIA POR VERSION DE SW O GPU.
-    std::string glKey = "70408"; //TODO: PROBAR SI EL VALOR NO CAMBIA POR VERSION DE SW O GPU.
+    const std::string brandKey = "40000"; // TODO: PROBAR SI EL VALOR NO CAMBIA POR VERSION DE SW O GPU.
+    const std::string glKey = "70408"; //TODO: PROBAR SI EL VALOR NO CAMBIA POR VERSION DE SW O GPU.
     std::vector<std::string> regFull;
 
     // Mapeo de palabras clave a marcas de GPU
-    std::map<std::string, Brand> rendererMap = {
+    const std::map<std::string, Brand> rendererMap = {
         {"GeForce", Brand::NVIDIA},
         {"Nvidia", Brand::NVIDIA},
         {"PNY", Brand::NVIDIA},
