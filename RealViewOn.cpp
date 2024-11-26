@@ -25,7 +25,7 @@ void configurarConsola() {
     SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
 }
 
-// Valida que la version esté en el listado de versiones instaladas
+// Valida que la version esté en el listado de versiones instaladas TODO: PASAR A CLASE SOLIDWORKS
 bool versionInstalada(int v) {
     for (int i = 0; i < versionesInstaladas.size(); i++) {
         if (versionesInstaladas[i].first == v) {
@@ -48,7 +48,7 @@ void guardarArchivoReg(int& version, const string& contenido) {
     }
 }
 
-//Cuenta regresiva de cerrado
+//Cuenta regresiva de CERRADO TODO: Deprecar
 void cerrar() {
     for (int i = 3; i > 0; --i) {
         cout << "Cerrando en " << i << "s..." << std::endl;
@@ -80,7 +80,7 @@ int main() {
             string entrada = entradaTeclado(4);
             // Validar entrada
             try {
-                sw.setGenerico(false);
+                sw.setGenerico(false); // TODO: Mover a clase solid works al setear la versión o algo por el estilo 
                 swVersion = std::stoi(entrada);
                 if (!sw.esCompatible(swVersion)) {
                     throw std::invalid_argument("Versión inválida");
