@@ -184,7 +184,7 @@ string SolidWorks::obtenerRendererAno() {
 // Busca render en todo el registro (modo generico)
 string SolidWorks::obtenerRendererGenerico() {
     HKEY hKey;
-    std::vector<std::string> renderers;
+    std::vector<std::pair<std::string, std::string>> renderers;
     const std::wstring basePath = L"SOFTWARE\\SolidWorks";
 
     // Función recursiva para buscar claves Renderer
@@ -211,9 +211,9 @@ string SolidWorks::obtenerRendererGenerico() {
                 if (RegQueryValueEx(hSubKey, L"Renderer", NULL, &valueType, valueData, &valueDataSize) == ERROR_SUCCESS) {
                     if (valueType == REG_SZ) {
                         std::wstring rendererValue(reinterpret_cast<wchar_t*>(valueData), valueDataSize / sizeof(wchar_t));
-                        std::wcout << L"Renderer en : " << fullSubKeyPath << std::endl;
-                        std::wcout << L"Clave: " << rendererValue << std::endl;
-                        renderers.push_back(std::string(rendererValue.begin(), rendererValue.end()));
+                        //std::wcout << L"Renderer en : " << fullSubKeyPath << std::endl;
+                        //std::wcout << L"Clave: " << rendererValue << std::endl;
+                        renderers.push_back(std::make_pair(std::string(rendererValue.begin(), rendererValue.end()), std::string(fullSubKeyPath.begin(), fullSubKeyPath.end())));
                     }
                 }
 
@@ -232,24 +232,25 @@ string SolidWorks::obtenerRendererGenerico() {
         std::wcerr << L"Failed to open registry key: " << basePath << std::endl;
     }
 
-    return renderers.size() == 1 ? renderers[0] : elegirRenderer(renderers);
+    //return renderers.size() == 1 ? renderers[0].first : elegirRenderer(renderers); //TODO: Descomentar esta linea
+    return elegirRenderer(renderers); // TODO: Borrar esta linea
 }
 
-string SolidWorks::elegirRenderer(std::vector<std::string> renderers) {
+string SolidWorks::elegirRenderer(std::vector<std::pair<std::string, std::string>> renderers) {
     if (renderers.empty()) {
         throw std::runtime_error("No se encontraron renderers en el registro.");
     }
     cout << "Renderers disponibles:\n";
     cout << "0. Ingresar manualmente\n";
     for (int i = 0; i < renderers.size(); i++) {
-        cout << i + 1 << ". " << renderers[i] << "\n";
+        cout << i + 1 << ". " << renderers[i].first << " (en " << renderers[i].second << ")\n";
     }
     while (true) {
         cout << "Seleccione el renderer (o presione Esc para cancelar): ";
         string input = entradaTeclado(1);
         int opcion = std::stoi(input);
         if (opcion >= 1 && opcion <= renderers.size()) {
-            return renderers[opcion - 1];
+            return renderers[opcion - 1].first;
         }
         if (opcion == 0){
             return rendererManual();

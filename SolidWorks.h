@@ -24,7 +24,7 @@ private:
     string obtenerRegBaseAno();
     bool versionInstalada(int v);
     std::string rendererManual();
-    std::string elegirRenderer(vector<std::string> renderers);
+    std::string elegirRenderer(std::vector<std::pair<std::string, std::string>> renderers);
 
     static const int vMin = 2010; // Versión mínima soportada
     static const int vMax = 2024; // Versión máxima soportada
