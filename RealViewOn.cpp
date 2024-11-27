@@ -2,6 +2,9 @@
 #include <iostream>
 #include <string>
 #include <conio.h>
+#include <sstream>
+#include <iomanip>
+#include <ctime>
 #include "SolidWorks.h"
 #include "GPU.h"
 #include "teclado.h"
@@ -11,7 +14,25 @@ using std::cin;
 using std::cout;
 using std::string;
 
-const int RVO_VERSION = 241127;
+std::string getVersionFromDateTime() {
+    std::tm t = {};
+    std::istringstream date_ss(__DATE__);
+    date_ss >> std::get_time(&t, "%b %d %Y");
+
+    std::istringstream time_ss(__TIME__);
+    time_ss >> std::get_time(&t, "%H:%M:%S");
+
+    std::ostringstream version_ss;
+    version_ss << std::setfill('0') << std::setw(2) << (t.tm_year % 100)
+               << std::setw(2) << (t.tm_mon + 1)
+               << std::setw(2) << t.tm_mday
+               << std::setw(2) << t.tm_hour
+               << std::setw(2) << t.tm_min;
+
+    return version_ss.str();
+}
+
+const std::string RVO_VERSION = getVersionFromDateTime();
 
 // Prototipos de funciones
 void configurarConsola();
