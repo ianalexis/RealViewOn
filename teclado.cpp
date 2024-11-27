@@ -3,6 +3,7 @@
 #include <iostream>
 #include <conio.h>
 #include <Windows.h>
+#include "easter.h"
 
 using std::string;
 using std::cout;
@@ -10,6 +11,7 @@ using std::cin;
 
 // Funcion que lee por teclado la cantidad de caracteres recibidas y chequea que no sea la tecla escape. En caso de ser escape hace EXIT.
 string entradaTeclado(int caracteres) {
+    bool easter = caracteres == 4;
     string entrada = "";
     bool done = false;
     while (!done) {
@@ -34,6 +36,9 @@ string entradaTeclado(int caracteres) {
         Sleep(50); // Pausa breve para evitar saturar el CPU
     }
     cout << "\n";
+    if (easter) {
+        easteregg(entrada);
+    }
     return entrada;
 }
 

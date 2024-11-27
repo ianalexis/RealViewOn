@@ -141,6 +141,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="easter.cpp" />
     <ClCompile Include="GPU.cpp" />
     <ClCompile Include="RealViewOn.cpp" />
     <ClCompile Include="Registro.cpp" />
@@ -148,6 +149,7 @@
     <ClCompile Include="teclado.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="easter.h" />
     <ClInclude Include="GPU.h" />
     <ClInclude Include="Registro.h" />
     <ClInclude Include="resource.h" />
