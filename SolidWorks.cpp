@@ -112,19 +112,19 @@ string SolidWorks::obtenerRenderer() {
     renderer.clear();
     string tempRenderer = "";
     if (swVersion < vCambioRaiz || generico) {
-        cout << "Buscando con metodo < " << vCambioRaiz << " (renderer en carpeta de version)\n";
+        //cout << "Buscando con metodo < " << vCambioRaiz << " (renderer en carpeta de version)\n";
         renderer = obtenerRendererAno();
-        renderer.clear(); //TODO: BOORAR ESTA LINEA
+        //renderer.clear(); //TODO: BOORAR ESTA LINEA - LINEA PARA FORZAR LA BUSQUEDA TOTAL
 
     }
     if (renderer.empty() || swVersion >= vCambioRaiz || generico) {
-        cout << "Buscando con metodo >= " << vCambioRaiz << " (renderer en carpeta raiz)\n";
+        //cout << "Buscando con metodo >= " << vCambioRaiz << " (renderer en carpeta raiz)\n";
         tempRenderer = obtenerRenderRaiz();
         renderer = tempRenderer.empty() ? renderer : tempRenderer;
-        renderer.clear(); //TODO: BOORAR ESTA LINEA
+        //renderer.clear(); //TODO: BOORAR ESTA LINEA - LINEA PARA FORZAR LA BUSQUEDA TOTAL
     }
     if (renderer.empty()) {
-        cout << "Buscando con metodo genérico (renderer en todo el registro)\n";
+        //cout << "Buscando con metodo genérico (renderer en todo el registro)\n";
         renderer = obtenerRendererGenerico();
     }
     if (renderer.empty()) {
@@ -138,7 +138,7 @@ string SolidWorks::obtenerRenderer() {
     return renderer;
 }
 
-   string SolidWorks::rendererManual() {
+string SolidWorks::rendererManual() {
     cout << "Ingrese el nombre del renderer manualmente: ";
     return entradaTeclado(0);
 }
@@ -232,8 +232,7 @@ string SolidWorks::obtenerRendererGenerico() {
         std::wcerr << L"Failed to open registry key: " << basePath << std::endl;
     }
 
-    //return renderers.size() == 1 ? renderers[0].first : elegirRenderer(renderers); //TODO: Descomentar esta linea
-    return elegirRenderer(renderers); // TODO: Borrar esta linea
+    return renderers.size() == 1 ? renderers[0].first : elegirRenderer(renderers);
 }
 
 string SolidWorks::elegirRenderer(std::vector<std::pair<std::string, std::string>> renderers) {
