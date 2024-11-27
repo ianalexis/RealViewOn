@@ -12,6 +12,7 @@ using std::cout;
 void guardarArchivoReg(int& version, const vector<string>& contenido) {
     std::ofstream regFile("RealViewEnable" + std::to_string(version) + ".reg");
     if (regFile.is_open()) {
+        regFile << "Windows Registry Editor Version 5.00\n\n";
         for (const auto& line : contenido) {
             regFile << line << "\n";
         }
