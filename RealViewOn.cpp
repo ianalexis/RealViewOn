@@ -11,6 +11,8 @@ using std::cin;
 using std::cout;
 using std::string;
 
+const int RVO_VERSION = 241127;
+
 // Prototipos de funciones
 void configurarConsola();
 
@@ -23,9 +25,9 @@ void configurarConsola() {
 // Función principal
 int main() {
     configurarConsola();
-    cout << "RealView Cracker V0.3 by RF47\n";
+    cout << "RealViewOn v" << RVO_VERSION << " - by [RF47] && [TitanBoreal]\n";
+    cout << "-----------------------------------------------\n";
     SolidWorks sw;
-
     try {
         sw.obtenerVersionesInstaladas();
     }
@@ -40,12 +42,12 @@ int main() {
     while (true) {
         // Bucle principal para solicitar la versión de SolidWorks
         while (true) {
-            cout << "\nIngrese el año de versión de SolidWorks instalada (e.g., 2023, 2024) o presione ESC para salir: ";
+            cout << "\nIngrese el año de versión de SolidWorks (e.g., 2020, 2024) o presione ESC para salir: ";
             string entrada = entradaTeclado(4);
             // Validar entrada
             try {
                 int swVersion = std::stoi(entrada);
-                if (!sw.esCompatible(swVersion)) {
+                if (sw.esCompatible(swVersion) == 0) {
                     throw std::invalid_argument("Versión inválida");
                 }
                 cout << "Procesando la versión: " << swVersion << std::endl;

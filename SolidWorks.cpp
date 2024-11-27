@@ -23,13 +23,20 @@ int SolidWorks::obtenerAnoActual() {
 // Configura la versión de SolidWorks.
 void SolidWorks::setVersion(int v) {
     setGenerico(false);
-    if (!esCompatible(v)) {
+    bool instalado = versionInstalada(v);
+    int compatibilidad = esCompatible(v);
+    if (compatibilidad == 0) {
         throw std::runtime_error("La versión de SolidWorks no es compatible.");
     }
     swVersion = v;
-    if (!versionInstalada(v)) {
-        cout << "Error: La versión de SolidWorks no está instalada.\n";
-        cout << "¿Desea continuar en modo genérico o cancelar la instalación? (Y/N): ";
+    if (!instalado || compatibilidad == 2) {
+        if (!instalado) {
+            cout << "La versión de SolidWorks no está instalada.\n";
+        }
+        if (compatibilidad == 2) {
+            cout << "La versión de SolidWorks es mayor a " << vMax << ".\n";
+        }
+        cout << "¿Desea continuar en modo genérico? ";
         if (yesOrNo()) {
             cout << "Continuando en modo genérico...\n";
             setGenerico(true);
@@ -39,9 +46,9 @@ void SolidWorks::setVersion(int v) {
     }
 }
 
-// Comprueba si una versión es compatible.
-bool SolidWorks::esCompatible(int v) {
-    return (v >= vMin && v <= vMax);
+// Comprueba si una versión es compatible. 0 = No compatible, 1 = Compatible , 2 = Versión futura.
+int SolidWorks::esCompatible(int v) {
+    return (v >= vMin) ? (v <= vMax) ? 1 : 2 : 0;
 }
 
 // Setea como generico el modo de instalación
@@ -65,21 +72,32 @@ void SolidWorks::obtenerVersionesInstaladas() {
         wstring versionKey = swRegRuta + std::to_wstring(i);
         HKEY hKey;
         if (RegOpenKeyExW(HKEY_CURRENT_USER, versionKey.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-            bool compatible = esCompatible(i);
+            int compatibilidad = esCompatible(i);
             cout << "SolidWorks " << i << " - ";
 
-            // Cambia el color para "[OK]" y "[X]"
-            if (compatible) {
-                SetConsoleTextAttribute(hConsole, BACKGROUND_GREEN | BACKGROUND_INTENSITY);
-                cout << "[OK]";
-            } else {
-                SetConsoleTextAttribute(hConsole, BACKGROUND_RED | BACKGROUND_INTENSITY);
-                cout << "[X]";
+            // Cambia el color y muestra "[OK]", "[X]" o "[?]" utilizando un switch case
+            switch (compatibilidad) {
+                case 1:  // Compatible
+                    SetConsoleTextAttribute(hConsole, BACKGROUND_GREEN | BACKGROUND_INTENSITY);
+                    cout << "[OK]";
+                    break;
+                case 0:  // No compatible
+                    SetConsoleTextAttribute(hConsole, BACKGROUND_RED | BACKGROUND_INTENSITY);
+                    cout << "[X]";
+                    break;
+                case 2:  // Versión futura
+                    SetConsoleTextAttribute(hConsole, BACKGROUND_BLUE | BACKGROUND_INTENSITY);
+                    cout << "[>" << vMax << "]";
+                    break;
+                default:
+                    SetConsoleTextAttribute(hConsole, saved_attributes);
+                    cout << "[?]";
+                    break;
             }
             // Restaura los atributos originales
             SetConsoleTextAttribute(hConsole, saved_attributes);
             cout << "\n";
-            versiones.push_back(std::make_pair(i, compatible));
+            versiones.push_back(std::make_pair(i, compatibilidad));
             RegCloseKey(hKey);
         }
     }
@@ -102,11 +120,22 @@ string SolidWorks::obtenerRenderer() {
     }
     if (renderer.empty()) {
         cout << "Buscando con metodo genérico (renderer en todo el registro)\n";
-        tempRenderer = obtenerRendererGenerico();
-        renderer = tempRenderer.empty() ? throw std::runtime_error("No se encontró el renderer.") : tempRenderer;
+        renderer = obtenerRendererGenerico();
+    }
+    if (renderer.empty()) {
+        cout << "No se encontró el renderer. Ingrese el nombre manualmente.\n";
+        renderer = rendererManual();
+        if (renderer.empty()) {
+            throw std::runtime_error("No se ingresó el renderer.");
+        }
     }
     cout << "Renderer: " << renderer << "\n";
     return renderer;
+}
+
+   string SolidWorks::rendererManual() {
+    cout << "Ingrese el nombre del renderer manualmente: ";
+    return entradaTeclado(0);
 }
 
 // Busca render en carpeta raiz.
@@ -147,7 +176,7 @@ string SolidWorks::obtenerRendererAno() {
 
 // Busca render en todo el registro (modo generico)
 string SolidWorks::obtenerRendererGenerico() { // TODO: Implementar una búsqueda por todo el registro de SolidWorks.
-    return "INSERT GPU NAME HERE";
+    return "";
 }
 
 // Obtiene la ruta base del registro para enviarle al completador de contenido de la GPU.
