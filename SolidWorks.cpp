@@ -52,13 +52,33 @@ void SolidWorks::setGenerico(bool g) {
 // Recorre las versiones de SolidWorks instaladas y devuelve un listado con el año de la versión y si es compatible.
 void SolidWorks::obtenerVersionesInstaladas() {
     versiones.clear();
-    cout << "Versiones disponibles - Compatibilidad\n";
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    WORD saved_attributes;
+
+    // Guarda los atributos actuales de la consola
+    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+    saved_attributes = consoleInfo.wAttributes;
+
+    cout << "\nVersiones disponibles - Compatibilidad\n";
     for (int i = vMin; i <= anoActual; i++) {
         wstring versionKey = swRegRuta + std::to_wstring(i);
         HKEY hKey;
         if (RegOpenKeyExW(HKEY_CURRENT_USER, versionKey.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
             bool compatible = esCompatible(i);
-            cout << "SOLIDWORKS " << i << " - " << (compatible ? "[OK]" : "[X]") << "\n";
+            cout << "SolidWorks " << i << " - ";
+
+            // Cambia el color para "[OK]" y "[X]"
+            if (compatible) {
+                SetConsoleTextAttribute(hConsole, BACKGROUND_GREEN | BACKGROUND_INTENSITY);
+                cout << "[OK]";
+            } else {
+                SetConsoleTextAttribute(hConsole, BACKGROUND_RED | BACKGROUND_INTENSITY);
+                cout << "[X]";
+            }
+            // Restaura los atributos originales
+            SetConsoleTextAttribute(hConsole, saved_attributes);
+            cout << "\n";
             versiones.push_back(std::make_pair(i, compatible));
             RegCloseKey(hKey);
         }
@@ -70,20 +90,20 @@ void SolidWorks::obtenerVersionesInstaladas() {
 
 string SolidWorks::obtenerRenderer() {
     renderer.clear();
+    string tempRenderer;
     if (swVersion < vCambioRaiz || generico) {
-        cout << "Probando con SW < " << vCambioRaiz << " (renderer en carpeta de version)\n";
+        cout << "Buscando con metodo < " << vCambioRaiz << " (renderer en carpeta de version)\n";
         renderer = obtenerRendererAno();
     }
     if (renderer.empty() || swVersion >= vCambioRaiz || generico) {
-        cout << "Probando con SW >= " << vCambioRaiz << " (renderer en carpeta raiz)\n";
-        renderer = obtenerRenderRaiz();
+        cout << "Buscando con metodo >= " << vCambioRaiz << " (renderer en carpeta raiz)\n";
+        tempRenderer = obtenerRenderRaiz();
+        renderer = tempRenderer.empty() ? renderer : tempRenderer;
     }
     if (renderer.empty()) {
-        cout << "Probando con modo genérico (renderer en todo el registro)\n";
-        renderer = obtenerRendererGenerico();
-    }
-    if (renderer.empty()) {
-        throw std::runtime_error("No se encontró el renderer.");
+        cout << "Buscando con metodo genérico (renderer en todo el registro)\n";
+        tempRenderer = obtenerRendererGenerico();
+        renderer = tempRenderer.empty() ? throw std::runtime_error("No se encontró el renderer.") : tempRenderer;
     }
     cout << "Renderer: " << renderer << "\n";
     return renderer;
