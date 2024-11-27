@@ -18,7 +18,7 @@ void configurarConsola();
 
 // Definición de funciones
 void configurarConsola() {
-    system("color 17"); // Azul
+    system("color 17"); // Fondo azul oscuro y texto verde
     SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
 }
 
