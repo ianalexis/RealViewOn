@@ -108,15 +108,18 @@ void SolidWorks::obtenerVersionesInstaladas() {
 
 string SolidWorks::obtenerRenderer() {
     renderer.clear();
-    string tempRenderer;
+    string tempRenderer = "";
     if (swVersion < vCambioRaiz || generico) {
         cout << "Buscando con metodo < " << vCambioRaiz << " (renderer en carpeta de version)\n";
         renderer = obtenerRendererAno();
+        renderer.clear(); //TODO: BOORAR ESTA LINEA
+
     }
     if (renderer.empty() || swVersion >= vCambioRaiz || generico) {
         cout << "Buscando con metodo >= " << vCambioRaiz << " (renderer en carpeta raiz)\n";
         tempRenderer = obtenerRenderRaiz();
         renderer = tempRenderer.empty() ? renderer : tempRenderer;
+        renderer.clear(); //TODO: BOORAR ESTA LINEA
     }
     if (renderer.empty()) {
         cout << "Buscando con metodo genérico (renderer en todo el registro)\n";
@@ -141,42 +144,104 @@ string SolidWorks::obtenerRenderer() {
 // Busca render en carpeta raiz.
 string SolidWorks::obtenerRenderRaiz() {
     HKEY hKey;
+    string rendererRaiz = "";
     std::wstring regPath = L"SOFTWARE\\SolidWorks\\AllowList\\Current";
     if (RegOpenKeyEx(HKEY_CURRENT_USER, regPath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
         wchar_t value[256];
         DWORD bufferSize = sizeof(value);
         if (RegQueryValueEx(hKey, L"renderer", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
             int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), NULL, 0, NULL, NULL);
-            renderer = string(sizeNeeded, 0);
-            WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &renderer[0], sizeNeeded, NULL, NULL);
+            rendererRaiz = string(sizeNeeded, 0);
+            WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &rendererRaiz[0], sizeNeeded, NULL, NULL);
         }
         RegCloseKey(hKey);
     }
-    cout << "Renderer encontrado en carpeta raiz: " << renderer << "\n";
-    return renderer;
+    cout << "Renderer encontrado en carpeta raiz: " << rendererRaiz << "\n";
+    return rendererRaiz;
 }
 
 // Busca render en carpeta de version.
 string SolidWorks::obtenerRendererAno() {
     HKEY hKey;
+    string rendererAno = "";
     std::wstring regPath = swRegRuta + std::to_wstring(swVersion) + L"\\Performance\\Graphics\\Hardware\\Current";
     if (RegOpenKeyEx(HKEY_CURRENT_USER, regPath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
         wchar_t value[256];
         DWORD bufferSize = sizeof(value);
         if (RegQueryValueEx(hKey, L"renderer", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
             int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), NULL, 0, NULL, NULL);
-            renderer = string(sizeNeeded, 0);
-            WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &renderer[0], sizeNeeded, NULL, NULL);
+            rendererAno = string(sizeNeeded, 0);
+            WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &rendererAno[0], sizeNeeded, NULL, NULL);
         }
         RegCloseKey(hKey);
     }
-    cout << "Renderer encontrado en carpeta de version: " << renderer << "\n";
-    return renderer;
+    cout << "Renderer encontrado en carpeta de version: " << rendererAno << "\n";
+    return rendererAno;
 }
 
 // Busca render en todo el registro (modo generico)
-string SolidWorks::obtenerRendererGenerico() { // TODO: Implementar una búsqueda por todo el registro de SolidWorks.
-    return "";
+string SolidWorks::obtenerRendererGenerico() {
+    HKEY hKey;
+    std::vector<std::string> renderers;
+    const std::wstring basePath = L"SOFTWARE\\SolidWorks";
+    if (RegOpenKeyEx(HKEY_CURRENT_USER, basePath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+        wchar_t subKeyName[256];
+        DWORD subKeyNameSize;
+        DWORD index = 0;
+        
+        while (true) {
+            subKeyNameSize = sizeof(subKeyName);
+            if (RegEnumKeyEx(hKey, index, subKeyName, &subKeyNameSize, NULL, NULL, NULL, NULL) != ERROR_SUCCESS) {
+                break;
+            }
+            
+            HKEY hSubKey;
+            std::wstring subKeyPath = basePath + L"\\" + subKeyName;
+            if (RegOpenKeyEx(HKEY_CURRENT_USER, subKeyPath.c_str(), 0, KEY_READ, &hSubKey) == ERROR_SUCCESS) {
+                wchar_t valueName[256];
+                DWORD valueNameSize = sizeof(valueName);
+                DWORD valueType;
+                BYTE valueData[256];
+                DWORD valueDataSize = sizeof(valueData);
+                
+                if (RegQueryValueEx(hSubKey, L"Renderer", NULL, &valueType, valueData, &valueDataSize) == ERROR_SUCCESS) {
+                    if (valueType == REG_SZ) {
+                        std::wcout << L"Found Renderer key in: " << subKeyPath << std::endl;
+                        std::wcout << L"Value: " << reinterpret_cast<wchar_t*>(valueData) << std::endl;
+                    }
+                }
+                RegCloseKey(hSubKey);
+            }
+            index++;
+        }
+        RegCloseKey(hKey);
+    } else {
+        std::wcerr << L"Failed to open registry key: " << basePath << std::endl;
+    }
+    return renderers.size() == 1 ? renderers[0] : elegirRenderer(renderers);
+}
+
+string SolidWorks::elegirRenderer(std::vector<std::string> renderers) {
+    if (renderers.empty()) {
+        throw std::runtime_error("No se encontraron renderers en el registro.");
+    }
+    cout << "Renderers disponibles:\n";
+    cout << "0. Ingresar manualmente\n";
+    for (int i = 0; i < renderers.size(); i++) {
+        cout << i + 1 << ". " << renderers[i] << "\n";
+    }
+    while (true) {
+        cout << "Seleccione el renderer (o presione Esc para cancelar): ";
+        string input = entradaTeclado(1);
+        int opcion = std::stoi(input);
+        if (opcion >= 1 && opcion <= renderers.size()) {
+            return renderers[opcion - 1];
+        }
+        if (opcion == 0){
+            return rendererManual();
+        }
+        cout << "Opción inválida. Intente nuevamente.\n";
+    }
 }
 
 // Obtiene la ruta base del registro para enviarle al completador de contenido de la GPU.

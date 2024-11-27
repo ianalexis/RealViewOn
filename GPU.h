@@ -20,6 +20,7 @@ private:
     std::vector<std::string> completarContenidoRegNVIDIA(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg para GPUs NVIDIA.
     std::vector<std::string> completarContenidoRegAMD(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg para GPUs AMD.
     std::vector<std::string> completarContenidoRegIntel(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg en modo genérico.
+    Brand selecectBrand(); // Selecciona la marca de la GPU en caso de no poder determinarla.
 
     Brand brand = Brand::UNKNOWN;
     std::string renderer;
