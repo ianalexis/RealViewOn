@@ -3,6 +3,8 @@
 #include <Windows.h>
 #include <string>
 #include "teclado.h"
+#include <functional> // Añadir este encabezado
+
 
 using std::cout;
 using std::string;
@@ -184,40 +186,52 @@ string SolidWorks::obtenerRendererGenerico() {
     HKEY hKey;
     std::vector<std::string> renderers;
     const std::wstring basePath = L"SOFTWARE\\SolidWorks";
-    if (RegOpenKeyEx(HKEY_CURRENT_USER, basePath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+
+    // Función recursiva para buscar claves Renderer
+    std::function<void(HKEY, const std::wstring&)> buscarRendererEnSubclaves = [&](HKEY hKey, const std::wstring& subKeyPath) {
         wchar_t subKeyName[256];
         DWORD subKeyNameSize;
         DWORD index = 0;
-        
+
         while (true) {
-            subKeyNameSize = sizeof(subKeyName);
+            subKeyNameSize = sizeof(subKeyName) / sizeof(subKeyName[0]);
             if (RegEnumKeyEx(hKey, index, subKeyName, &subKeyNameSize, NULL, NULL, NULL, NULL) != ERROR_SUCCESS) {
                 break;
             }
-            
+
             HKEY hSubKey;
-            std::wstring subKeyPath = basePath + L"\\" + subKeyName;
-            if (RegOpenKeyEx(HKEY_CURRENT_USER, subKeyPath.c_str(), 0, KEY_READ, &hSubKey) == ERROR_SUCCESS) {
+            std::wstring fullSubKeyPath = subKeyPath + L"\\" + subKeyName;
+            if (RegOpenKeyEx(HKEY_CURRENT_USER, fullSubKeyPath.c_str(), 0, KEY_READ, &hSubKey) == ERROR_SUCCESS) {
                 wchar_t valueName[256];
                 DWORD valueNameSize = sizeof(valueName);
                 DWORD valueType;
                 BYTE valueData[256];
                 DWORD valueDataSize = sizeof(valueData);
-                
+
                 if (RegQueryValueEx(hSubKey, L"Renderer", NULL, &valueType, valueData, &valueDataSize) == ERROR_SUCCESS) {
                     if (valueType == REG_SZ) {
-                        std::wcout << L"Found Renderer key in: " << subKeyPath << std::endl;
-                        std::wcout << L"Value: " << reinterpret_cast<wchar_t*>(valueData) << std::endl;
+                        std::wstring rendererValue(reinterpret_cast<wchar_t*>(valueData), valueDataSize / sizeof(wchar_t));
+                        std::wcout << L"Renderer en : " << fullSubKeyPath << std::endl;
+                        std::wcout << L"Clave: " << rendererValue << std::endl;
+                        renderers.push_back(std::string(rendererValue.begin(), rendererValue.end()));
                     }
                 }
+
+                // Llamada recursiva para buscar en subclaves
+                buscarRendererEnSubclaves(hSubKey, fullSubKeyPath);
                 RegCloseKey(hSubKey);
             }
             index++;
         }
+    };
+
+    if (RegOpenKeyEx(HKEY_CURRENT_USER, basePath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+        buscarRendererEnSubclaves(hKey, basePath);
         RegCloseKey(hKey);
     } else {
         std::wcerr << L"Failed to open registry key: " << basePath << std::endl;
     }
+
     return renderers.size() == 1 ? renderers[0] : elegirRenderer(renderers);
 }
 
