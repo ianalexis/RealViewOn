@@ -1,5 +1,6 @@
 #include "GPU.h"
 #include <string>
+#include <algorithm>
 #include <iostream>
 #include <vector>
 #include "teclado.h"
@@ -9,21 +10,40 @@ using std::vector;
 using std::cout;
 
 // Constructor
-GPU::GPU(const string& r) : renderer(r) {
-    setBrand();
+GPU::GPU(const std::string& r) {
+    renderer = r;
+    setBrand(r);
 }
 
 // Setea el fabricante de la GPU si el renderer contiene alguna palabra clave.
-void GPU::setBrand() {
+void GPU::setBrand(string r) {
+    // Convierte el renderer a mayúsculas para comparar.
+    std::transform(r.begin(), r.end(), r.begin(), ::toupper);
+    
     for (const auto& pair : rendererMap) {
-        if (renderer.find(pair.first) != string::npos) {
+        string key = pair.first;
+        // Convertir la clave a mayúsculas para comparar.
+        std::transform(key.begin(), key.end(), key.begin(), ::toupper);
+        
+        if (r.find(key) != string::npos) {
             brand = pair.second;
-            if (brand == Brand::UNKNOWN) {
-                cout << "Marca de GPU desconocida para " + renderer;
-                brand = selecectBrand();
-            }
-            break;
+            cout << "Marca de GPU detectada: " << brandToString(brand) << "\n";
+            return;
         }
+    }
+    brand = selecectBrand();
+}
+
+std::string GPU::brandToString(GPU::Brand brand) {
+    switch (brand) {
+    case GPU::Brand::NVIDIA:
+        return "NVIDIA";
+    case GPU::Brand::AMD:
+        return "AMD";
+    case GPU::Brand::INTEL:
+        return "Intel";
+    default:
+        return "Desconocida";
     }
 }
 

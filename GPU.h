@@ -3,12 +3,14 @@
 #include <vector>
 #include <map>
 
+using std::string;
+using std::vector;
+
 class GPU {
 public:
-    GPU(const std::string& renderer); // Constructor
-    std::vector<std::string> completarContenidoReg(const std::vector<std::string>& regBase);
+    GPU(const string& renderer); // Constructor
+    vector<string> completarContenidoReg(const vector<string>& regBase);
 
-private:
     enum class Brand {
         NVIDIA,
         AMD,
@@ -16,33 +18,62 @@ private:
         UNKNOWN
     };
 
-    void setBrand(); // Declarar setBrand
-    std::vector<std::string> completarContenidoRegNVIDIA(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg para GPUs NVIDIA.
-    std::vector<std::string> completarContenidoRegAMD(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg para GPUs AMD.
-    std::vector<std::string> completarContenidoRegIntel(const std::vector<std::string>& regBase); // Completa el contenido del archivo .reg en modo genérico.
+    string brandToString(GPU::Brand brand); // Convierte la marca de GPU a string.
+
+private:
+    void setBrand(string r); // Declarar setBrand
+    vector<string> completarContenidoRegNVIDIA(const vector<string>& regBase); // Completa el contenido del archivo .reg para GPUs NVIDIA.
+    vector<string> completarContenidoRegAMD(const vector<string>& regBase); // Completa el contenido del archivo .reg para GPUs AMD.
+    vector<string> completarContenidoRegIntel(const vector<string>& regBase); // Completa el contenido del archivo .reg en modo genérico.
     Brand selecectBrand(); // Selecciona la marca de la GPU en caso de no poder determinarla.
 
     Brand brand = Brand::UNKNOWN;
-    std::string renderer;
-    const std::string brandKey = "40000"; // TODO: PROBAR SI EL VALOR NO CAMBIA POR VERSION DE SW O GPU.
-    const std::string glKey = "70408"; //TODO: PROBAR SI EL VALOR NO CAMBIA POR VERSION DE SW O GPU.
-    std::vector<std::string> regFull;
+    string renderer;
+    const string brandKey = "40000"; // TODO: PROBAR SI EL VALOR NO CAMBIA POR VERSION DE SW O GPU.
+    const string glKey = "70408"; //TODO: PROBAR SI EL VALOR NO CAMBIA POR VERSION DE SW O GPU.
+    vector<string> regFull;
 
-    // Mapeo de palabras clave a marcas de GPU
-    const std::map<std::string, Brand> rendererMap = {
-        {"GeForce", Brand::NVIDIA},
-        {"Nvidia", Brand::NVIDIA},
+    // Mapeo de palabras clave a marcas de GPU EN MAYÚSCULAS.
+    const std::map<string, Brand> rendererMap = {
+        {"GEFORCE", Brand::NVIDIA},
+        {"NVIDIA", Brand::NVIDIA},
+        {"QUADRO", Brand::NVIDIA},
+        {"TESLA", Brand::NVIDIA},
+        {"TITAN", Brand::NVIDIA},
+        {"RTX", Brand::NVIDIA},
+        {"GTX", Brand::NVIDIA},
+        {"GT", Brand::NVIDIA},
+        {"GTS", Brand::NVIDIA},
+        {"MX", Brand::NVIDIA},
         {"PNY", Brand::NVIDIA},
         {"EVGA", Brand::NVIDIA},
-        {"Galax", Brand::NVIDIA},
-        {"Zotac", Brand::NVIDIA},
-        {"Palit", Brand::NVIDIA},
+        {"GALAX", Brand::NVIDIA},
+        {"ZOTAC", Brand::NVIDIA},
+        {"PALIT", Brand::NVIDIA},
+        {"RADEON", Brand::AMD},
+        {"FIREPRO", Brand::AMD},
+        {"R9", Brand::AMD},
+        {"R7", Brand::AMD},
+        {"R5", Brand::AMD},
+        {"HD", Brand::AMD},
+        {"RX", Brand::AMD},
         {"RX", Brand::AMD},
         {"AMD", Brand::AMD},
-        {"Sapphire", Brand::AMD},
-        {"PowerColor", Brand::AMD},
+        {"VEGA", Brand::AMD},
+        {"RYZEN", Brand::AMD},
+        {"RADEON", Brand::AMD},
+        {"ASUS", Brand::AMD},
+        {"MSI", Brand::AMD},
+        {"GIGABYTE", Brand::AMD},
+        {"SAPPHIRE", Brand::AMD},
+        {"POWERCOLOR", Brand::AMD},
         {"XFX", Brand::AMD},
         {"HIS", Brand::AMD},
-        {"VisionTek", Brand::AMD}
+        {"VISIONTEK", Brand::AMD},
+        {"INTEL", Brand::INTEL},
+        {"IRIS", Brand::INTEL},
+        {"UHD", Brand::INTEL},
+        {"HD", Brand::INTEL},
+        {"XE", Brand::INTEL}
     };
 };
