@@ -47,7 +47,7 @@ void configurarConsola() {
 int main() {
     configurarConsola();
     cout << "RealViewOn v" << RVO_VERSION << " - by [RF47] && [TitanBoreal]\n";
-    cout << "-----------------------------------------------\n";
+    cout << "---------------------------------------------------\n";
     SolidWorks sw;
     try {
         sw.obtenerVersionesInstaladas();
