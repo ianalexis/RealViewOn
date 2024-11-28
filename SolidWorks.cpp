@@ -69,14 +69,16 @@ void SolidWorks::obtenerVersionesInstaladas() {
     GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
     saved_attributes = consoleInfo.wAttributes;
 
-    cout << "\nVersiones disponibles - Compatibilidad\n";
     for (int i = vMin; i <= anoActual; i++) {
         wstring versionKey = swRegRuta + std::to_wstring(i);
         HKEY hKey;
         if (RegOpenKeyExW(HKEY_CURRENT_USER, versionKey.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+            if (versiones.empty()) {
+                cout << "\nSW Instalado v  | Compatibilidad\n";
+                cout << "----------------|---------------\n";
+            }
             int compatibilidad = esCompatible(i);
-            cout << "SolidWorks " << i << " - ";
-
+            cout << "SolidWorks " << i << " | ";    
             // Cambia el color y muestra "[OK]", "[X]" o "[?]" utilizando un switch case
             switch (compatibilidad) {
                 case 1:  // Compatible
@@ -104,27 +106,38 @@ void SolidWorks::obtenerVersionesInstaladas() {
         }
     }
     if (versiones.empty()) {
-        throw std::runtime_error("No se encontraron versiones de SolidWorks instaladas.");
-    }
+        cout << "No se encontraron versiones de SolidWorks instaladas.\n";
+        cout << "¿Desea realizar el proceso manual? ";
+        if (!yesOrNo()) {
+            throw std::runtime_error("Instalación cancelada por el usuario.");
+        }
+    } else {
+        cout << "----------------|---------------\n";
+    } 
 }
 
 string SolidWorks::obtenerRenderer() {
     renderer.clear();
     string tempRenderer = "";
     if (swVersion < vCambioRaiz || generico) {
-        //cout << "Buscando con metodo < " << vCambioRaiz << " (renderer en carpeta de version)\n";
         renderer = obtenerRendererAno();
-        //renderer.clear(); //TODO: BOORAR ESTA LINEA - LINEA PARA FORZAR LA BUSQUEDA TOTAL
-
     }
     if (renderer.empty() || swVersion >= vCambioRaiz || generico) {
-        //cout << "Buscando con metodo >= " << vCambioRaiz << " (renderer en carpeta raiz)\n";
         tempRenderer = obtenerRenderRaiz();
+        if (!tempRenderer.empty()) {
+            if (!renderer.empty()) {
+                cout << "Se encontró un renderer en la carpeta raiz y en la carpeta de versión.\n";
+                cout << "¿Desea utilizar el renderer de la carpeta raiz? ";
+                if (yesOrNo()) {
+                    renderer = tempRenderer;
+                }
+            } else {
+                renderer = tempRenderer;
+            }
+        }
         renderer = tempRenderer.empty() ? renderer : tempRenderer;
-        //renderer.clear(); //TODO: BOORAR ESTA LINEA - LINEA PARA FORZAR LA BUSQUEDA TOTAL
     }
     if (renderer.empty()) {
-        //cout << "Buscando con metodo genérico (renderer en todo el registro)\n";
         renderer = obtenerRendererGenerico();
     }
     if (renderer.empty()) {
@@ -158,7 +171,11 @@ string SolidWorks::obtenerRenderRaiz() {
         }
         RegCloseKey(hKey);
     }
-    cout << "Renderer encontrado en carpeta raiz: " << rendererRaiz << "\n";
+    if (rendererRaiz.empty()) {
+        cout << "No se encontró el renderer en la carpeta raiz.\n";
+    } else {
+        cout << "Renderer encontrado en carpeta raiz: " << rendererRaiz << "\n";
+    }
     return rendererRaiz;
 }
 
@@ -177,7 +194,11 @@ string SolidWorks::obtenerRendererAno() {
         }
         RegCloseKey(hKey);
     }
-    cout << "Renderer encontrado en carpeta de version: " << rendererAno << "\n";
+    if (rendererAno.empty()) {
+        cout << "No se encontró el renderer en la carpeta de version.\n";
+    } else {
+        cout << "Renderer encontrado en carpeta de version: " << rendererAno << "\n";
+    }
     return rendererAno;
 }
 
@@ -233,6 +254,7 @@ string SolidWorks::obtenerRendererGenerico() {
     }
 
     return renderers.size() == 1 ? renderers[0].first : elegirRenderer(renderers);
+    //return elegirRenderer(renderers); // FORZAR ELECCION DE RENDERER
 }
 
 string SolidWorks::elegirRenderer(std::vector<std::pair<std::string, std::string>> renderers) {
@@ -280,9 +302,6 @@ string SolidWorks::obtenerRegBaseAno() {
 
 // Valida que la version esté en el listado de versiones instaladas
 bool SolidWorks::versionInstalada(int v) {
-    if (versiones.empty()) {
-        obtenerVersionesInstaladas();
-    }
     for (const auto& version : versiones) {
         if (version.first == v) {
             return true;
