@@ -1,164 +1,88 @@
 #include <windows.h>
 #include <iostream>
-#include <fstream>
 #include <string>
+#include <conio.h>
+#include <sstream>
+#include <iomanip>
+#include <ctime>
+#include "SolidWorks.h"
+#include "GPU.h"
+#include "teclado.h"
+#include "Registro.h"
 
+using std::cin;
+using std::cout;
+using std::string;
 
+std::string getVersionFromDateTime() {
+    std::tm t = {};
+    std::istringstream date_ss(__DATE__);
+    date_ss >> std::get_time(&t, "%b %d %Y");
 
+    std::istringstream time_ss(__TIME__);
+    time_ss >> std::get_time(&t, "%H:%M:%S");
 
-// Claves constantes para modificar en el registro
-const std::string clave1 = "40000";
-const std::string clave2 = "70408";
+    std::ostringstream version_ss;
+    version_ss << std::setfill('0') << std::setw(2) << (t.tm_year % 100)
+               << std::setw(2) << (t.tm_mon + 1)
+               << std::setw(2) << t.tm_mday
+               << std::setw(2) << t.tm_hour
+               << std::setw(2) << t.tm_min;
 
-// Variables globales
-std::string version;
+    return version_ss.str();
+}
+
+const std::string RVO_VERSION = getVersionFromDateTime();
 
 // Prototipos de funciones
 void configurarConsola();
-std::wstring construirRutaRegistro(const std::string& version);
-std::string obtenerRenderer(const std::wstring& rutaRegistro);
-std::string crearContenidoReg(const std::string& version, const std::string& renderer);
-void guardarArchivoReg(const std::string& contenido);
 
-// Definici髇 de funciones
-
+// Definici贸n de funciones
 void configurarConsola() {
-    system("color 17"); // Azul
-    SetConsoleOutputCP(CP_UTF8);//soporte para UTF-8
+    system("color 17"); // Fondo azul oscuro y texto verde
+    SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
 }
 
-
-//Construye la ruta del registro basada en la versi髇 de SolidWorks proporcionada.
-
-std::wstring construirRutaRegistro(const std::string& version) {
-    std::wstring basePath = L"SOFTWARE\\SolidWorks\\SOLIDWORKS ";
-    return basePath + std::wstring(version.begin(), version.end()) + L"\\Performance\\Graphics\\Hardware\\Current";
-}
-
-
-//Intenta leer el valor 'renderer' desde el registro.Si falla, muestra un mensaje de error.
-
-std::string obtenerRenderer(const std::wstring& rutaRegistro) {
-    HKEY hKey = nullptr;
-    if (RegOpenKeyEx(HKEY_CURRENT_USER, rutaRegistro.c_str(), 0, KEY_READ, &hKey) != ERROR_SUCCESS) {
-        std::cout << u8"Error: No se pudo encontrar la clave." << std::endl;
-        return "";
-    }
-
-    wchar_t value[256];
-    DWORD bufferSize = sizeof(value);
-    if (RegQueryValueEx(hKey, L"renderer", NULL, NULL, (LPBYTE)value, &bufferSize) != ERROR_SUCCESS) {
-        std::cout << u8"Error: No se pudo obtener el valor 'renderer' del registro." << std::endl;
-        RegCloseKey(hKey);
-        return "";
-    }
-
-    RegCloseKey(hKey);
-
-    // Convertir wchar_t a std::string
-    int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, &value[0], (int)wcslen(value), NULL, 0, NULL, NULL);
-    std::string rendererValue(sizeNeeded, 0);
-    WideCharToMultiByte(CP_UTF8, 0, &value[0], (int)wcslen(value), &rendererValue[0], sizeNeeded, NULL, NULL);
-
-    return rendererValue;
-}
-
-
-
-//Genera el contenido del archivo .reg basado en la versi髇 y el renderer.
-
-std::string crearContenidoReg(const std::string& version, const std::string& renderer) {
-    // Verificar si el renderer contiene palabras clave NVIDIA o AMD
-    std::string contenido;
-    if (renderer.find("NVIDIA") != std::string::npos || renderer.find("QUADRO")) {
-        contenido =
-            "Windows Registry Editor Version 5.00\n\n"
-            "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\AllowList\\NVIDIA Corporation\\" + renderer + "]\n"
-            "\"Workarounds\"=dword:" + clave1 + "\n\n"
-            "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\AllowList\\Gl2Shaders\\NV40\\" + renderer + "]\n"
-            "\"Workarounds\"=dword:" + clave2 + "\n\n"
-            "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\SOLIDWORKS " + version + "\\Performance\\Graphics\\Hardware\\NVIDIA Corporation\\" + renderer + "]\n"
-            "\"Workarounds\"=dword:" + clave1 + "\n\n"
-            "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\SOLIDWORKS " + version + "\\Performance\\Graphics\\Hardware\\Gl2Shaders\\NV40\\" + renderer + "]\n"
-            "\"Workarounds\"=dword:" + clave2 + "\n";
-    }
-    else if (renderer.find("AMD") != std::string::npos || renderer.find("ATI") != std::string::npos) {
-        contenido =
-            "Windows Registry Editor Version 5.00\n\n"
-            "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\AllowList\\ATI Technologies Inc.\\" + renderer + "]\n"
-            "\"Workarounds\"=dword:" + clave1 + "\n\n"
-            "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\AllowList\\Gl2Shaders\\RV900\\" + renderer + "]\n"
-            "\"Workarounds\"=dword:" + clave2 + "\n\n"
-            "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\SOLIDWORKS " + version + "\\Performance\\Graphics\\Hardware\\ATI Technologies Inc.\\" + renderer + "]\n"
-            "\"Workarounds\"=dword:" + clave1 + "\n\n"
-            "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\SOLIDWORKS " + version + "\\Performance\\Graphics\\Hardware\\Gl2Shaders\\RV900\\" + renderer + "]\n"
-            "\"Workarounds\"=dword:" + clave2 + "\n";
-    }
-    else {
-        // Si no es NVIDIA ni AMD, devolver un mensaje de error vac韔
-        std::cout << "Error: GPU no compatible." << std::endl;
-        return "";
-    }
-
-    return contenido;
-}
-
-
-
-//Guarda el contenido generado en un archivo .reg y maneja posibles errores.
-
-void guardarArchivoReg(const std::string& contenido) {
-    std::ofstream regFile("RealViewEnabler.reg");
-    if (regFile.is_open()) {
-        regFile << contenido;
-        regFile.close();
-        std::cout << u8"Archivo .reg creado con 閤ito!" << std::endl;
-    }
-    else {
-        std::cout << u8"Error: No se pudo crear el archivo .reg." << std::endl;
-    }
-}
-
-// Funci髇 principal
+// Funci贸n principal
 int main() {
     configurarConsola();
-
-    std::cout << u8"RealView Cracker V0.3 by RF47\n";
-    std::cout << u8"Ingrese la versi髇 de SolidWorks instalada (e.g., 2022): ";
-    std::cin >> version;
-
-    // Primero buscar en la ruta alternativa
-    std::wstring rutaRegistro = L"SOFTWARE\\SolidWorks\\AllowList\\Current";
-    std::string renderer = obtenerRenderer(rutaRegistro);
-
-    // Si no se encuentra el renderer en la ruta alternativa, buscar en la ruta original
-    if (renderer.empty()) {
-        std::cout << u8"Buscando en ruta alternativa" << std::endl;
-        rutaRegistro = construirRutaRegistro(version);
-        renderer = obtenerRenderer(rutaRegistro);
+    cout << "-----------------------------------------------------\n";
+    cout << "|RealViewOn v" << RVO_VERSION << " - by [RF47] && [TitanBoreal]|\n";
+    cout << "-----------------------------------------------------\n";
+    SolidWorks sw;
+    try {
+        sw.obtenerVersionesInstaladas();
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        cout << "Presione cualquier tecla para salir..." << std::endl;
+        _getch();
+        return 1;
     }
 
-    if (!renderer.empty()) {
-        std::cout << u8"GPU detectado: " << renderer << std::endl;
-
-        // Crear el contenido del archivo .reg
-        std::string contenidoReg = crearContenidoReg(version, renderer);
-        if (contenidoReg.empty()) {
-            std::cout << u8"Error: No se pudo generar el contenido del archivo .reg." << std::endl;
-            return 1;
+    // While para que el programa reinicie si se desea probar otra versi贸n.
+    while (true) {
+        // Bucle principal para solicitar la versi贸n de SolidWorks
+        while (true) {
+            cout << "\nIngrese el a帽o de versi贸n de SolidWorks (e.g., 2020, 2024) o presione ESC para salir: ";
+            string entrada = entradaTeclado(4);
+            // Validar entrada
+            try {
+                int swVersion = std::stoi(entrada);
+                if (sw.esCompatible(swVersion) == 0) {
+                    throw std::invalid_argument("Versi贸n inv谩lida");
+                }
+                cout << "Procesando la versi贸n: " << swVersion << std::endl;
+                sw.setVersion(swVersion);
+                GPU gpu(sw.obtenerRenderer());
+                guardarArchivoReg(swVersion, gpu.completarContenidoReg(sw.obtenerRegBase()));
+                cout << "Finalizado..." << std::endl;
+                break; // Salir del bucle principal si todo es correcto
+            }
+            catch (const std::exception& e) {
+                cout << "Error: " << e.what() << ". Intente nuevamente." << std::endl;
+            }
         }
-
-        // Guardar el archivo .reg
-        guardarArchivoReg(contenidoReg);
     }
-    else {
-        std::cout << u8"Error: No se pudo encontrar la clave 'renderer' en ninguna de las rutas." << std::endl;
-    }
-
-    // Pausar antes de salir
-    std::cin.ignore();
-    std::cout << u8"Presione enter para salir..." << std::endl;
-    std::cin.get();
     return 0;
 }
-

@@ -36,7 +36,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>ClangCL</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -49,7 +49,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>ClangCL</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -141,10 +141,20 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="easter.cpp" />
+    <ClCompile Include="GPU.cpp" />
     <ClCompile Include="RealViewOn.cpp" />
+    <ClCompile Include="Registro.cpp" />
+    <ClCompile Include="SolidWorks.cpp" />
+    <ClCompile Include="teclado.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="easter.h" />
+    <ClInclude Include="GPU.h" />
+    <ClInclude Include="Registro.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SolidWorks.h" />
+    <ClInclude Include="teclado.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RealView2.rc" />

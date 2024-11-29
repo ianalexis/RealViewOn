@@ -1,12 +1,14 @@
 
 # Visual Studio
 .vs/
+.vscode/
 *.vcxproj.user
 *.vcxproj.filters
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
+~AutoRecover.*
 
 # Compiled Object files
 *.obj
@@ -51,3 +53,6 @@ Release/
 
 # Generated files
 RealViewEnabler.reg
+/.vscode
+/.vscode
+*.reg
