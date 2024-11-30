@@ -103,7 +103,7 @@ void playMidi(const std::vector<unsigned char>& midiData) {
             }
         }
 
-        std::cout << "Reproducción completada correctamente." << std::endl;
+       // std::cout << "Reproducción completada correctamente." << std::endl;
 
     }
     catch (RtMidiError& error) {
