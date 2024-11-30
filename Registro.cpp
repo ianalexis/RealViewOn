@@ -24,9 +24,9 @@ void guardarArchivoReg(int& version, const vector<string>& contenido) {
     }
 }
 
-//Guarda en el registro directamente sin generar archivos de por medio.
-void escribirRegDirecto(const vector<string>& contenido) { // TODO: Ver como implementar.
-    for (const auto& line : contenido) {
-
-    }
-}
+////Guarda en el registro directamente sin generar archivos de por medio.
+//void escribirRegDirecto(const vector<string>& contenido) { // TODO: Ver como implementar.
+//    for (const auto& line : contenido) {
+//
+//    }
+//}
