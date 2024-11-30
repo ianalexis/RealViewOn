@@ -2,8 +2,9 @@
 // Archivo de inclusión generado de Microsoft Visual C++.
 // Usado por RealView2.rc
 //
+#pragma once
 #define IDI_ICON1                       101
-
+#define IDR_MIDI_FILE 101
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
@@ -14,3 +15,8 @@
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
+// resource.h
+
+
+
+

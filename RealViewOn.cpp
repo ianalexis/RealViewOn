@@ -9,6 +9,9 @@
 #include "GPU.h"
 #include "teclado.h"
 #include "Registro.h"
+#include "Playmidi.h"
+#include <thread>
+
 
 using std::cin;
 using std::cout;
@@ -43,9 +46,26 @@ void configurarConsola() {
     SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
 }
 
+
+void playMidiAsync(std::vector<unsigned char> midiData) {
+    // Esta función se ejecutará en un hilo separado
+    playMidi(midiData);
+}
+
 // Función principal
 int main() {
     configurarConsola();
+   
+    
+      
+    std::vector<unsigned char> midiData = loadEmbeddedMidi();
+
+    // Iniciar la reproducción del MIDI en un hilo separado
+    std::thread midiThread(playMidiAsync, midiData);
+    // Desvincular el hilo para que se ejecute independientemente
+    midiThread.detach();
+    
+
     cout << "-----------------------------------------------------\n";
     cout << "|RealViewOn v" << RVO_VERSION << " - by [RF47] && [TitanBoreal]|\n";
     cout << "-----------------------------------------------------\n";

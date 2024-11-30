@@ -71,6 +71,15 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -92,14 +101,17 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>D:\Code\Real-View-Cracker\midifile\include;D:\Code\Real-View-Cracker\rtmidi\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);rtmidi.lib;midifile.lib;winmm.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Code\Real-View-Cracker\rtmidi\lib;D:\Code\Real-View-Cracker\midifile\visual-studio\ReleaseLib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
       <Culture>0x2c0a</Culture>
@@ -126,15 +138,18 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <Optimization>MinSpace</Optimization>
+      <AdditionalIncludeDirectories>D:\Code\Real-View-Cracker\midifile\include;D:\Code\Real-View-Cracker\rtmidi\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);rtmidi.lib;midifile.lib;winmm.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Code\Real-View-Cracker\rtmidi\lib;D:\Code\Real-View-Cracker\midifile\visual-studio\ReleaseLib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
       <Culture>0x2c0a</Culture>
@@ -143,21 +158,38 @@
   <ItemGroup>
     <ClCompile Include="easter.cpp" />
     <ClCompile Include="GPU.cpp" />
+    <ClCompile Include="midifile\src\Binasc.cpp" />
+    <ClCompile Include="midifile\src\MidiEvent.cpp" />
+    <ClCompile Include="midifile\src\MidiEventList.cpp" />
+    <ClCompile Include="midifile\src\MidiFile.cpp" />
+    <ClCompile Include="midifile\src\MidiMessage.cpp" />
+    <ClCompile Include="midifile\src\Options.cpp" />
     <ClCompile Include="RealViewOn.cpp" />
     <ClCompile Include="Registro.cpp" />
+    <ClCompile Include="Playmidi.cpp" />
     <ClCompile Include="SolidWorks.cpp" />
     <ClCompile Include="teclado.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="easter.h" />
     <ClInclude Include="GPU.h" />
+    <ClInclude Include="midifile\include\Binasc.h" />
+    <ClInclude Include="midifile\include\MidiEvent.h" />
+    <ClInclude Include="midifile\include\MidiEventList.h" />
+    <ClInclude Include="midifile\include\MidiFile.h" />
+    <ClInclude Include="midifile\include\MidiMessage.h" />
+    <ClInclude Include="midifile\include\Options.h" />
+    <ClInclude Include="Playmidi.h" />
     <ClInclude Include="Registro.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="rtmidi\include\RtMidi.h" />
+    <ClInclude Include="rtmidi\include\rtmidi_c.h" />
     <ClInclude Include="SolidWorks.h" />
     <ClInclude Include="teclado.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RealView2.rc" />
+    <ResourceCompile Include="RTmidi.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="icon1.ico" />
