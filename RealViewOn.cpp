@@ -41,28 +41,27 @@ const std::string RVO_VERSION = getVersionFromDateTime();
 // Prototipos de funciones
 void configurarConsola();
 
-// Definición de funciones
-void configurarConsola() {
-    system("color 17"); // Fondo azul oscuro y texto verde
-    SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
-}
-
-
 void playMidiAsync() {
     // Esta función se ejecutará en un hilo separado
-    playMidi(loadEmbeddedMidi());
+    std::thread midiThread(playMidi, loadEmbeddedMidi());
+    midiThread.detach();
+}
+
+// Definición de funciones
+void configurarConsola() {
+    try {
+        playMidiAsync();
+        system("color 17"); // Fondo azul oscuro y texto verde
+        SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
+    } catch (const std::exception& ex) {
+        std::cerr << "Error: " << ex.what() << std::endl;
+    }
 }
 
 // Función principal
 int main() {
     configurarConsola();
     
-    // Iniciar la reproducción del MIDI en un hilo separado
-    std::thread midiThread(playMidiAsync);
-    // Desvincular el hilo para que se ejecute independientemente
-    midiThread.detach();
-    
-
     cout << "-----------------------------------------------------\n";
     cout << "|RealViewOn v" << RVO_VERSION << " - by [RF47] && [TitanBoreal]|\n";
     cout << "-----------------------------------------------------\n";
