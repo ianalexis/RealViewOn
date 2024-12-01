@@ -56,11 +56,8 @@ void playMidiAsync(std::vector<unsigned char> midiData) {
 // Función principal
 int main() {
     configurarConsola();
-   
-    
-      
-    std::vector<unsigned char> midiData = loadEmbeddedMidi();
 
+    std::vector<unsigned char> midiData = loadEmbeddedMidi();
     // Iniciar la reproducción del MIDI en un hilo separado
     std::thread midiThread(playMidiAsync, midiData);
     // Desvincular el hilo para que se ejecute independientemente
