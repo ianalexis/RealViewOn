@@ -1,8 +1,6 @@
 #include <iostream>
-#include <vector>
 #include <sstream>
 #include <thread>
-#include <chrono>
 #include <windows.h>
 #include <RtMidi.h>
 #include "MidiFile.h" 
@@ -33,8 +31,7 @@ std::vector<unsigned char> loadEmbeddedMidi() {
     }
 
     // Copiar los datos del recurso a un vector
-    return std::vector<unsigned char>(static_cast<unsigned char*>(resourceData),
-        static_cast<unsigned char*>(resourceData) + resourceSize);
+    return std::vector<unsigned char>(static_cast<unsigned char*>(resourceData), static_cast<unsigned char*>(resourceData) + resourceSize);
 }
 
 // Función para enviar mensajes MIDI válidos
@@ -103,20 +100,3 @@ void playMidi(const std::vector<unsigned char>& midiData) {
         error.printMessage();
     }
 }
-
-/*
-
-int main() {
-    try {
-        std::cout << "Cargando archivo MIDI incrustado..." << std::endl;
-        std::vector<unsigned char> midiData = loadEmbeddedMidi();
-
-        std::cout << "Reproduciendo archivo MIDI..." << std::endl;
-        playMidi(midiData);
-    }
-    catch (const std::exception& ex) {
-        std::cerr << "Error: " << ex.what() << std::endl;
-    }
-    return 0;
-}
-*/

@@ -41,16 +41,20 @@ void configurarConsola();
 
 void playMidiAsync() {
     // Esta función se ejecutará en un hilo separado
-    std::thread midiThread(playMidi, loadEmbeddedMidi());
-    midiThread.detach();
+    try{
+        std::thread midiThread(playMidi, loadEmbeddedMidi());
+        midiThread.detach();
+    } catch (const std::exception& ex) {
+        std::cerr << "Music error: " << ex.what() << std::endl;
+    }
 }
 
 // Definición de funciones
 void configurarConsola() {
     try {
-        playMidiAsync();
-        system("color 17"); // Fondo azul oscuro y texto verde
         SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
+        system("color 17"); // Fondo azul oscuro y texto verde
+        playMidiAsync();
     } catch (const std::exception& ex) {
         std::cerr << "Error: " << ex.what() << std::endl;
     }
