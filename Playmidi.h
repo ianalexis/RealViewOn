@@ -1,4 +1,4 @@
-#pragma once
+//#pragma once
 
 
 #include <iostream>
@@ -8,7 +8,7 @@
 #include <chrono>
 #include <windows.h>
 #include <RtMidi.h>
-#include "midifile.h" 
+#include "MidiFile.h" 
 #include "resource.h"
 
 
