@@ -228,8 +228,8 @@ string SolidWorks::obtenerRendererGenerico() {
             HKEY hSubKey;
             std::wstring fullSubKeyPath = subKeyPath + L"\\" + subKeyName;
             if (RegOpenKeyEx(HKEY_CURRENT_USER, fullSubKeyPath.c_str(), 0, KEY_READ, &hSubKey) == ERROR_SUCCESS) {
-                wchar_t valueName[256];
-                DWORD valueNameSize = sizeof(valueName);
+                //wchar_t valueName[256]; // TODO: ELIMINMAR
+                //DWORD valueNameSize = sizeof(valueName); // TODO: ELIMINAR
                 DWORD valueType;
                 BYTE valueData[256];
                 DWORD valueDataSize = sizeof(valueData);
@@ -257,9 +257,10 @@ string SolidWorks::obtenerRendererGenerico() {
     } else {
         std::wcerr << L"Error en abrir: " << basePath << std::endl;
     }
-
-    return renderer.empty() ? "" : renderers.size() == 1 ? renderers[0].first : elegirRenderer(renderers);
-    //return elegirRenderer(renderers); // FORZAR ELECCION DE RENDERER
+    if (renderers.empty()) { // TODO: Ver si se puede meter en el ternario. Cuando lo intenté no funcó.
+        return "";
+    }
+    return renderers.size() == 1 ? renderers[0].first : elegirRenderer(renderers);
 }
 
 string SolidWorks::elegirRenderer(std::vector<std::pair<std::string, std::string>> renderers) {
