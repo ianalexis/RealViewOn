@@ -200,7 +200,6 @@
     <ClCompile Include="midifile\src\MidiEventList.cpp" />
     <ClCompile Include="midifile\src\MidiFile.cpp" />
     <ClCompile Include="midifile\src\MidiMessage.cpp" />
-    <ClCompile Include="midifile\src\Options.cpp" />
     <ClCompile Include="RealViewOn.cpp" />
     <ClCompile Include="Registro.cpp" />
     <ClCompile Include="Playmidi.cpp" />
@@ -215,7 +214,6 @@
     <ClInclude Include="midifile\include\MidiEventList.h" />
     <ClInclude Include="midifile\include\MidiFile.h" />
     <ClInclude Include="midifile\include\MidiMessage.h" />
-    <ClInclude Include="midifile\include\Options.h" />
     <ClInclude Include="Playmidi.h" />
     <ClInclude Include="Registro.h" />
     <ClInclude Include="resource.h" />

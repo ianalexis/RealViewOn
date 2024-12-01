@@ -1,2 +1,0 @@
-C:\Devsoft\vcpkg-master\midifile\visual-studio\ReleaseLib\midifile.lib
-D:\Code\Real-View-Cracker\midifile\visual-studio\ReleaseLib\midifile.lib
