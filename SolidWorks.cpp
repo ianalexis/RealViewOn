@@ -141,10 +141,15 @@ string SolidWorks::obtenerRenderer() {
         renderer = obtenerRendererGenerico();
     }
     if (renderer.empty()) {
-        cout << "No se encontró el renderer. Ingrese el nombre manualmente.\n";
-        renderer = rendererManual();
-        if (renderer.empty()) {
-            throw std::runtime_error("No se ingresó el renderer.");
+        cout << "No se encontró el renderer.\n";
+        cout << "¿Desea ingresar el renderer manualmente? ";
+        if (yesOrNo()) {
+            renderer = rendererManual();
+            if (renderer.empty()) {
+                throw std::runtime_error("No se ingresó el renderer.");
+            }
+        } else {
+            throw std::runtime_error("Instalación cancelada por el usuario.");
         }
     }
     cout << "Renderer: " << renderer << "\n";
@@ -250,10 +255,10 @@ string SolidWorks::obtenerRendererGenerico() {
         buscarRendererEnSubclaves(hKey, basePath);
         RegCloseKey(hKey);
     } else {
-        std::wcerr << L"Failed to open registry key: " << basePath << std::endl;
+        std::wcerr << L"Error en abrir: " << basePath << std::endl;
     }
 
-    return renderers.size() == 1 ? renderers[0].first : elegirRenderer(renderers);
+    return renderer.empty() ? "" : renderers.size() == 1 ? renderers[0].first : elegirRenderer(renderers);
     //return elegirRenderer(renderers); // FORZAR ELECCION DE RENDERER
 }
 
