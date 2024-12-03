@@ -299,11 +299,11 @@ std::vector<std::string> SolidWorks::obtenerRegBase() {
 }
 
 string SolidWorks::obtenerRegBaseRaiz() {
-    return "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\AllowList\\";
+    return "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\AllowList";
 }
 
 string SolidWorks::obtenerRegBaseAno() {
-    return "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\SOLIDWORKS " + std::to_string(swVersion) + "\\Performance\\Graphics\\Hardware\\";
+    return "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\SOLIDWORKS " + std::to_string(swVersion) + "\\Performance\\Graphics\\Hardware";
 }
 
 // Valida que la version esté en el listado de versiones instaladas
