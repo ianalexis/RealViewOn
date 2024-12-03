@@ -54,6 +54,11 @@ void configurarConsola() {
     try {
         SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
         system("color 17"); // Fondo azul oscuro y texto verde
+        // Predefinir tamaño de consola
+        HWND console = GetConsoleWindow();
+        RECT r;
+        GetWindowRect(console, &r); // Obtener el tamaño actual de la consola
+        MoveWindow(console, r.left, r.top, 825, 600, TRUE); // Cambiar el tamaño de la consola a 800x600
         playMidiAsync();
     } catch (const std::exception& ex) {
         std::cerr << "Error: " << ex.what() << std::endl;
@@ -63,19 +68,18 @@ void configurarConsola() {
 // Función principal
 int main() {
     configurarConsola();
-    cout << "\n";
-    cout << ">>=============================================================================================<<\n";
-    cout << "||                                                                                             ||\n";
-    cout << "|| 8888888b.                   888 888     888 d8b                         .d88888b.           ||\n";
-    cout << "|| 888   Y88b                  888 888     888 Y8P                        d88P* *Y88b          ||\n";
-    cout << "|| 888    888                  888 888     888                            888     888          ||\n";
-    cout << "|| 888   d88P .d88b.   8888b.  888 Y88b   d88P 888  .d88b.  888  888  888 888     888 88888b.  ||\n";
-    cout << "|| 8888888P* d8P  Y8b     *88b 888  Y88b d88P  888 d8P  Y8b 888  888  888 888     888 888 *88b ||\n";
-    cout << "|| 888 T88b  88888888 .d888888 888   Y88o88P   888 88888888 888  888  888 888     888 888  888 ||\n";
-    cout << "|| 888  T88b Y8b.     888  888 888    Y888P    888 Y8b.     Y88b 888 d88P Y88b. .d88P 888  888 ||\n";
-    cout << "|| 888   T88b *Y8888  *Y888888 888     Y8P     888  *Y8888   *Y8888888P*   *Y88888P*  888  888 ||\n";
-    cout << "||                                                                                             ||\n";
-    cout << ">>=============================================================================================<<\n";
+    cout << " >>=============================================================================================<<\n";
+    cout << " ||                                                                                             ||\n";
+    cout << " || 8888888b.                   888 888     888 d8b                         .d88888b.           ||\n";
+    cout << " || 888   Y88b                  888 888     888 Y8P                        d88P* *Y88b          ||\n";
+    cout << " || 888    888                  888 888     888                            888     888          ||\n";
+    cout << " || 888   d88P .d88b.   8888b.  888 Y88b   d88P 888  .d88b.  888  888  888 888     888 88888b.  ||\n";
+    cout << " || 8888888P* d8P  Y8b     *88b 888  Y88b d88P  888 d8P  Y8b 888  888  888 888     888 888 *88b ||\n";
+    cout << " || 888 T88b  88888888 .d888888 888   Y88o88P   888 88888888 888  888  888 888     888 888  888 ||\n";
+    cout << " || 888  T88b Y8b.     888  888 888    Y888P    888 Y8b.     Y88b 888 d88P Y88b. .d88P 888  888 ||\n";
+    cout << " || 888   T88b *Y8888  *Y888888 888     Y8P     888  *Y8888   *Y8888888P*   *Y88888P*  888  888 ||\n";
+    cout << " ||                                                                                             ||\n";
+    cout << " >>=============================================================================================<<\n";
     cout << "------------------------------------------\n";
     cout << "|v" << RVO_VERSION << " - by [RF47] && [TitanBoreal]|\n";
     cout << "------------------------------------------\n";
@@ -100,7 +104,7 @@ int main() {
             try {
                 int swVersion = std::stoi(entrada);
                 if (sw.esCompatible(swVersion) == 0) {
-                    throw std::invalid_argument("Versión inválida");
+                    throw std::invalid_argument("Versión incompatible");
                 }
                 cout << "Procesando la versión: " << swVersion << std::endl;
                 sw.setVersion(swVersion);
