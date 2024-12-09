@@ -26,4 +26,4 @@
 
 ## Disclaimer
 
-Este software está diseñado para mejorar el habilitar funciones específicas en SolidWorks. Úselo bajo su propio criterio y responsabilidad. RealViewOn no está afiliado, respaldado ni aprobado por Dassault Systèmes. SolidWorks y RealView son marcas registradas de Dassault Systèmes.
+Este software está diseñado para mejorar el habilitar funciones específicas en SolidWorks. Úselo bajo su propio criterio y responsabilidad. SolidWorks y RealView son marcas registradas de Dassault Systèmes.
