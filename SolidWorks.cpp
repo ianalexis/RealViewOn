@@ -78,7 +78,7 @@ void SolidWorks::obtenerVersionesInstaladas() {
                 cout << "---------------|--------------\n";
             }
             int compatibilidad = esCompatible(i);
-            cout << "SolidWorks " << i << " | ";    
+            cout << "SolidWorks " << i << "| ";    
             // Cambia el color y muestra "[OK]", "[X]" o "[?]" utilizando un switch case
             switch (compatibilidad) {
                 case 1:  // Compatible
