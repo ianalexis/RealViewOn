@@ -18,7 +18,7 @@ string entradaTeclado(int caracteres) {
         if (_kbhit()) {
             char ch = _getch();
             if (ch == 27) { // Escape presionado
-                cout << "\nSaliendo del programa...\n";
+                cout << "\nExiting the program...\n";
                 exit(0);
             } else if (ch == '\b' && !entrada.empty()) { // Retroceso
                 entrada.pop_back();
@@ -54,7 +54,7 @@ bool yesOrNo() {
             return false;
         }
         else {
-            cout << "Opción inválida. ";
+            cout << "Invalid option. ";
         }
     }
 }

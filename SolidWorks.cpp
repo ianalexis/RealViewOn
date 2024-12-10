@@ -28,22 +28,22 @@ void SolidWorks::setVersion(int v) {
     bool instalado = versionInstalada(v);
     int compatibilidad = esCompatible(v);
     if (compatibilidad == 0) {
-        throw std::runtime_error("La versión de SolidWorks no es compatible.");
+        throw std::runtime_error("The version of SolidWorks is not compatible.");
     }
     swVersion = v;
     if (!instalado || compatibilidad == 2) {
         if (!instalado) {
-            cout << "La versión de SolidWorks no está instalada.\n";
+            cout << "SolidWorks " << v << " is not installed.\n";
         }
         if (compatibilidad == 2) {
-            cout << "La versión de SolidWorks es mayor a " << vMax << ".\n";
+            cout << "SolidWorks " << v << " is a future compatibility version.\n";
         }
-        cout << "¿Desea continuar en modo genérico? ";
+        cout << "Do you want to continue in generic mode? ";
         if (yesOrNo()) {
-            cout << "Continuando en modo genérico...\n";
+            //cout << "Continuando en modo genérico...\n";
             setGenerico(true);
         } else {
-            throw std::runtime_error("Instalación cancelada por el usuario.");
+            throw std::runtime_error("Installation canceled by the user.");
         }
     }
 }
@@ -74,8 +74,8 @@ void SolidWorks::obtenerVersionesInstaladas() {
         HKEY hKey;
         if (RegOpenKeyExW(HKEY_CURRENT_USER, versionKey.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
             if (versiones.empty()) {
-                cout << "\nSW Instalado v  | Compatibilidad\n";
-                cout << "----------------|---------------\n";
+                cout << "\nSW Installed v | Compatibility\n";
+                cout << "---------------|--------------\n";
             }
             int compatibilidad = esCompatible(i);
             cout << "SolidWorks " << i << " | ";    
@@ -106,13 +106,13 @@ void SolidWorks::obtenerVersionesInstaladas() {
         }
     }
     if (versiones.empty()) {
-        cout << "No se encontraron versiones de SolidWorks instaladas.\n";
-        cout << "¿Desea realizar el proceso manual? ";
+        cout << "No SolidWorks versions found installed.\n";
+        cout << "Do you want to proceed manually? ";
         if (!yesOrNo()) {
-            throw std::runtime_error("Instalación cancelada por el usuario.");
+            throw std::runtime_error("Installation canceled by the user.");
         }
     } else {
-        cout << "----------------|---------------\n";
+        cout << "---------------|--------------\n";
     } 
 }
 
@@ -126,8 +126,8 @@ string SolidWorks::obtenerRenderer() {
         tempRenderer = obtenerRenderRaiz();
         if (!tempRenderer.empty()) {
             if (!renderer.empty()) {
-                cout << "Se encontró un renderer en la carpeta raiz y en la carpeta de versión.\n";
-                cout << "¿Desea utilizar el renderer de la carpeta raiz? ";
+                cout << "A renderer was found in both the root folder and the version folder.\n";
+                cout << "Do you want to use the renderer from the root folder? ";
                 if (yesOrNo()) {
                     renderer = tempRenderer;
                 }
@@ -141,15 +141,15 @@ string SolidWorks::obtenerRenderer() {
         renderer = obtenerRendererGenerico();
     }
     if (renderer.empty()) {
-        cout << "No se encontró el renderer.\n";
-        cout << "¿Desea ingresar el renderer manualmente? ";
+        cout << "Renderer not found.\n";
+        cout << "Do you want to enter the renderer manually? ";
         if (yesOrNo()) {
             renderer = rendererManual();
             if (renderer.empty()) {
-                throw std::runtime_error("No se ingresó el renderer.");
+                throw std::runtime_error("No renderer was entered.");
             }
         } else {
-            throw std::runtime_error("Instalación cancelada por el usuario.");
+            throw std::runtime_error("Installation canceled by the user.");
         }
     }
     cout << "Renderer: " << renderer << "\n";
@@ -157,7 +157,7 @@ string SolidWorks::obtenerRenderer() {
 }
 
 string SolidWorks::rendererManual() {
-    cout << "Ingrese el nombre del renderer manualmente: ";
+    cout << "Enter the renderer name manually: ";
     return entradaTeclado(0);
 }
 
@@ -177,9 +177,9 @@ string SolidWorks::obtenerRenderRaiz() {
         RegCloseKey(hKey);
     }
     if (rendererRaiz.empty()) {
-        cout << "No se encontró el renderer en la carpeta raiz.\n";
+        cout << "Renderer not found in the root folder.\n";
     } else {
-        cout << "Renderer encontrado en carpeta raiz: " << rendererRaiz << "\n";
+        cout << "Renderer found in root folder: " << rendererRaiz << "\n";
     }
     return rendererRaiz;
 }
@@ -200,9 +200,9 @@ string SolidWorks::obtenerRendererAno() {
         RegCloseKey(hKey);
     }
     if (rendererAno.empty()) {
-        cout << "No se encontró el renderer en la carpeta de version.\n";
+        cout << "Renderer not found in the " << swVersion << " folder.\n";
     } else {
-        cout << "Renderer encontrado en carpeta de version: " << rendererAno << "\n";
+        cout << "Renderer found in " << swVersion << " folder: " << rendererAno << "\n";
     }
     return rendererAno;
 }
@@ -255,7 +255,7 @@ string SolidWorks::obtenerRendererGenerico() {
         buscarRendererEnSubclaves(hKey, basePath);
         RegCloseKey(hKey);
     } else {
-        std::wcerr << L"Error en abrir: " << basePath << std::endl;
+        std::wcerr << L"Error opening: " << basePath << std::endl;
     }
     if (renderers.empty()) { // TODO: Ver si se puede meter en el ternario. Cuando lo intenté no funcó.
         return "";
@@ -265,15 +265,15 @@ string SolidWorks::obtenerRendererGenerico() {
 
 string SolidWorks::elegirRenderer(std::vector<std::pair<std::string, std::string>> renderers) {
     if (renderers.empty()) {
-        throw std::runtime_error("No se encontraron renderers en el registro.");
+        throw std::runtime_error("No renderers found in the registry.");
     }
-    cout << "Renderers disponibles:\n";
-    cout << "0. Ingresar manualmente\n";
+    cout << "Available renderers:\n";
+    cout << "0. Enter manually\n";
     for (int i = 0; i < renderers.size(); i++) {
-        cout << i + 1 << ". " << renderers[i].first << " (en " << renderers[i].second << ")\n";
+        cout << i + 1 << ". " << renderers[i].first << " (in " << renderers[i].second << ")\n";
     }
     while (true) {
-        cout << "Seleccione el renderer (o presione Esc para cancelar): ";
+        cout << "Select the renderer (or press Esc to cancel): ";
         string input = entradaTeclado(1);
         int opcion = std::stoi(input);
         if (opcion >= 1 && opcion <= renderers.size()) {
@@ -282,7 +282,7 @@ string SolidWorks::elegirRenderer(std::vector<std::pair<std::string, std::string
         if (opcion == 0){
             return rendererManual();
         }
-        cout << "Opción inválida. Intente nuevamente.\n";
+        cout << "Invalid option. Please try again.\n";
     }
 }
 

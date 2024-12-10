@@ -27,7 +27,7 @@ void GPU::setBrand(string r) {
         
         if (r.find(key) != string::npos) {
             brand = pair.second;
-            cout << "Marca de GPU detectada: " << brandToString(brand) << "\n";
+            cout << "GPU Brand detected: " << brandToString(brand) << "\n";
             return;
         }
     }
@@ -43,18 +43,18 @@ std::string GPU::brandToString(GPU::Brand brand) {
     case GPU::Brand::INTEL:
         return "Intel";
     default:
-        return "Desconocida";
+        return "Unknown";
     }
 }
 
 // Selecciona la marca de la GPU en caso de no poder determinarla.
 GPU::Brand GPU::selecectBrand() {
-    cout << "Seleccione la marca de la GPU:\n";
+    cout << "Select the GPU brand:\n";
     cout << "1. NVIDIA\n";
     cout << "2. AMD\n";
     cout << "3. Intel\n";
     //cout << "4. Otra\n";
-    cout << "Seleccione la marca de la GPU (o presione Esc para cancelar): ";
+    cout << "Select the GPU brand (or press Esc to cancel): ";
     string input = entradaTeclado(1);
     int opcion = std::stoi(input);
     switch (opcion) {
@@ -67,7 +67,7 @@ GPU::Brand GPU::selecectBrand() {
     //case 4:
     //    return Brand::UNKNOWN;
     default:
-        cout << "Opción inválida. Intente nuevamente.\n";
+        cout << "Invalid option. Please try again.\n";
         return selecectBrand();
     }
 }
@@ -82,7 +82,7 @@ vector<string> GPU::completarContenidoReg(const vector<string>& regBase) {
     case Brand::INTEL:
         return completarContenidoRegIntel(regBase);
     default: // Marca desconocida
-        throw std::invalid_argument("Marca de GPU desconocida para " + renderer);
+        throw std::invalid_argument("Unknown GPU brand for " + renderer);
     }
 }
 

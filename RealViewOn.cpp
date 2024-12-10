@@ -80,7 +80,7 @@ int main() {
     }
     catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
-        cout << "Presione cualquier tecla para salir..." << std::endl;
+        cout << "Press any key to exit..." << std::endl;
         _getch();
         return 1;
     }
@@ -89,23 +89,23 @@ int main() {
     while (true) {
         // Bucle principal para solicitar la versión de SolidWorks
         while (true) {
-            cout << "\nIngrese el año de versión de SolidWorks (e.g., 2020, 2024) o presione ESC para salir: ";
+            cout << "\nEnter the SolidWorks version year (e.g., 2020, 2024) or press ESC to exit: ";
             string entrada = entradaTeclado(4);
             // Validar entrada
             try {
                 int swVersion = std::stoi(entrada);
                 if (sw.esCompatible(swVersion) == 0) {
-                    throw std::invalid_argument("Versión incompatible");
+                    throw std::invalid_argument("Incompatible version");
                 }
-                cout << "Procesando la versión: " << swVersion << std::endl;
+                cout << "Processing version: " << swVersion << std::endl;
                 sw.setVersion(swVersion);
                 GPU gpu(sw.obtenerRenderer());
                 guardarArchivoReg(swVersion, gpu.completarContenidoReg(sw.obtenerRegBase()));
-                cout << "Finalizado..." << std::endl;
+                cout << "Finished..." << std::endl;
                 break; // Salir del bucle principal si todo es correcto
             }
             catch (const std::exception& e) {
-                cout << "Error: " << e.what() << ". Intente nuevamente." << std::endl;
+                cout << "Error: " << e.what() << ". Try again." << std::endl;
             }
         }
     }
