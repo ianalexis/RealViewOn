@@ -36,7 +36,7 @@ std::vector<unsigned char> loadEmbeddedMidi() {
 
 // Función para enviar mensajes MIDI válidos
 void sendMidiMessage(RtMidiOut& midiOut, const std::vector<unsigned char>& message) {
-    if (message.size() <= 3 || message[0] == 0xF0 && message.back() == 0xF7) {
+    if (message.size() <= 3 || (message[0] == 0xF0 && message.back() == 0xF7)) {
         // Mensaje estándar MIDI (máximo 3 bytes)
         midiOut.sendMessage(&message);
     } else {
