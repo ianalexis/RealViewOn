@@ -10,31 +10,12 @@
 #include "teclado.h"
 #include "Registro.h"
 #include "Playmidi.h"
+#include "version.h"
 #include <thread>
 
 using std::cin;
 using std::cout;
 using std::string;
-
-std::string getVersionFromDateTime() {
-    std::tm t = {};
-    std::istringstream date_ss(__DATE__);
-    date_ss >> std::get_time(&t, "%b %d %Y");
-
-    std::istringstream time_ss(__TIME__);
-    time_ss >> std::get_time(&t, "%H:%M:%S");
-
-    std::ostringstream version_ss;
-    version_ss << std::setfill('0') << std::setw(2) << (t.tm_year % 100)
-               << std::setw(2) << (t.tm_mon + 1)
-               << std::setw(2) << t.tm_mday
-               << std::setw(2) << t.tm_hour
-               << std::setw(2) << t.tm_min;
-
-    return version_ss.str();
-}
-
-const std::string RVO_VERSION = getVersionFromDateTime();
 
 // Prototipos de funciones
 void configurarConsola();
@@ -69,9 +50,7 @@ void configurarConsola() {
     }
 }
 
-// Función principal
-int main() {
-    configurarConsola();
+void encabezado() {
     cout << " >>=============================================================================================<<\n";
     cout << " ||                                                                                             ||\n";
     cout << " || 8888888b.                   888 888     888 d8b                         .d88888b.           ||\n";
@@ -84,9 +63,17 @@ int main() {
     cout << " || 888   T88b *Y8888  *Y888888 888     Y8P     888  *Y8888   *Y8888888P*   *Y88888P*  888  888 ||\n";
     cout << " ||                                                                                             ||\n";
     cout << " >>=============================================================================================<<\n";
-    cout << "------------------------------------------\n";
-    cout << "|v" << RVO_VERSION << " - by [RF47] && [TitanBoreal]|\n";
-    cout << "------------------------------------------\n";
+    string data = "v" + string(RVO_VERSION) + " c" + string(RVO_COMPILATION) + " - by [RF47] && [TitanBoreal]";
+    int width = 94; // Ancho total de la línea
+    int padding = (width - data.length()) / 2;
+    cout << " ||" << std::setw(padding) << "" << data << std::setw(padding) << "" << "||\n";
+    cout << " >>=============================================================================================<<\n";
+}
+
+// Función principal
+int main() {
+    configurarConsola();
+    encabezado();
     SolidWorks sw;
     try {
         sw.obtenerVersionesInstaladas();
