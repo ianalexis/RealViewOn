@@ -238,6 +238,7 @@
     <ClInclude Include="rtmidi\include\rtmidi_c.h" />
     <ClInclude Include="SolidWorks.h" />
     <ClInclude Include="teclado.h" />
+    <ClInclude Include="version.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RealView2.rc" />
