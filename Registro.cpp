@@ -17,9 +17,9 @@ void guardarArchivoReg(int& version, const vector<string>& contenido) {
             regFile << line << "\n";
         }
         regFile.close();
-        cout << "Archivo " << "RealViewEnable" + std::to_string(version) + ".reg creado exitosamente." << std::endl;
+        cout << "File " << "RealViewEnable" + std::to_string(version) + ".reg created successfully." << std::endl;
     }
     else {
-        throw std::runtime_error("No se pudo crear el archivo .reg. \n Verifique que el programa tenga permisos de escritura en la carpeta y no haya un archivo con el mismo nombre abierto.");
+        throw std::runtime_error("Could not create the .reg file. \n Please ensure the program has write permissions in the folder and that no file with the same name is open.");
     }
 }

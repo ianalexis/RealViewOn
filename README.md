@@ -9,20 +9,16 @@
 
 ## Usage
 
-1. The system detects the installed versions of SolidWorks.
-2. It searches for the GPU used by that version of SolidWorks.
-3. Generates a `.reg` file that can be manually reviewed before execution to enable RealView.
-4. If it does not work, modify the `dword` values of the file until activation is achieved.
+1. Download the last version from Releases exe or 7z.
+3. The system detects the installed versions of SolidWorks.
+4. It searches for the GPU used by that version of SolidWorks.
+5. Generates a `.reg` file that can be manually reviewed before execution to enable RealView.
+6. If it does not work, modify the `dword` values of the file until activation is achieved.
 
 ## Compatibility
 
 - **SolidWorks**: Versions after 2010.
 - **GPU**: Nvidia, AMD, or Intel.
-
-## Execution
-
-1. Download the latest RealViewOn.exe
-2. RUN.
 
 ## Disclaimer
 
@@ -40,20 +36,16 @@ ___
 
 ## Uso
 
-1. El sistema detecta las versiones de SolidWorks instaladas.
-2. Busca la GPU utilizada por esa versión de SolidWorks.
-3. Genera un archivo `.reg` que puede revisar manualmente antes de su ejecución para habilitar RealView.
-4. En caso de no funcionar, modifique los valores `dword` del archivo hasta lograr su activación.
+1. Descargue la ultima version (exe o 7z) de Releases.
+2. El sistema detecta las versiones de SolidWorks instaladas.
+3. Busca la GPU utilizada por esa versión de SolidWorks.
+4. Genera un archivo `.reg` que puede revisar manualmente antes de su ejecución para habilitar RealView.
+5. En caso de no funcionar, modifique los valores `dword` del archivo hasta lograr su activación.
 
 ## Compatibilidad
 
 - **SolidWorks**: Versiones posteriores a 2010.
 - **GPU**: Nvidia, AMD o Intel.
-
-## Ejecución
-
-1. Descargue el ultimo RealViewOn.exe
-2. RUN.
 
 ## Disclaimer
 
