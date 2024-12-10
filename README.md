@@ -5,7 +5,7 @@
 ## Operation Modes
 
 - **Smart**: Automatically detects and generates all keys.
-- **Forced**: Allows generating the files by requesting the missing information from the user when all required data cannot be obtained.
+- **Manual**: Allows generating the files by requesting the missing information from the user when all required data cannot be obtained.
 
 ## Usage
 
@@ -36,7 +36,7 @@ ___
 ## Modos de Operación
 
 - **Smart**: Detecta y genera todas las claves automáticamente.
-- **Forced**: Permite generar los archivos solicitando al usuario la información faltante cuando no se pueden obtener todos los datos requeridos.
+- **Manual**: Permite generar los archivos solicitando al usuario la información faltante cuando no se pueden obtener todos los datos requeridos.
 
 ## Uso
 
