@@ -74,11 +74,11 @@ void SolidWorks::obtenerVersionesInstaladas() {
         HKEY hKey;
         if (RegOpenKeyExW(HKEY_CURRENT_USER, versionKey.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
             if (versiones.empty()) {
-                cout << "\nSW Installed v | Compatibility\n";
-                cout << "---------------|--------------\n";
+                cout << "\n SW Installed v  | Compatibility\n";
+                cout << " ----------------|---------------\n";
             }
             int compatibilidad = esCompatible(i);
-            cout << "SolidWorks " << i << "| ";    
+            cout << " SolidWorks " << i << " | ";    
             // Cambia el color y muestra "[OK]", "[X]" o "[?]" utilizando un switch case
             switch (compatibilidad) {
                 case 1:  // Compatible
@@ -112,7 +112,7 @@ void SolidWorks::obtenerVersionesInstaladas() {
             throw std::runtime_error("Installation canceled by the user.");
         }
     } else {
-        cout << "---------------|--------------\n";
+        cout << " ----------------|---------------\n";
     } 
 }
 
