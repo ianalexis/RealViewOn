@@ -223,25 +223,23 @@
     <ClCompile Include="src\SolidWorks.cpp" />
     <ClCompile Include="src\teclado.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\easter.h" />
-    <ClInclude Include="include\GPU.h" />
-    <ClInclude Include="include\easter.h" />
-    <ClInclude Include="include\GPU.h" />
-    <ClInclude Include="include\Playmidi.h" />
-    <ClInclude Include="include\Registro.h" />
-    <ClInclude Include="include\resource.h" />
-    <ClInclude Include="include\SolidWorks.h" />
-    <ClInclude Include="include\teclado.h" />
-    <ClInclude Include="include\version.h" />
-    <ClInclude Include="midifile\include\Binasc.h" />
-    <ClInclude Include="midifile\include\MidiEvent.h" />
-    <ClInclude Include="midifile\include\MidiEventList.h" />
-    <ClInclude Include="midifile\include\MidiFile.h" />
-    <ClInclude Include="midifile\include\MidiMessage.h" />
-    <ClInclude Include="rtmidi\include\RtMidi.h" />
-    <ClInclude Include="rtmidi\include\rtmidi_c.h" />
-  </ItemGroup>
+<ItemGroup>
+  <ClInclude Include="include\easter.h" />
+  <ClInclude Include="include\GPU.h" />
+  <ClInclude Include="include\Playmidi.h" />
+  <ClInclude Include="include\Registro.h" />
+  <ClInclude Include="include\resource.h" />
+  <ClInclude Include="include\SolidWorks.h" />
+  <ClInclude Include="include\teclado.h" />
+  <ClInclude Include="include\version.h" />
+  <ClInclude Include="midifile\include\Binasc.h" />
+  <ClInclude Include="midifile\include\MidiEvent.h" />
+  <ClInclude Include="midifile\include\MidiEventList.h" />
+  <ClInclude Include="midifile\include\MidiFile.h" />
+  <ClInclude Include="midifile\include\MidiMessage.h" />
+  <ClInclude Include="rtmidi\include\RtMidi.h" />
+  <ClInclude Include="rtmidi\include\rtmidi_c.h" />
+</ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="include\RealView2.rc" />
     <ResourceCompile Include="include\RTmidi.rc" />
