@@ -5,6 +5,7 @@ setlocal
 set SOURCE_FILE="x64\Release\RealViewOn.exe"
 set DEST_FILE="%~dp0RealViewOn.exe"
 set UPX_EXEC="upx.exe"
+set COMPRESSED_FILE="%~dp0RealViewOn.7z"
 
 if not exist %SOURCE_FILE% (
     echo Archivo %SOURCE_FILE% no encontrado.
@@ -21,6 +22,17 @@ if exist %DEST_FILE% (
     )
 ) else (
     echo El archivo %DEST_FILE% no existe, se saltea la eliminación.
+)
+
+if exist %COMPRESSED_FILE% (
+    del %COMPRESSED_FILE%
+    if %errorlevel% neq 0 (
+        echo Error al eliminar el archivo ZIP existente.
+        pause
+        exit /b
+    )
+) else (
+    echo El archivo %COMPRESSED_FILE% no existe, se saltea la eliminación.
 )
 
 copy %SOURCE_FILE% %DEST_FILE%
@@ -45,5 +57,27 @@ if %errorlevel% neq 0 (
 )
 echo Compresión completada.
 
-endlocal
-pause
+set SEVEN_ZIP_EXEC="C:\Program Files\7-Zip\7z.exe"
+
+if not exist %SEVEN_ZIP_EXEC% (
+    echo %SEVEN_ZIP_EXEC% no encontrado.
+    pause
+    exit /b
+)
+
+%SEVEN_ZIP_EXEC% a %COMPRESSED_FILE% %DEST_FILE%
+if %errorlevel% neq 0 (
+    echo Error al comprimir el archivo con 7-Zip.
+    pause
+    exit /b
+)
+echo Compresión con 7-Zip completada.
+
+echo.
+echo ===========================================================
+echo.
+echo FINALIZADO CORRECTAMENTE. CERRANDO
+echo.
+echo ===========================================================
+echo.
+exit
