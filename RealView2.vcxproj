@@ -247,7 +247,7 @@
     <ClInclude Include="rtmidi\include\rtmidi_c.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="include\RealView2.rc" />
+    <ResourceCompile Include="include\RealViewOn.rc" />
     <ResourceCompile Include="include\RTmidi.rc" />
   </ItemGroup>
   <ItemGroup>
