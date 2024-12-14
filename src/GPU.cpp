@@ -90,8 +90,8 @@ vector<string> GPU::completarContenidoReg(const vector<string>& regBase) {
 vector<string> GPU::completarContenidoRegNVIDIA(const vector<string>& regBase) {
     vector<string> result;
     for (const auto& reg : regBase) {
-        result.push_back(reg + "\\NVIDIA Corporation\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKey);
-        result.push_back(reg + "\\Gl2Shaders\\NV40\\" + renderer + "]\n\"Workarounds\"=dword:" + glKey);
+        result.push_back(reg + "\\NVIDIA Corporation\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::NVIDIA).brandKey);
+        result.push_back(reg + "\\Gl2Shaders\\NV40\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::NVIDIA).glKey);
     }
     return result;
 }
@@ -100,8 +100,8 @@ vector<string> GPU::completarContenidoRegNVIDIA(const vector<string>& regBase) {
 vector<string> GPU::completarContenidoRegAMD(const vector<string>& regBase) { //TODO: Segun https://github.com/TrevorAvrett/SolidWorks-RealView-Enabler/blob/master/Source%20Code%20(c%23) es R420
     vector<string> result;
     for (const auto& reg : regBase) {
-        result.push_back(reg + "\\ATI Technologies Inc.\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKey);
-        result.push_back(reg + "\\Gl2Shaders\\RV900\\" + renderer + "]\n\"Workarounds\"=dword:" + glKey);
+        result.push_back(reg + "\\ATI Technologies Inc.\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::AMD).brandKey);
+        result.push_back(reg + "\\Gl2Shaders\\RV900\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::AMD).glKey);
     }
     return result;
 }
@@ -110,8 +110,8 @@ vector<string> GPU::completarContenidoRegAMD(const vector<string>& regBase) { //
 vector<string> GPU::completarContenidoRegIntel(const vector<string>& regBase) { // TODO: Revisar con placas raras?
     vector<string> result;
     for (const auto& reg : regBase) {
-        result.push_back(reg + "\\Intel\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKey);
-        result.push_back(reg + "\\Gl2Shaders\\Other\\" + renderer + "]\n\"Workarounds\"=dword:" + glKey);
+        result.push_back(reg + "\\Intel\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::INTEL).brandKey);
+        result.push_back(reg + "\\Gl2Shaders\\Other\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::INTEL).glKey);
     }
     return result;
 }

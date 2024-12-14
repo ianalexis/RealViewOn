@@ -29,8 +29,18 @@ private:
 
     Brand brand = Brand::UNKNOWN;
     string renderer;
-    const string brandKey = "40000"; // TODO: PROBAR SI EL VALOR NO CAMBIA POR VERSION DE SW O GPU.
-    const string glKey = "70408"; //TODO: PROBAR SI EL VALOR NO CAMBIA POR VERSION DE SW O GPU.
+
+    struct BrandKeys {
+        string brandKey;
+        string glKey;
+    };
+
+    const std::map<Brand, BrandKeys> brandKeysMap = {
+        {Brand::NVIDIA, {"40000", "70408"}},
+        {Brand::AMD, {"4000085", "32408"}},
+        {Brand::INTEL, {"4000080", "30408"}}
+    };
+
     vector<string> regFull;
 
     // Mapeo de palabras clave a marcas de GPU EN MAYÚSCULAS.
