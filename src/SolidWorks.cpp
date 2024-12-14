@@ -290,7 +290,7 @@ string SolidWorks::elegirRenderer(std::vector<std::pair<std::string, std::string
 std::vector<std::string> SolidWorks::obtenerRegBase() {
     regBase.clear();
     if (swVersion >= vCambioRaiz || generico) {
-        regBase.push_back(obtenerRegBaseRaiz());
+        regBase.push_back(obtenerRegBaseAllowList());
     }
     if (swVersion < vCambioRaiz || generico) {
         regBase.push_back(obtenerRegBaseAno());
@@ -298,7 +298,7 @@ std::vector<std::string> SolidWorks::obtenerRegBase() {
     return regBase;
 }
 
-string SolidWorks::obtenerRegBaseRaiz() {
+string SolidWorks::obtenerRegBaseAllowList() {
     return "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\AllowList";
 }
 
