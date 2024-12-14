@@ -216,7 +216,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\easter.cpp" />
+    <ClCompile Include="src\misc.cpp" />
     <ClCompile Include="src\GPU.cpp" />
     <ClCompile Include="midifile\src\Binasc.cpp" />
     <ClCompile Include="midifile\src\MidiEvent.cpp" />
@@ -230,7 +230,7 @@
     <ClCompile Include="src\teclado.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\easter.h" />
+    <ClInclude Include="include\misc.h" />
     <ClInclude Include="include\GPU.h" />
     <ClInclude Include="include\Playmidi.h" />
     <ClInclude Include="include\Registro.h" />
