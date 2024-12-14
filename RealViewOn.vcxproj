@@ -22,7 +22,7 @@
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{36fd3b22-b095-47e5-9e45-a4050e4cc122}</ProjectGuid>
-    <RootNamespace>RealView2</RootNamespace>
+    <RootNamespace>RealViewOn</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>RealViewOn</ProjectName>
     <WindowsTargetPlatformMinVersion>7.0</WindowsTargetPlatformMinVersion>

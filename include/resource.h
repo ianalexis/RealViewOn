@@ -1,6 +1,5 @@
 //{{NO_DEPENDENCIES}}
 // Archivo de inclusi�n generado de Microsoft Visual C++.
-// Usado por RealView2.rc
 //
 #define IDI_ICON1                       101
 #define IDR_MIDI_FILE                   101

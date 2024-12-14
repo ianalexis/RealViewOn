@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35506.116 d17.12
+VisualStudioVersion = 17.12.35506.116
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RealView2", "RealView2.vcxproj", "{36FD3B22-B095-47E5-9E45-A4050E4CC122}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RealViewOn", "RealViewOn.vcxproj", "{36FD3B22-B095-47E5-9E45-A4050E4CC122}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,8 +13,8 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{36FD3B22-B095-47E5-9E45-A4050E4CC122}.Debug|x64.ActiveCfg = Debug|x64
-		{36FD3B22-B095-47E5-9E45-A4050E4CC122}.Debug|x64.Build.0 = Debug|x64
+		{36FD3B22-B095-47E5-9E45-A4050E4CC122}.Debug|x64.ActiveCfg = Release|x64
+		{36FD3B22-B095-47E5-9E45-A4050E4CC122}.Debug|x64.Build.0 = Release|x64
 		{36FD3B22-B095-47E5-9E45-A4050E4CC122}.Debug|x86.ActiveCfg = Debug|Win32
 		{36FD3B22-B095-47E5-9E45-A4050E4CC122}.Debug|x86.Build.0 = Debug|Win32
 		{36FD3B22-B095-47E5-9E45-A4050E4CC122}.Release|x64.ActiveCfg = Release|x64
