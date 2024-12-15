@@ -9,7 +9,12 @@ class SolidWorks {
 public:
     SolidWorks(); // Constructor
     void obtenerVersionesInstaladas(); // Devuelve una lista de versiones de SolidWorks instaladas y si son compatibles.
-    string obtenerRenderer(); // Lee el valor 'renderer' actual desde el registro.
+    struct Current { // Mover la declaración de la estructura aquí
+        string renderer;
+        string vendor;
+        string workarounds;
+    };
+    Current obtenerCurrent(); // Lee el valor 'renderer' actual desde el registro.
     vector<string> obtenerRegBase(); // Obtiene la ruta base del registro para enviarle al completador de contenido de la GPU.
     void setVersion(int v);
     int esCompatible(int v);
@@ -17,9 +22,9 @@ public:
 
 private:
     int obtenerAnoActual(); // Obtiene el año actual del sistema operativo + 1.
-    string obtenerRenderRaiz();
-    string obtenerRendererAno();
-    string obtenerRendererGenerico();
+    string obtenerCurrentRaiz();
+    string obtenerCurrentAno();
+    string obtenerCurrentGenerico();
     string obtenerRegBaseAllowList();
     string obtenerRegBaseAno();
     bool versionInstalada(int v);
@@ -34,6 +39,6 @@ private:
     int swVersion = 0;
     vector<std::pair<int, int>> versiones;
     bool generico = false;
-    string renderer;
+    Current current;
     vector<string> regBase;
 };

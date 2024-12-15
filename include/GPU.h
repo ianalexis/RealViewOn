@@ -2,13 +2,14 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <SolidWorks.h>
 
 using std::string;
 using std::vector;
 
 class GPU {
 public:
-    GPU(const string& renderer); // Constructor
+    GPU(SolidWorks::Current current); // Constructor
     vector<string> completarContenidoReg(const vector<string>& regBase);
 
     enum class Brand {
@@ -21,14 +22,16 @@ public:
     string brandToString(GPU::Brand brand); // Convierte la marca de GPU a string.
 
 private:
-    void setBrand(string r); // Declarar setBrand
+    void setBrand(string v,string r); // Declarar setBrand
     vector<string> completarContenidoRegNVIDIA(const vector<string>& regBase); // Completa el contenido del archivo .reg para GPUs NVIDIA.
     vector<string> completarContenidoRegAMD(const vector<string>& regBase); // Completa el contenido del archivo .reg para GPUs AMD.
     vector<string> completarContenidoRegIntel(const vector<string>& regBase); // Completa el contenido del archivo .reg en modo genérico.
-    Brand selecectBrand(); // Selecciona la marca de la GPU en caso de no poder determinarla.
+    void GPU::buscarEnRenderMap(string buscado); // Declarar buscarEnRenderMap
+    Brand selecectBrandManual(); // Selecciona la marca de la GPU en caso de no poder determinarla.
 
     Brand brand = Brand::UNKNOWN;
     string renderer;
+    string workarounds;
 
     struct BrandKeys {
         string brandKey;

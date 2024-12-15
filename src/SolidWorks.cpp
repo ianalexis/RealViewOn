@@ -116,44 +116,46 @@ void SolidWorks::obtenerVersionesInstaladas() {
     } 
 }
 
-string SolidWorks::obtenerRenderer() {
-    renderer.clear();
+SolidWorks::Current SolidWorks::obtenerCurrent() { // TODO: REVISAR TODOS LOS RENDERER QUE AUN QUEDAN Y PASARLOS A CURRENT. MODIFICAR TAMBIEN LAS BUSQUEDAS PARA TOMAR CURRENT EN LUGAR DE SOLO RENDERER.
+    current.renderer = "";
+    current.vendor = "";
+    current.workarounds = "";
     string tempRenderer = "";
     if (swVersion < vCambioRaiz || generico) {
-        renderer = obtenerRendererAno();
+        current.renderer = obtenerCurrentAno();
     }
-    if (renderer.empty() || swVersion >= vCambioRaiz || generico) {
-        tempRenderer = obtenerRenderRaiz();
+    if (current.renderer.empty() || swVersion >= vCambioRaiz || generico) {
+        tempRenderer = obtenerCurrentRaiz();
         if (!tempRenderer.empty()) {
-            if (!renderer.empty()) {
+            if (!current.renderer.empty()) {
                 cout << "A renderer was found in both the root folder and the version folder.\n";
                 cout << "Do you want to use the renderer from the root folder? ";
                 if (yesOrNo()) {
-                    renderer = tempRenderer;
+                    current.renderer = tempRenderer;
                 }
             } else {
-                renderer = tempRenderer;
+                current.renderer = tempRenderer;
             }
         }
-        renderer = tempRenderer.empty() ? renderer : tempRenderer;
+        current.renderer = tempRenderer.empty() ? current.renderer : tempRenderer;
     }
-    if (renderer.empty()) {
-        renderer = obtenerRendererGenerico();
+    if (current.renderer.empty()) {
+        current.renderer = obtenerCurrentGenerico();
     }
-    if (renderer.empty()) {
+    if (current.renderer.empty()) {
         cout << "Renderer not found.\n";
         cout << "Do you want to enter the renderer manually? ";
         if (yesOrNo()) {
-            renderer = rendererManual();
-            if (renderer.empty()) {
+            current.renderer = rendererManual();
+            if (current.renderer.empty()) {
                 throw std::runtime_error("No renderer was entered.");
             }
         } else {
             throw std::runtime_error("Installation canceled by the user.");
         }
     }
-    cout << "Renderer: " << renderer << "\n";
-    return renderer;
+    cout << "Renderer: " << current.renderer << "\n";
+    return current;
 }
 
 string SolidWorks::rendererManual() {
@@ -162,7 +164,7 @@ string SolidWorks::rendererManual() {
 }
 
 // Busca render en carpeta raiz.
-string SolidWorks::obtenerRenderRaiz() {
+string SolidWorks::obtenerCurrentRaiz() {
     HKEY hKey;
     string rendererRaiz = "";
     std::wstring regPath = L"SOFTWARE\\SolidWorks\\AllowList\\Current";
@@ -185,7 +187,7 @@ string SolidWorks::obtenerRenderRaiz() {
 }
 
 // Busca render en carpeta de version.
-string SolidWorks::obtenerRendererAno() {
+string SolidWorks::obtenerCurrentAno() {
     HKEY hKey;
     string rendererAno = "";
     std::wstring regPath = swRegRuta + std::to_wstring(swVersion) + L"\\Performance\\Graphics\\Hardware\\Current";
@@ -208,7 +210,7 @@ string SolidWorks::obtenerRendererAno() {
 }
 
 // Busca render en todo el registro (modo generico)
-string SolidWorks::obtenerRendererGenerico() {
+string SolidWorks::obtenerCurrentGenerico() {
     HKEY hKey;
     std::vector<std::pair<std::string, std::string>> renderers;
     const std::wstring basePath = L"SOFTWARE\\SolidWorks";
