@@ -1,4 +1,4 @@
-//#pragma once
+#pragma once
 #include <string>
 #include <vector>
 #include <map>
@@ -67,11 +67,9 @@ private:
         {"R5", Brand::AMD},
         {"HD", Brand::AMD},
         {"RX", Brand::AMD},
-        {"RX", Brand::AMD},
         {"AMD", Brand::AMD},
         {"VEGA", Brand::AMD},
         {"RYZEN", Brand::AMD},
-        {"RADEON", Brand::AMD},
         {"ASUS", Brand::AMD},
         {"MSI", Brand::AMD},
         {"GIGABYTE", Brand::AMD},
@@ -83,7 +81,6 @@ private:
         {"INTEL", Brand::INTEL},
         {"IRIS", Brand::INTEL},
         {"UHD", Brand::INTEL},
-        {"HD", Brand::INTEL},
         {"XE", Brand::INTEL}
     };
 };
