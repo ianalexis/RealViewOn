@@ -33,7 +33,7 @@ private:
     vector<string> completarContenidoRegNVIDIA(const vector<string>& regBase); // Completa el contenido del archivo .reg para GPUs NVIDIA.
     vector<string> completarContenidoRegAMD(const vector<string>& regBase); // Completa el contenido del archivo .reg para GPUs AMD.
     vector<string> completarContenidoRegIntel(const vector<string>& regBase); // Completa el contenido del archivo .reg en modo genérico.
-    void buscarEnRenderMap(string buscado); // Declarar buscarEnRenderMap
+    Brand buscarEnRenderMap(string buscado); // Declarar buscarEnRenderMap
     Brand selecectBrandManual(); // Selecciona la marca de la GPU en caso de no poder determinarla.
 
     Brand brand = Brand::UNKNOWN;
@@ -54,37 +54,28 @@ private:
     vector<string> regFull;
 
     // Mapeo de palabras clave a marcas de GPU EN MAYÚSCULAS.
-    const std::map<string, Brand> rendererMap = {
+    const std::vector<std::pair<string, Brand>> rendererMap = {
         // Vendor, Brand
         {"NVIDIA", Brand::NVIDIA},
-        {"AMD", Brand::AMD},
         {"INTEL", Brand::INTEL},
+        {"AMD", Brand::AMD},
         {"ATI", Brand::AMD},
         {"Advanced Micro Devices", Brand::AMD},
         // Renderer, Brand. Orden String largo a corto. Orden Brand AMD INTEL NVIDIA.
-        {"POWERCOLOR", Brand::AMD},
-        {"VISIONTEK", Brand::AMD},
         {"SAPPHIRE", Brand::AMD},
-        {"GIGABYTE", Brand::AMD},
         {"GEFORCE", Brand::NVIDIA},
         {"FIREPRO", Brand::AMD},
         {"RADEON", Brand::AMD},
         {"QUADRO", Brand::NVIDIA},
-        {"ZOTAC", Brand::NVIDIA},
         {"TITAN", Brand::NVIDIA},
         {"TESLA", Brand::NVIDIA},
         {"RYZEN", Brand::AMD},
         {"PALIT", Brand::NVIDIA},
-        {"GALAX", Brand::NVIDIA},
         {"VEGA", Brand::AMD},
         {"IRIS", Brand::INTEL},
-        {"EVGA", Brand::NVIDIA},
-        {"ASUS", Brand::AMD},
-        {"XFX", Brand::AMD},
         {"UHD", Brand::INTEL},
         {"RTX", Brand::NVIDIA},
         {"PNY", Brand::NVIDIA},
-        {"MSI", Brand::AMD},
         {"HIS", Brand::AMD},
         {"GTX", Brand::NVIDIA},
         {"GTS", Brand::NVIDIA},
@@ -94,7 +85,6 @@ private:
         {"R7", Brand::AMD},
         {"R5", Brand::AMD},
         {"MX", Brand::NVIDIA},
-        {"HD", Brand::AMD},
         {"GT", Brand::NVIDIA}
     };
 };
