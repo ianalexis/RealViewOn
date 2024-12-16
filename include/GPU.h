@@ -2,7 +2,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <SolidWorks.h>
 
 using std::string;
 using std::vector;
