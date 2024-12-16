@@ -10,7 +10,7 @@ using std::vector;
 using std::cout;
 
 // Constructor
-GPU::GPU(SolidWorks::Current current) {
+GPU::GPU(Current current) {
     renderer = current.renderer;
     setBrand(current.vendor, renderer);
     workarounds = current.workarounds; // TODO: Revisar si implementar

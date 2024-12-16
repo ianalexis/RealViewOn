@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "GPU.h"
 
 using std::string;
 using std::vector;
@@ -9,12 +10,7 @@ class SolidWorks {
 public:
     SolidWorks(); // Constructor
     void obtenerVersionesInstaladas(); // Devuelve una lista de versiones de SolidWorks instaladas y si son compatibles.
-    struct Current { // Mover la declaración de la estructura aquí
-        string renderer;
-        string vendor;
-        string workarounds;
-    };
-    Current obtenerCurrent(); // Lee el valor 'renderer' actual desde el registro.
+    GPU::Current obtenerCurrent(); // Lee el valor 'renderer' actual desde el registro.
     vector<string> obtenerRegBase(); // Obtiene la ruta base del registro para enviarle al completador de contenido de la GPU.
     void setVersion(int v);
     int esCompatible(int v);
@@ -22,14 +18,15 @@ public:
 
 private:
     int obtenerAnoActual(); // Obtiene el año actual del sistema operativo + 1.
-    string obtenerCurrentRaiz();
-    string obtenerCurrentAno();
+    GPU::Current obtenerRenderer(std::wstring path);
+    GPU::Current obtenerCurrentRaiz();
+    GPU::Current obtenerCurrentAno();
     string obtenerCurrentGenerico();
     string obtenerRegBaseAllowList();
     string obtenerRegBaseAno();
     bool versionInstalada(int v);
-    std::string rendererManual();
-    std::string elegirRenderer(std::vector<std::pair<std::string, std::string>> renderers);
+    string rendererManual();
+    string elegirRenderer(vector<std::pair<string, string>> renderers);
 
     static const int vMin = 2010; // Versión mínima soportada
     static const int vMax = 2024; // Versión máxima soportada
@@ -39,6 +36,6 @@ private:
     int swVersion = 0;
     vector<std::pair<int, int>> versiones;
     bool generico = false;
-    Current current;
+    GPU::Current current;
     vector<string> regBase;
 };

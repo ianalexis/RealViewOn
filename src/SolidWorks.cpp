@@ -116,31 +116,29 @@ void SolidWorks::obtenerVersionesInstaladas() {
     } 
 }
 
-SolidWorks::Current SolidWorks::obtenerCurrent() { // TODO: REVISAR TODOS LOS RENDERER QUE AUN QUEDAN Y PASARLOS A CURRENT. MODIFICAR TAMBIEN LAS BUSQUEDAS PARA TOMAR CURRENT EN LUGAR DE SOLO RENDERER.
+GPU::Current SolidWorks::obtenerCurrent() {
     current.renderer = "";
     current.vendor = "";
     current.workarounds = "";
-    string tempRenderer = "";
+    GPU::Current tempCurrent;
     if (swVersion < vCambioRaiz || generico) {
-        current.renderer = obtenerCurrentAno();
+        current = obtenerCurrentAno();
     }
     if (current.renderer.empty() || swVersion >= vCambioRaiz || generico) {
-        tempRenderer = obtenerCurrentRaiz();
-        if (!tempRenderer.empty()) {
+        tempCurrent = obtenerCurrentRaiz();
+        if (!tempCurrent.renderer.empty()) {
             if (!current.renderer.empty()) {
                 cout << "A renderer was found in both the root folder and the version folder.\n";
-                cout << "Do you want to use the renderer from the root folder? ";
+                cout << "Do you want to use the renderer (" << tempCurrent.renderer << ") from the root folder? ";
                 if (yesOrNo()) {
-                    current.renderer = tempRenderer;
+                    current = tempCurrent;
                 }
-            } else {
-                current.renderer = tempRenderer;
             }
+            current = tempCurrent;
         }
-        current.renderer = tempRenderer.empty() ? current.renderer : tempRenderer;
     }
     if (current.renderer.empty()) {
-        current.renderer = obtenerCurrentGenerico();
+        current.renderer = obtenerCurrentGenerico(); //TODO: Ver si se puede hacer que devuelva un Current
     }
     if (current.renderer.empty()) {
         cout << "Renderer not found.\n";
@@ -158,55 +156,55 @@ SolidWorks::Current SolidWorks::obtenerCurrent() { // TODO: REVISAR TODOS LOS RE
     return current;
 }
 
-string SolidWorks::rendererManual() {
+std::string SolidWorks::rendererManual() {
     cout << "Enter the renderer name manually: ";
     return entradaTeclado(0);
 }
 
-// Busca render en carpeta raiz.
-string SolidWorks::obtenerCurrentRaiz() {
+GPU::Current SolidWorks::obtenerRenderer(std::wstring path){
     HKEY hKey;
-    string rendererRaiz = "";
-    std::wstring regPath = L"SOFTWARE\\SolidWorks\\AllowList\\Current";
+    GPU::Current currentTemp;
+    std::wstring regPath = path;
     if (RegOpenKeyEx(HKEY_CURRENT_USER, regPath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-        wchar_t value[256];
-        DWORD bufferSize = sizeof(value);
-        if (RegQueryValueEx(hKey, L"renderer", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
-            int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), NULL, 0, NULL, NULL);
-            rendererRaiz = string(sizeNeeded, 0);
-            WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &rendererRaiz[0], sizeNeeded, NULL, NULL);
-        }
-        RegCloseKey(hKey);
+    wchar_t value[256];
+    DWORD bufferSize = sizeof(value);
+    
+    // Obtener renderer
+    if (RegQueryValueEx(hKey, L"renderer", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
+        int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), NULL, 0, NULL, NULL);
+        currentTemp.renderer = string(sizeNeeded, 0);
+        WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &currentTemp.renderer[0], sizeNeeded, NULL, NULL);
     }
-    if (rendererRaiz.empty()) {
-        cout << "Renderer not found in the root folder.\n";
-    } else {
-        cout << "Renderer found in root folder: " << rendererRaiz << "\n";
+    if (currentTemp.renderer.empty()) {
+    cout << "Renderer not found in the " << swVersion << " \n";
+    return currentTemp;
     }
-    return rendererRaiz;
+    // Obtener vendor
+    if (RegQueryValueEx(hKey, L"vendor", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
+        int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), NULL, 0, NULL, NULL);
+        currentTemp.vendor = string(sizeNeeded, 0);
+        WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &currentTemp.vendor[0], sizeNeeded, NULL, NULL);
+    }
+    // Obtener workarounds
+    if (RegQueryValueEx(hKey, L"workarounds", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
+        int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), NULL, 0, NULL, NULL);
+        currentTemp.workarounds = string(sizeNeeded, 0);
+        WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &currentTemp.workarounds[0], sizeNeeded, NULL, NULL);
+    }
+    RegCloseKey(hKey);
+    }
+}
+
+// Busca render en carpeta raiz.
+GPU::Current SolidWorks::obtenerCurrentRaiz() {
+    std::wstring regPath = L"SOFTWARE\\SolidWorks\\AllowList\\Current";
+    return obtenerRenderer(regPath);
 }
 
 // Busca render en carpeta de version.
-string SolidWorks::obtenerCurrentAno() {
-    HKEY hKey;
-    string rendererAno = "";
+GPU::Current SolidWorks::obtenerCurrentAno() {
     std::wstring regPath = swRegRuta + std::to_wstring(swVersion) + L"\\Performance\\Graphics\\Hardware\\Current";
-    if (RegOpenKeyEx(HKEY_CURRENT_USER, regPath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-        wchar_t value[256];
-        DWORD bufferSize = sizeof(value);
-        if (RegQueryValueEx(hKey, L"renderer", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
-            int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), NULL, 0, NULL, NULL);
-            rendererAno = string(sizeNeeded, 0);
-            WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &rendererAno[0], sizeNeeded, NULL, NULL);
-        }
-        RegCloseKey(hKey);
-    }
-    if (rendererAno.empty()) {
-        cout << "Renderer not found in the " << swVersion << " folder.\n";
-    } else {
-        cout << "Renderer found in " << swVersion << " folder: " << rendererAno << "\n";
-    }
-    return rendererAno;
+    return obtenerRenderer(regPath);
 }
 
 // Busca render en todo el registro (modo generico)
@@ -230,8 +228,6 @@ string SolidWorks::obtenerCurrentGenerico() {
             HKEY hSubKey;
             std::wstring fullSubKeyPath = subKeyPath + L"\\" + subKeyName;
             if (RegOpenKeyEx(HKEY_CURRENT_USER, fullSubKeyPath.c_str(), 0, KEY_READ, &hSubKey) == ERROR_SUCCESS) {
-                //wchar_t valueName[256]; // TODO: ELIMINMAR
-                //DWORD valueNameSize = sizeof(valueName); // TODO: ELIMINAR
                 DWORD valueType;
                 BYTE valueData[256];
                 DWORD valueDataSize = sizeof(valueData);
@@ -239,8 +235,6 @@ string SolidWorks::obtenerCurrentGenerico() {
                 if (RegQueryValueEx(hSubKey, L"Renderer", NULL, &valueType, valueData, &valueDataSize) == ERROR_SUCCESS) {
                     if (valueType == REG_SZ) {
                         std::wstring rendererValue(reinterpret_cast<wchar_t*>(valueData), valueDataSize / sizeof(wchar_t));
-                        //std::wcout << L"Renderer en : " << fullSubKeyPath << std::endl;
-                        //std::wcout << L"Clave: " << rendererValue << std::endl;
                         renderers.push_back(std::make_pair(std::string(rendererValue.begin(), rendererValue.end()), std::string(fullSubKeyPath.begin(), fullSubKeyPath.end())));
                     }
                 }
