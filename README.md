@@ -27,9 +27,9 @@
 
 - **SolidWorks:** Versions after 2010.
 - **GPU Brand:**
-  - 🟢Nvidia
-  - 🔴AMD (NEEDS TESTING)
-  - 🔵Intel (NEEDS TESTING)
+  - 🟢Nvidia ⭐⭐⭐
+  - 🔴AMD ⭐
+  - 🔵Intel ⭐⭐
 
 - *Reliability*
   - ⭐⭐⭐⭐⭐:
@@ -90,9 +90,9 @@ ___
 
 - **SolidWorks:** Versiones posteriores a 2010.
 - **Marca de GPU:**
-  - 🟢Nvidia
-  - 🔴AMD (NECESITA PRUEBAS)
-  - 🔵Intel (NECESITA PRUEBAS)
+  - 🟢Nvidia ⭐⭐⭐
+  - 🔴AMD ⭐
+  - 🔵Intel ⭐⭐
  
 - *Confiabilidad*
   - ⭐⭐⭐⭐⭐:
