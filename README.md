@@ -48,6 +48,9 @@
 
 ## Contribute 🤝
 
+We welcome any feedback regarding the functionality of the tool, whether it works or not.
+If needed, we are happy to assist you , not only to ensure proper usage but also to identify potential areas for improvement.
+
 If you needed to change the values, please share:
 
 - **Values:** `dword` values and changes in the `.reg` file.
@@ -110,6 +113,9 @@ ___
     - Prueba teórica
 
 ## Contribuir 🤝
+
+Agradecemos cualquier comentario sobre el funcionamiento de la herramienta, ya sea que funcione o no.
+Si es necesario, podemos ofrecer asistencia para garantizar un uso adecuado y también para identificar posibles áreas de mejora.
 
 Si necesitaste cambiar los valores, por favor comparta:
 
