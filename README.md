@@ -27,9 +27,9 @@
 
 - **SolidWorks:** Versions after 2010.
 - **GPU Brand:**
-  - 🟢Nvidia
-  - 🔴AMD (NEEDS TESTING)
-  - 🔵Intel (NEEDS TESTING)
+  - 🟢Nvidia ⭐⭐⭐
+  - 🔴AMD ⭐
+  - 🔵Intel ⭐⭐
 
 - *Reliability*
   - ⭐⭐⭐⭐⭐:
@@ -47,6 +47,9 @@
     - Theoretical testing
 
 ## Contribute 🤝
+
+We welcome any feedback regarding the functionality of the tool, whether it works or not.
+If needed, we are happy to assist you , not only to ensure proper usage but also to identify potential areas for improvement.
 
 If you needed to change the values, please share:
 
@@ -90,9 +93,9 @@ ___
 
 - **SolidWorks:** Versiones posteriores a 2010.
 - **Marca de GPU:**
-  - 🟢Nvidia
-  - 🔴AMD (NECESITA PRUEBAS)
-  - 🔵Intel (NECESITA PRUEBAS)
+  - 🟢Nvidia ⭐⭐⭐
+  - 🔴AMD ⭐
+  - 🔵Intel ⭐⭐
  
 - *Confiabilidad*
   - ⭐⭐⭐⭐⭐:
@@ -110,6 +113,9 @@ ___
     - Prueba teórica
 
 ## Contribuir 🤝
+
+Agradecemos cualquier comentario sobre el funcionamiento de la herramienta, ya sea que funcione o no.
+Si es necesario, podemos ofrecer asistencia para garantizar un uso adecuado y también para identificar posibles áreas de mejora.
 
 Si necesitaste cambiar los valores, por favor comparta:
 
