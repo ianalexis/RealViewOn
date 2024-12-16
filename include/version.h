@@ -1,9 +1,9 @@
 // version.h
 
 #define FILE_VERSION_MAJOR 1
-#define FILE_VERSION_MINOR 1
-#define FILE_VERSION_PATCH 1
-#define FILE_VERSION_BUILD 1
+#define FILE_VERSION_MINOR 2
+#define FILE_VERSION_PATCH 0
+#define FILE_VERSION_BUILD 0
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
