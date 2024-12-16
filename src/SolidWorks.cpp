@@ -12,7 +12,7 @@ using std::wstring;
 
 // Constructor
 SolidWorks::SolidWorks() {
-    anoActual = obtenerAnoActual();
+    anoActual = obtenerAnoActual() < vMax ? obtenerAnoActual() : vMax;
 }
 
 // Obtiene el año actual del sistema operativo + 1.
