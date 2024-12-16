@@ -31,6 +31,21 @@
   - 🔴AMD (NEEDS TESTING)
   - 🔵Intel (NEEDS TESTING)
 
+- *Reliability*
+  - ⭐⭐⭐⭐⭐:
+    - Generations tested > 3
+    - SW versions tested per generation > 2
+  - ⭐⭐⭐⭐
+    - Generations tested > 2
+    - SW versions tested per generation > 2
+  - ⭐⭐⭐
+    - GPUs tested > 1
+    - SW versions tested > 1
+  - ⭐⭐
+    - Actual GPU tested
+  - ⭐
+    - Theoretical testing
+
 ## Contribute 🤝
 
 If you needed to change the values, please share:
@@ -78,6 +93,21 @@ ___
   - 🟢Nvidia
   - 🔴AMD (NECESITA PRUEBAS)
   - 🔵Intel (NECESITA PRUEBAS)
+ 
+- *Confiabilidad*
+  - ⭐⭐⭐⭐⭐:
+    - Generaciones probadas > 3
+    - Versiones de SW probadas por generación > 2
+  - ⭐⭐⭐⭐
+    - Generaciones probadas > 2
+    - Versiones de SW probadas por generación > 2
+  - ⭐⭐⭐
+    - GPUs probadas > 1
+    - Versiones de SW probadas  > 1
+  - ⭐⭐
+    - GPU real probada
+  - ⭐
+    - Prueba teórica
 
 ## Contribuir 🤝
 
