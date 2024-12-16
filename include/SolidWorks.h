@@ -21,7 +21,7 @@ private:
     GPU::Current obtenerRenderer(std::wstring path);
     GPU::Current obtenerCurrentRaiz();
     GPU::Current obtenerCurrentAno();
-    string obtenerCurrentGenerico();
+    string obtenerRendererGenerico();
     string obtenerRegBaseAllowList();
     string obtenerRegBaseAno();
     bool versionInstalada(int v);

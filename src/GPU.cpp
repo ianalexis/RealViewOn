@@ -114,7 +114,7 @@ vector<string> GPU::completarContenidoRegAMD(const vector<string>& regBase) { //
     vector<string> result;
     for (const auto& reg : regBase) {
         result.push_back(reg + "\\ATI Technologies Inc.\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::AMD).brandKey);
-        result.push_back(reg + "\\Gl2Shaders\\RV900\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::AMD).glKey);
+        result.push_back(reg + "\\Gl2Shaders\\RV420\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::AMD).glKey);
     }
     return result;
 }

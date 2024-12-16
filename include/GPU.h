@@ -48,7 +48,7 @@ private:
     const std::map<Brand, BrandKeys> brandKeysMap = {
         {Brand::NVIDIA, {"40000", "70408"}},
         {Brand::AMD, {"4000085", "32408"}},
-        {Brand::INTEL, {"4080080", "30408"}}
+        {Brand::INTEL, {"4080080", "30008"}}
     };
 
     vector<string> regFull;

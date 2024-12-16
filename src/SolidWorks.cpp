@@ -138,7 +138,7 @@ GPU::Current SolidWorks::obtenerCurrent() {
         }
     }
     if (current.renderer.empty()) {
-        current.renderer = obtenerCurrentGenerico(); //TODO: Ver si se puede hacer que devuelva un Current
+        current.renderer = obtenerRendererGenerico(); //TODO: Ver si se puede hacer que devuelva un Current
     }
     if (current.renderer.empty()) {
         cout << "Renderer not found.\n";
@@ -195,20 +195,20 @@ GPU::Current SolidWorks::obtenerRenderer(std::wstring path){
     }
 }
 
-// Busca render en carpeta raiz.
+// Trae render en carpeta raiz.
 GPU::Current SolidWorks::obtenerCurrentRaiz() {
     std::wstring regPath = L"SOFTWARE\\SolidWorks\\AllowList\\Current";
     return obtenerRenderer(regPath);
 }
 
-// Busca render en carpeta de version.
+// Trae render en carpeta de version.
 GPU::Current SolidWorks::obtenerCurrentAno() {
     std::wstring regPath = swRegRuta + std::to_wstring(swVersion) + L"\\Performance\\Graphics\\Hardware\\Current";
     return obtenerRenderer(regPath);
 }
 
 // Busca render en todo el registro (modo generico)
-string SolidWorks::obtenerCurrentGenerico() {
+string SolidWorks::obtenerRendererGenerico() {
     HKEY hKey;
     std::vector<std::pair<std::string, std::string>> renderers;
     const std::wstring basePath = L"SOFTWARE\\SolidWorks";
