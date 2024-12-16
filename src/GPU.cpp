@@ -10,28 +10,41 @@ using std::vector;
 using std::cout;
 
 // Constructor
-GPU::GPU(const std::string& r) {
-    renderer = r;
-    setBrand(r);
+GPU::GPU(Current current) {
+    renderer = current.renderer;
+    setBrand(current.vendor, renderer);
+    workarounds = current.workarounds; // TODO: Revisar si implementar
 }
 
 // Setea el fabricante de la GPU si el renderer contiene alguna palabra clave.
-void GPU::setBrand(string r) {
+void GPU::setBrand(string v,string r) {
+    brand = Brand::UNKNOWN;
+    buscarEnRenderMap(v);
+    if (brand == Brand::UNKNOWN){
+        buscarEnRenderMap(r);
+    }
+    if (brand == Brand::UNKNOWN){
+        cout << "GPU Brand not detected. Please select the GPU brand manually.\n";
+        brand = selecectBrandManual();
+    }
+}
+
+// Busca la marca de la GPU en el mapeo de palabras clave.
+void GPU::buscarEnRenderMap(string buscado) {
     // Convierte el renderer a mayúsculas para comparar.
-    std::transform(r.begin(), r.end(), r.begin(), ::toupper);
+    std::transform(buscado.begin(), buscado.end(), buscado.begin(), ::toupper);
     
     for (const auto& pair : rendererMap) {
         string key = pair.first;
         // Convertir la clave a mayúsculas para comparar.
         std::transform(key.begin(), key.end(), key.begin(), ::toupper);
         
-        if (r.find(key) != string::npos) {
+        if (buscado.find(key) != string::npos) {
             brand = pair.second;
             cout << "GPU Brand detected: " << brandToString(brand) << "\n";
             return;
         }
     }
-    brand = selecectBrand();
 }
 
 std::string GPU::brandToString(GPU::Brand brand) {
@@ -48,7 +61,7 @@ std::string GPU::brandToString(GPU::Brand brand) {
 }
 
 // Selecciona la marca de la GPU en caso de no poder determinarla.
-GPU::Brand GPU::selecectBrand() {
+GPU::Brand GPU::selecectBrandManual() {
     cout << "Select the GPU brand:\n";
     cout << "1. NVIDIA\n";
     cout << "2. AMD\n";
@@ -67,8 +80,8 @@ GPU::Brand GPU::selecectBrand() {
     //case 4:
     //    return Brand::UNKNOWN;
     default:
-        cout << "Invalid option. Please try again.\n";
-        return selecectBrand();
+        cout << "Invalid option. Please try again. ESC to cancel.\n";
+        return selecectBrandManual();
     }
 }
 
@@ -101,7 +114,7 @@ vector<string> GPU::completarContenidoRegAMD(const vector<string>& regBase) { //
     vector<string> result;
     for (const auto& reg : regBase) {
         result.push_back(reg + "\\ATI Technologies Inc.\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::AMD).brandKey);
-        result.push_back(reg + "\\Gl2Shaders\\RV900\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::AMD).glKey);
+        result.push_back(reg + "\\Gl2Shaders\\RV420\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::AMD).glKey);
     }
     return result;
 }
