@@ -1,7 +1,6 @@
 # ![logo](RealViewOn.png) ![header](Header.png) EN
-[![Download](https://img.shields.io/badge/RealViewOn-Last%20Build-orange.svg?style=flat&logo=download)](/RealViewOn.7z?raw=true)
 [![Download](https://img.shields.io/badge/RealViewOn-Stable%20Release-green.svg?style=flat&logo=download)](https://github.com/ianalexis/Real-View-On-Releases/releases/latest/download/RealViewOn.7z)
-
+[![Download](https://img.shields.io/badge/RealViewOn-Last%20Build-orange.svg?style=flat&logo=download)](/RealViewOn.7z?raw=true)
 
 **RealViewOn** enables RealView in SolidWorks versions after 2010. The system can run directly on the target PC or manually generate the necessary file to enable RealView on another PC.
 
@@ -68,8 +67,8 @@ This software facilitates enabling features in SolidWorks. Use it at your own di
 ___
 
 # ![logo](RealViewOn.png) ![header](Header.png) ES
+[![Download](https://img.shields.io/badge/RealViewOn-Stable%20Release-green.svg?style=flat&logo=download)](https://github.com/ianalexis/Real-View-On-Releases/releases/latest/download/RealViewOn.7z)
 [![Download](https://img.shields.io/badge/RealViewOn-Last%20Build-orange.svg?style=flat&logo=download)](/RealViewOn.7z?raw=true)
-[![Download](https://img.shields.io/badge/RealViewOn-Stable%20Release-green.svg?style=flat&logo=download)](/releases/latest/download/RealViewOn.7z)
 
 **RealViewOn** habilita RealView en versiones de SolidWorks posteriores a 2010. El sistema puede ejecutarse directamente en el PC objetivo o generar manualmente el archivo necesario para habilitar RealView en otro PC.
 
