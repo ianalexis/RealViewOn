@@ -112,10 +112,10 @@ vector<string> GPU::completarContenidoRegNVIDIA(const vector<string>& regBase) {
 }
 
 // Completa el contenido del archivo .reg para GPUs AMD.
-vector<string> GPU::completarContenidoRegAMD(const vector<string>& regBase) { //TODO: Segun https://github.com/TrevorAvrett/SolidWorks-RealView-Enabler/blob/master/Source%20Code%20(c%23) es R420
+vector<string> GPU::completarContenidoRegAMD(const vector<string>& regBase) {
     vector<string> result;
     for (const auto& reg : regBase) {
-        result.push_back(reg + "\\ATI Technologies Inc.\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::AMD).brandKey);
+        result.push_back(reg + "\\ATI Technologies Inc.\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::AMD).brandKey); // FIXME: Revisar si no es ATI Technologies Inc.
         result.push_back(reg + "\\Gl2Shaders\\RV420\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::AMD).glKey);
     }
     return result;
