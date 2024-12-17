@@ -66,7 +66,7 @@ If you needed to change the values, please share:
 ## Disclaimer ⚠️
 
 This software facilitates enabling features in SolidWorks. Use it at your own discretion and responsibility.
-**SolidWorks & RealView are registered trademarks of Dassault Systèmes**.
+SolidWorks & RealView are registered trademarks of Dassault Systèmes.
 
 ___
 
@@ -138,4 +138,4 @@ Si necesitaste cambiar los valores, por favor comparta:
 
 Este software facilita la habilitación de funciones en SolidWorks.
 Úselo a su propia discreción y responsabilidad.
-**SolidWorks & RealView son marcas registradas de Dassault Systèmes**.
+SolidWorks & RealView son marcas registradas de Dassault Systèmes.
