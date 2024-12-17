@@ -4,7 +4,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-%23121011.svg?logo=github&logoColor=white&style=flat-square)](https://github.com/ianalexis/Real-View-On-Releases)
 [![Download](https://img.shields.io/badge/Download-Stable%20Release-darkgreen.svg?style=flat-square&logo=download)](https://github.com/ianalexis/Real-View-On-Releases/releases/latest/download/RealViewOn.7z)
 [![Download](https://img.shields.io/badge/Download-Last%20Build-orangered.svg?style=flat-square&logo=download)](/RealViewOn.7z?raw=true)
-
+[![GitHub stars](https://img.shields.io/github/stars/ianalexis/Real-View-On-Releases?style=flat-square&logo=github)](https://github.com/ianalexis/Real-View-On-Releases/stargazers)
 
 **RealViewOn** enables RealView in SolidWorks versions after 2010. The system can run directly on the target PC or manually generate the necessary file to enable RealView on another PC.
 
@@ -76,6 +76,7 @@ ___
 [![GitHub](https://img.shields.io/badge/GitHub-%23121011.svg?logo=github&logoColor=white&style=flat-square)](https://github.com/ianalexis/Real-View-On-Releases)
 [![Download](https://img.shields.io/badge/Descarga-Ultima%20Estable-darkgreen.svg?style=flat-square&logo=download)](https://github.com/ianalexis/Real-View-On-Releases/releases/latest/download/RealViewOn.7z)
 [![Download](https://img.shields.io/badge/Descarga-Ultima%20Compilación-orangered.svg?style=flat-square&logo=download)](/RealViewOn.7z?raw=true)
+[![GitHub stars](https://img.shields.io/github/stars/ianalexis/Real-View-On-Releases?style=flat-square&logo=github)](https://github.com/ianalexis/Real-View-On-Releases/stargazers)
 
 **RealViewOn** habilita RealView en versiones de SolidWorks posteriores a 2010. El sistema puede ejecutarse directamente en el PC objetivo o generar manualmente el archivo necesario para habilitar RealView en otro PC.
 
