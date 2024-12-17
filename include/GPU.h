@@ -51,8 +51,6 @@ private:
         {Brand::INTEL, {"4080080", "30008"}}
     };
 
-    vector<string> regFull;
-
     // Mapeo de palabras clave a marcas de GPU EN MAYÚSCULAS.
     const std::vector<std::pair<string, Brand>> rendererMap = {
         // Vendor, Brand

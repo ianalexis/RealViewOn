@@ -89,7 +89,6 @@ GPU::Brand GPU::selecectBrandManual() {
 }
 
 vector<string> GPU::completarContenidoReg(const vector<string>& regBase) {
-    regFull.clear();
     switch (brand) {
     case Brand::NVIDIA:
         return completarContenidoRegNVIDIA(regBase);
