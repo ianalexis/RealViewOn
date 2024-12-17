@@ -219,7 +219,6 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\misc.cpp" />
     <ClCompile Include="src\GPU.cpp" />
     <ClCompile Include="midifile\src\Binasc.cpp" />
     <ClCompile Include="midifile\src\MidiEvent.cpp" />

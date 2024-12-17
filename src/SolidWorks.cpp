@@ -158,7 +158,7 @@ GPU::Current SolidWorks::obtenerCurrent() {
 
 std::string SolidWorks::rendererManual() {
     cout << "Enter the renderer name manually: ";
-    return entradaTeclado(0);
+    return entradaTeclado(0, false);
 }
 
 GPU::Current SolidWorks::obtenerRenderer(std::wstring path){
@@ -270,7 +270,7 @@ string SolidWorks::elegirRenderer(std::vector<std::pair<std::string, std::string
     }
     while (true) {
         cout << "Select the renderer (or press Esc to cancel): ";
-        string input = entradaTeclado(1);
+        string input = entradaTeclado(1, true);
         int opcion = std::stoi(input);
         if (opcion >= 1 && opcion <= renderers.size()) {
             return renderers[opcion - 1].first;

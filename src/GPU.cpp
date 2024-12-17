@@ -71,7 +71,7 @@ GPU::Brand GPU::selecectBrandManual() {
     cout << "3. Intel\n";
     //cout << "4. Otra\n";
     cout << "Select the GPU brand (or press Esc to cancel): ";
-    string input = entradaTeclado(1);
+    string input = entradaTeclado(1, true);
     int opcion = std::stoi(input);
     switch (opcion) {
     case 1:

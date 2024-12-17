@@ -10,8 +10,7 @@ using std::cout;
 using std::cin;
 
 // Funcion que lee por teclado la cantidad de caracteres recibidas y chequea que no sea la tecla escape. En caso de ser escape hace EXIT.
-string entradaTeclado(int caracteres) {
-    bool misc = caracteres == 4;
+string entradaTeclado(int caracteres, bool number) {
     string entrada = "";
     bool done = false;
     while (!done) {
@@ -25,7 +24,7 @@ string entradaTeclado(int caracteres) {
                 cout << "\b \b"; // Borrar en pantalla
             } else if (caracteres <= 0 && ch == '\r') { // Enter presionado
                 done = true;
-            } else if (caracteres <= 0 || isdigit(ch) || isalpha(ch)) {
+            } else if (caracteres <= 0 || (number && isdigit(ch)) || (!number && (isdigit(ch) || isalpha(ch)))) {
                 entrada += ch;
                 cout << ch; // Mostrar en pantalla
                 if (caracteres > 0 && entrada.length() >= caracteres) {
@@ -35,10 +34,10 @@ string entradaTeclado(int caracteres) {
         }
         Sleep(50); // Pausa breve para evitar saturar el CPU
     }
-    cout << "\n";
-    if (misc) {
-        miscPrint(entrada);
+    if (number && numberTextMap.find(std::stoi(entrada)) != numberTextMap.end()) {
+        cout << std::endl << numberTextMap[std::stoi(entrada)];
     }
+    cout << std::endl;
     return entrada;
 }
 
@@ -46,7 +45,7 @@ bool yesOrNo() {
     char opcion;
     while (true) {
         cout << "[Y]es/[N]o: ";
-        opcion = entradaTeclado(1).at(0);
+        opcion = entradaTeclado(1,false).at(0);
         if (opcion == 'y' || opcion == 'Y') {
             return true;
         }
