@@ -47,7 +47,7 @@ private:
 
     const std::map<Brand, BrandKeys> brandKeysMap = {
         {Brand::NVIDIA, {"40000", "70408"}},
-        {Brand::AMD, {"4000085", "32408"}},//FIXME: Quizas brandKey sea 84000005 y el gl quizas 0 https://www.reddit.com/r/SolidWorks/comments/rii95z/comment/jsak9c7/
+        {Brand::AMD, {"4000085", "32408"}},//FIXME: Quizas brandKey sea 84000005 y el gl quizas 0 o 30408 https://www.reddit.com/r/SolidWorks/comments/rii95z/comment/jsak9c7/ 32408 Y 30008 NO FUNCÓ EN UNA PRUEBA
         {Brand::INTEL, {"4080080", "30008"}}
     };
 
