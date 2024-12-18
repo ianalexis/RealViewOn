@@ -68,7 +68,7 @@ private:
             "4000080, 4080080, 10000010, 4000480, 4000000, 10080080, 10000480, 10000080, 10",
             "Other",
             "30408",// Antes era 30008 pero no existe en la carpeta de Intel
-            "30408, 8, 20408, 20008, 1"}} 
+            "30408, 8, 20408, 20008, 1"}}
     };
 
     // Mapeo de palabras clave a marcas de GPU EN MAYÚSCULAS.
