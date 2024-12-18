@@ -4,6 +4,7 @@
 #include <string>
 #include "teclado.h"
 #include <functional> // Añadir este encabezado
+#include <sstream> // Añadir este encabezado para std::stringstream
 
 
 using std::cout;
@@ -168,12 +169,14 @@ GPU::Current SolidWorks::obtenerRenderer(std::wstring path){
     if (RegOpenKeyEx(HKEY_CURRENT_USER, regPath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
     wchar_t value[256];
     DWORD bufferSize = sizeof(value);
+    DWORD valueType;
     
     // Obtener renderer
     if (RegQueryValueEx(hKey, L"renderer", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
         int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), NULL, 0, NULL, NULL);
         currentTemp.renderer = string(sizeNeeded, 0);
         WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &currentTemp.renderer[0], sizeNeeded, NULL, NULL);
+        cout << "Renderer: " << currentTemp.renderer << "\n";
     }
     if (currentTemp.renderer.empty()) {
     cout << "Renderer not found in the " << swVersion << " \n";
@@ -184,12 +187,21 @@ GPU::Current SolidWorks::obtenerRenderer(std::wstring path){
         int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), NULL, 0, NULL, NULL);
         currentTemp.vendor = string(sizeNeeded, 0);
         WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &currentTemp.vendor[0], sizeNeeded, NULL, NULL);
+        cout << "Vendor: " << currentTemp.vendor << "\n";
     }
     // Obtener workarounds
-    if (RegQueryValueEx(hKey, L"workarounds", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
-        int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), NULL, 0, NULL, NULL);
-        currentTemp.workarounds = string(sizeNeeded, 0);
-        WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &currentTemp.workarounds[0], sizeNeeded, NULL, NULL);
+    if (RegQueryValueEx(hKey, L"workarounds", NULL, &valueType, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
+        if (valueType == REG_DWORD) {
+            DWORD workaroundsValue = *(DWORD*)value;
+            std::stringstream ss;
+            ss << std::hex << workaroundsValue;
+            currentTemp.workarounds = ss.str();
+        } else {
+            int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), NULL, 0, NULL, NULL);
+            currentTemp.workarounds = string(sizeNeeded, 0);
+            WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &currentTemp.workarounds[0], sizeNeeded, NULL, NULL);
+        }
+        cout << "Workarounds: " << currentTemp.workarounds << "\n";
     }
     RegCloseKey(hKey);
     }
