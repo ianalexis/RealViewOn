@@ -18,7 +18,7 @@ public:
 
 private:
     int obtenerAnoActual(); // Obtiene el año actual del sistema operativo + 1.
-    GPU::Current obtenerRenderer(std::wstring path);
+    GPU::Current obtenerCurrent(std::wstring path);
     GPU::Current obtenerCurrentRaiz();
     GPU::Current obtenerCurrentAno();
     string obtenerRendererGenerico();

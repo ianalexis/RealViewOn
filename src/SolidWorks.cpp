@@ -4,7 +4,7 @@
 #include <string>
 #include "teclado.h"
 #include <functional> // Añadir este encabezado
-#include <sstream> // Añadir este encabezado para std::stringstream
+#include <sstream>
 
 
 using std::cout;
@@ -162,7 +162,7 @@ std::string SolidWorks::rendererManual() {
     return entradaTeclado(0, false);
 }
 
-GPU::Current SolidWorks::obtenerRenderer(std::wstring path){
+GPU::Current SolidWorks::obtenerCurrent(std::wstring path){
     HKEY hKey;
     GPU::Current currentTemp;
     std::wstring regPath = path;
@@ -176,7 +176,6 @@ GPU::Current SolidWorks::obtenerRenderer(std::wstring path){
         int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), NULL, 0, NULL, NULL);
         currentTemp.renderer = string(sizeNeeded, 0);
         WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &currentTemp.renderer[0], sizeNeeded, NULL, NULL);
-        cout << "Renderer: " << currentTemp.renderer << "\n";
     }
     if (currentTemp.renderer.empty()) {
     cout << "Renderer not found in the " << swVersion << " \n";
@@ -187,7 +186,6 @@ GPU::Current SolidWorks::obtenerRenderer(std::wstring path){
         int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), NULL, 0, NULL, NULL);
         currentTemp.vendor = string(sizeNeeded, 0);
         WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &currentTemp.vendor[0], sizeNeeded, NULL, NULL);
-        cout << "Vendor: " << currentTemp.vendor << "\n";
     }
     // Obtener workarounds
     if (RegQueryValueEx(hKey, L"workarounds", NULL, &valueType, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
@@ -201,23 +199,22 @@ GPU::Current SolidWorks::obtenerRenderer(std::wstring path){
             currentTemp.workarounds = string(sizeNeeded, 0);
             WideCharToMultiByte(CP_UTF8, 0, value, (int)wcslen(value), &currentTemp.workarounds[0], sizeNeeded, NULL, NULL);
         }
-        cout << "Workarounds: " << currentTemp.workarounds << "\n";
     }
     RegCloseKey(hKey);
     }
     return currentTemp;
 }
 
-// Trae render en carpeta raiz.
+// Trae Current en carpeta raiz.
 GPU::Current SolidWorks::obtenerCurrentRaiz() {
     std::wstring regPath = L"SOFTWARE\\SolidWorks\\AllowList\\Current";
-    return obtenerRenderer(regPath);
+    return obtenerCurrent(regPath);
 }
 
-// Trae render en carpeta de version.
+// Trae Current en carpeta de version.
 GPU::Current SolidWorks::obtenerCurrentAno() {
     std::wstring regPath = swRegRuta + std::to_wstring(swVersion) + L"\\Performance\\Graphics\\Hardware\\Current";
-    return obtenerRenderer(regPath);
+    return obtenerCurrent(regPath);
 }
 
 // Busca render en todo el registro (modo generico)
@@ -266,10 +263,7 @@ string SolidWorks::obtenerRendererGenerico() {
     } else {
         std::wcerr << L"Error opening: " << basePath << std::endl;
     }
-    if (renderers.empty()) { // TODO: Ver si se puede meter en el ternario. Cuando lo intenté no funcó.
-        return "";
-    }
-    return renderers.size() == 1 ? renderers[0].first : elegirRenderer(renderers);
+    return renderers.empty() ? "" : (renderers.size() == 1 ? renderers[0].first : elegirRenderer(renderers));
 }
 
 string SolidWorks::elegirRenderer(std::vector<std::pair<std::string, std::string>> renderers) {
