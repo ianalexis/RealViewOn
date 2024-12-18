@@ -41,8 +41,8 @@ private:
     string workarounds;
 
     struct BrandKeys {
-        string brandKey;
-        string glKey;
+        string brandKey; // Clave para el fix. Va en la carpeta de la marca y casi seguro es igual al workarounds de current.
+        string glKey; // Clave para el RealView. Va en Gl2Shaders y por ahora la vamos hardcodeando.
     };
 
     const std::map<Brand, BrandKeys> brandKeysMap = {
