@@ -13,7 +13,7 @@ using std::cout;
 GPU::GPU(Current current) {
     renderer = current.renderer;
     setBrand(current.vendor, renderer);
-    workarounds = current.workarounds; // TODO: Revisar si implementar
+    setBrWorkarounds(current.workarounds);
 }
 
 // Setea el fabricante de la GPU si el renderer contiene alguna palabra clave.
@@ -27,6 +27,10 @@ void GPU::setBrand(string v,string r) {
         cout << "GPU Brand not detected. Please select the GPU brand manually.\n";
         brand = selecectBrandManual();
     }
+}
+
+void GPU::setBrWorkarounds(string w) {
+    brWorkarounds = empty(w) ? brandKeysMap.at(brand).brandKey : w;
 }
 
 // Busca la marca de la GPU en el mapeo de palabras clave.
@@ -89,44 +93,14 @@ GPU::Brand GPU::selecectBrandManual() {
 }
 
 vector<string> GPU::completarContenidoReg(const vector<string>& regBase) {
-    switch (brand) {
-    case Brand::NVIDIA:
-        return completarContenidoRegNVIDIA(regBase);
-    case Brand::AMD:
-        return completarContenidoRegAMD(regBase);
-    case Brand::INTEL:
-        return completarContenidoRegIntel(regBase);
-    default: // Marca desconocida
-        throw std::invalid_argument("Unknown GPU brand for " + renderer);
-    }
-}
-
-// Completa el contenido del archivo .reg para GPUs NVIDIA.
-vector<string> GPU::completarContenidoRegNVIDIA(const vector<string>& regBase) {
     vector<string> result;
     for (const auto& reg : regBase) {
-        result.push_back(reg + "\\NVIDIA Corporation\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::NVIDIA).brandKey);
-        result.push_back(reg + "\\Gl2Shaders\\NV40\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::NVIDIA).glKey);
-    }
-    return result;
-}
-
-// Completa el contenido del archivo .reg para GPUs AMD.
-vector<string> GPU::completarContenidoRegAMD(const vector<string>& regBase) {
-    vector<string> result;
-    for (const auto& reg : regBase) {
-        result.push_back(reg + "\\ATI Technologies Inc.\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::AMD).brandKey); // FIXME: Revisar si no es ATI Technologies Inc.
-        result.push_back(reg + "\\Gl2Shaders\\RV420\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::AMD).glKey);
-    }
-    return result;
-}
-
-// Completa el contenido del archivo .reg en modo genérico (INTEL).
-vector<string> GPU::completarContenidoRegIntel(const vector<string>& regBase) { // TODO: Revisar con placas raras?
-    vector<string> result;
-    for (const auto& reg : regBase) {
-        result.push_back(reg + "\\Intel\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::INTEL).brandKey);
-        result.push_back(reg + "\\Gl2Shaders\\Other\\" + renderer + "]\n\"Workarounds\"=dword:" + brandKeysMap.at(Brand::INTEL).glKey);
+        result.push_back(reg + "\\"+ brandKeysMap.at(brand).brPath +"\\" + renderer + "]");
+        result.push_back("\"Workarounds\"=dword:" + brWorkarounds);
+        result.push_back(";Alternative " + brandKeysMap.at(brand).brPath + " Workarounds: " + brandKeysMap.at(brand).brandKeyAlt);
+        result.push_back(reg + "\\Gl2Shaders\\"+ brandKeysMap.at(brand).glPath +"\\" + renderer + "]");
+        result.push_back("\"Workarounds\"=dword:" + brandKeysMap.at(brand).glKey);
+        result.push_back(";Alternative GL2Shaders Workarounds: " + brandKeysMap.at(brand).glKeyAlt);
     }
     return result;
 }

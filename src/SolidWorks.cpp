@@ -138,7 +138,7 @@ GPU::Current SolidWorks::obtenerCurrent() {
         }
     }
     if (current.renderer.empty()) {
-        current.renderer = obtenerRendererGenerico(); //TODO: Ver si se puede hacer que devuelva un Current
+        current.renderer = obtenerRendererGenerico();
     }
     if (current.renderer.empty()) {
         cout << "Renderer not found.\n";
@@ -193,6 +193,7 @@ GPU::Current SolidWorks::obtenerRenderer(std::wstring path){
     }
     RegCloseKey(hKey);
     }
+    return currentTemp;
 }
 
 // Trae render en carpeta raiz.
