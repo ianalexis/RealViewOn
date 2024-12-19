@@ -66,6 +66,16 @@ void playMidi(const std::vector<unsigned char>& midiData) {
         midiFile.doTimeAnalysis();
         midiFile.joinTracks();
 
+        // Ajustar el volumen al 50%
+        for (int track = 0; track < midiFile.getTrackCount(); ++track) {
+            for (int event = 0; event < midiFile[track].size(); ++event) {
+                auto& midiEvent = midiFile[track][event];
+                if (midiEvent.isController() && midiEvent.getP1() == 7) { // Control Change, Volume
+                    midiEvent.setP2(midiEvent.getP2() / 2);
+                }
+            }
+        }
+
         // Tiempo inicial de reproducción
         auto startTime = std::chrono::steady_clock::now();
 

@@ -1,4 +1,4 @@
-#pragma once // TODO: Hay que sacarlo? Consultar con RF47
+#pragma once
 
 #include <iostream>
 #include <sstream>
