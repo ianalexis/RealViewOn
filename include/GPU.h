@@ -59,15 +59,15 @@ private:
             "Advanced Micro Devices",
             "4000085",//Quizas sea 84000005
             "84000085, 84000084, 84000005, 84000004, 4000085, 4000005, 52400C84",
-            "RV420",
-            "30008", // TODO: REVISAR DENUEVO
+            "R420",
+            "32408", // TODO: Probar con 30008
             "30008, 0, 32408, 20008, 40, 8, 22408"}},
         {Brand::INTEL, {
             "Intel",
             "4080080",
             "4000080, 4080080, 10000010, 4000480, 4000000, 10080080, 10000480, 10000080, 10",
             "Other",
-            "30408",// Antes era 30008 pero no existe en la carpeta de Intel
+            "30008",// TODO: Probar con 30408 ya que 30008 no existe en intel.
             "30408, 8, 20408, 20008, 1"}}
     };
 
