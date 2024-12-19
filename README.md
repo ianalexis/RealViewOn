@@ -27,14 +27,16 @@
 3. AUTO - It searches for the GPU used by that version of SolidWorks 🖥️.
 4. AUTO - Generates a `.reg` file that can be manually reviewed before execution to enable RealView 📝.
 5. MANUAL - Review and execute the `.reg` file.
-6. MANUAL - If it does not work, modify the `dword` values of the file until activation is achieved 🔧.
+6. MANUAL - Fixes if something doesn't work:If it does not work, modify the `dword` values of the file until activation is achieved 🔧.
+   1. RealView not working: Modify the GL2Shaders `dword` values. Examples for your brand bellow it.
+   2. Seketchs and visual errors: Modify the Brand `dword` values. Examples for your brand bellow it.
 
 ## Compatibility 🖥️
 
 - **SolidWorks:** Versions after 2010.
 - **GPU Brand:**
   - 🟢Nvidia ⭐⭐⭐
-  - 🔴AMD ⭐
+  - 🔴AMD ⭐⭐
   - 🔵Intel ⭐⭐
 
 - *Reliability*
@@ -99,14 +101,16 @@ ___
 3. AUTO - Busca la GPU utilizada por esa versión de SolidWorks 🖥️.
 4. AUTO - Genera un archivo `.reg` que puede ser revisado manualmente antes de la ejecución para habilitar RealView 📝.
 5. MANUAL - Revisión y ejecución del archivo `.reg`.
-6. MANUAL - Si no funciona, modifica los valores `dword` del archivo hasta que se logre la activación 🔧.
+6. MANUAL - Soluciones si algo no funciona: Si no funciona, modifique los valores `dword` del archivo hasta lograr la activación 🔧.
+   1. RealView no funciona: Modifique los valores `dword` de GL2Shaders. Ejemplos para su marca a comentados en el archivo.
+   2. Sketchs y errores visuales: Modifique los valores `dword` de la marca. mplos para su marca a comentados en el archivo.
 
 ## Compatibilidad 🖥️
 
 - **SolidWorks:** Versiones posteriores a 2010.
 - **Marca de GPU:**
   - 🟢Nvidia ⭐⭐⭐
-  - 🔴AMD ⭐
+  - 🔴AMD ⭐⭐
   - 🔵Intel ⭐⭐
  
 - *Confiabilidad*
