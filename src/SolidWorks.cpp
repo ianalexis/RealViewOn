@@ -4,7 +4,7 @@
 #include <string>
 #include <functional>
 #include <sstream>
-#include "teclado.h"
+#include "Teclado.h"
 
 
 using std::cout;

@@ -1,4 +1,4 @@
-#include "teclado.h"
+#include "Teclado.h"
 #include <string>
 #include <iostream>
 #include <conio.h>

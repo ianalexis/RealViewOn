@@ -7,10 +7,10 @@
 #include <ctime>
 #include "SolidWorks.h"
 #include "GPU.h"
-#include "teclado.h"
+#include "Teclado.h"
 #include "Registro.h"
 #include "Playmidi.h"
-#include "version.h"
+#include "Version.h"
 #include <thread>
 
 using std::cin;

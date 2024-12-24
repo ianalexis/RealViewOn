@@ -229,7 +229,7 @@
     <ClCompile Include="src\Registro.cpp" />
     <ClCompile Include="src\Playmidi.cpp" />
     <ClCompile Include="src\SolidWorks.cpp" />
-    <ClCompile Include="src\teclado.cpp" />
+    <ClCompile Include="src\Teclado.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Misc.h" />
@@ -238,8 +238,8 @@
     <ClInclude Include="include\Registro.h" />
     <ClInclude Include="include\resource.h" />
     <ClInclude Include="include\SolidWorks.h" />
-    <ClInclude Include="include\teclado.h" />
-    <ClInclude Include="include\version.h" />
+    <ClInclude Include="include\Teclado.h" />
+    <ClInclude Include="include\Version.h" />
     <ClInclude Include="midifile\include\Binasc.h" />
     <ClInclude Include="midifile\include\MidiEvent.h" />
     <ClInclude Include="midifile\include\MidiEventList.h" />

@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
-#include "teclado.h"
+#include "Teclado.h"
 
 using std::string;
 using std::vector;
