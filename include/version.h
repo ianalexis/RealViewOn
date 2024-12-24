@@ -1,7 +1,7 @@
-// version.h
+#pragma once
 
 #define FILE_VERSION_MAJOR 1
-#define FILE_VERSION_MINOR 4
+#define FILE_VERSION_MINOR 5
 #define FILE_VERSION_PATCH 0
 #define FILE_VERSION_BUILD 0
 

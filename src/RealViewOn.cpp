@@ -100,7 +100,7 @@ int main() {
                 //cout << "Processing version: " << swVersion << std::endl;
                 sw.setVersion(swVersion);
                 GPU gpu(sw.obtenerCurrent());
-                guardarArchivoReg(swVersion, gpu.completarContenidoReg(sw.obtenerRegBase()));
+                guardarArchivoReg(swVersion, gpu.completarContenidoReg(sw.obtenerRegBase()), RVO_VERSION);
                 //cout << "Finished..." << std::endl;
                 break; // Salir del bucle principal si todo es correcto
             }
