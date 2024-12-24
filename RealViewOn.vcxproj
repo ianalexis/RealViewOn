@@ -232,7 +232,7 @@
     <ClCompile Include="src\teclado.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\misc.h" />
+    <ClInclude Include="include\Misc.h" />
     <ClInclude Include="include\GPU.h" />
     <ClInclude Include="include\Playmidi.h" />
     <ClInclude Include="include\Registro.h" />

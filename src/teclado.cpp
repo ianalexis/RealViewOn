@@ -3,7 +3,7 @@
 #include <iostream>
 #include <conio.h>
 #include <Windows.h>
-#include "misc.h"
+#include "Misc.h"
 
 using std::string;
 using std::cout;
@@ -34,10 +34,10 @@ string entradaTeclado(int caracteres, bool number) {
         }
         Sleep(50); // Pausa breve para evitar saturar el CPU
     }
-    if (number && numberTextMap.find(std::stoi(entrada)) != numberTextMap.end()) {
-        cout << std::endl << numberTextMap[std::stoi(entrada)];
-    }
     cout << std::endl;
+    if (number && numberTextMap.find(std::stoi(entrada)) != numberTextMap.end()) {
+        calc(std::stoi(entrada));
+    }
     return entrada;
 }
 
@@ -56,4 +56,9 @@ bool yesOrNo() {
             cout << "Invalid option. ";
         }
     }
+}
+
+void calc(int n) {
+    cout << numberTextMap[n];
+    cout << std::endl;
 }

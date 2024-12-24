@@ -2,9 +2,9 @@
 #include <iostream>
 #include <Windows.h>
 #include <string>
-#include "teclado.h"
-#include <functional> // Añadir este encabezado
+#include <functional>
 #include <sstream>
+#include "teclado.h"
 
 
 using std::cout;
@@ -13,7 +13,7 @@ using std::wstring;
 
 // Constructor
 SolidWorks::SolidWorks() {
-    anoActual = obtenerAnoActual() < vMax ? obtenerAnoActual() : vMax;
+    anoActual = obtenerAnoActual() < vMax ? vMax : obtenerAnoActual();
 }
 
 // Obtiene el año actual del sistema operativo + 1.
@@ -37,7 +37,12 @@ void SolidWorks::setVersion(int v) {
             cout << "SolidWorks " << v << " is not installed.\n";
         }
         if (compatibilidad == 2) {
-            cout << "SolidWorks " << v << " is a future compatibility version.\n";
+            if (v > anoActual) {
+                calc(99999);
+                cout << "what?!?!?! " << v << " really?!\nHow did you get this version? It's from the future!\n";
+            } else{
+                cout << "SolidWorks " << v << " is a future compatibility version.\n";
+            }
         }
         cout << "Do you want to continue in generic mode? ";
         if (yesOrNo()) {
