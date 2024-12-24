@@ -97,11 +97,11 @@ int main() {
                 if (sw.esCompatible(swVersion) == 0) {
                     throw std::invalid_argument("Incompatible version");
                 }
-                cout << "Processing version: " << swVersion << std::endl;
+                //cout << "Processing version: " << swVersion << std::endl;
                 sw.setVersion(swVersion);
                 GPU gpu(sw.obtenerCurrent());
                 guardarArchivoReg(swVersion, gpu.completarContenidoReg(sw.obtenerRegBase()));
-                cout << "Finished..." << std::endl;
+                //cout << "Finished..." << std::endl;
                 break; // Salir del bucle principal si todo es correcto
             }
             catch (const std::exception& e) {

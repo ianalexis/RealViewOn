@@ -39,7 +39,7 @@ void SolidWorks::setVersion(int v) {
         if (compatibilidad == 2) {
             if (v > anoActual) {
                 calc(99999);
-                cout << "what?!?!?! " << v << " really?!\nHow did you get this version? It's from the future!\n";
+                cout << "WHAT?!?!?! SolidWorks " << v << " really?!\nHow did you get this version? It's from the future!\n";
             } else{
                 cout << "SolidWorks " << v << " is a future compatibility version.\n";
             }
