@@ -23,14 +23,40 @@
 
 ## Usage 📋
 
-1. MANUAL - [Download the latest version from Releases (exe or 7z) 📥](https://github.com/ianalexis/Real-View-On-Releases/releases).
-2. AUTO - The system detects the installed versions of SolidWorks 🔍.
-3. AUTO - It searches for the GPU used by that version of SolidWorks 🖥️.
-4. AUTO - Generates a `.reg` file that can be manually reviewed before execution to enable RealView 📝.
-5. MANUAL - Review and execute the `.reg` file.
-6. MANUAL - Fixes if something doesn't work:If it does not work, modify the `dword` values of the file until activation is achieved 🔧.
-   1. RealView not working: Modify the GL2Shaders `dword` values. Examples for your brand bellow it.
-   2. Seketchs and visual errors: Modify the Brand `dword` values. Examples for your brand bellow it.
+0. 🧑 MANUAL - [Download the latest version from Releases (exe or 7z) 📥](https://github.com/ianalexis/Real-View-On-Releases/releases).
+1. 🤖 AUTO - The system detects the installed versions of SolidWorks 🔍.
+2. 📑 MANUAL - Select the SolidWorks version.
+3. 🤖 AUTO - Search for the GPU used by that version of SolidWorks 🖥️.
+   1. 🚧 In case no GPU is found, the user will be prompted to enter the model.
+   2. Go to the Device Manager and search for the GPU under Display Adapters.
+   3. Open the GPU properties and copy the name of the device under the Details tab.
+   4. ✍️ Enter the device name into the program and press Enter.
+4. 🤖 AUTO - A `.reg` file will be generated that can be manually checked prior to execution to enable RealView 📝.
+5. 🧑✨ MANUAL - Execution of the `.reg` file.
+   1. 🕵️ OPTIONAL - Review (with any text editor) the `.reg` file.
+   2. 🚀 MANUAL - Execute the `.reg` file by double clicking on it.
+
+## Solutions if something does not work 👩‍🔧🖥️
+In case you find errors modify the `dword` values of the file with the examples for your brand to commented in the file.
+
+### RealView does not work
+Modify the `dword` values of GL2Shaders.
+
+### Sketchs and visual errors
+Modify the `dword` values of the mark.
+
+Translated with DeepL.com (free version)
+
+## Contribute 🤝
+
+We welcome any feedback regarding the functionality of the tool, whether it works or not.
+If needed, we are happy to assist you , not only to ensure proper usage but also to identify potential areas for improvement.
+
+If you needed to change the values, please share:
+
+- **Values:** `dword` values and changes in the `.reg` file.
+- **Renderer:** GPU
+- **SolidWorks version:** SW versions you want to enable RealView on.
 
 ## Compatibility 🖥️
 
@@ -46,17 +72,6 @@
   - ⭐⭐⭐: [GPUs tested > 1] && [SW versions tested > 1]
   - ⭐⭐: [Actual GPU tested]
   - ⭐: [Theoretical testing]
-
-## Contribute 🤝
-
-We welcome any feedback regarding the functionality of the tool, whether it works or not.
-If needed, we are happy to assist you , not only to ensure proper usage but also to identify potential areas for improvement.
-
-If you needed to change the values, please share:
-
-- **Values:** `dword` values and changes in the `.reg` file.
-- **Renderer:** GPU
-- **SolidWorks version:** SW versions you want to enable RealView on.
 
 ## Disclaimer ⚠️
 
@@ -90,14 +105,38 @@ ___
 
 ## Uso 📋
 
-1. MANUAL - [Descarga la última versión desde Releases (exe o 7z) 📥](https://github.com/ianalexis/Real-View-On-Releases/releases).
-2. AUTO - El sistema detecta las versiones instaladas de SolidWorks 🔍.
-3. AUTO - Busca la GPU utilizada por esa versión de SolidWorks 🖥️.
-4. AUTO - Genera un archivo `.reg` que puede ser revisado manualmente antes de la ejecución para habilitar RealView 📝.
-5. MANUAL - Revisión y ejecución del archivo `.reg`.
-6. MANUAL - Soluciones si algo no funciona: Si no funciona, modifique los valores `dword` del archivo hasta lograr la activación 🔧.
-   1. RealView no funciona: Modifique los valores `dword` de GL2Shaders. Ejemplos para su marca a comentados en el archivo.
-   2. Sketchs y errores visuales: Modifique los valores `dword` de la marca. mplos para su marca a comentados en el archivo.
+0. 🧑 MANUAL - [Descargue la última versión desde Releases (exe o 7z) 📥](https://github.com/ianalexis/Real-View-On-Releases/releases).
+1. 🤖 AUTO - El sistema detecta las versiones instaladas de SolidWorks 🔍.
+2. 📑 MANUAL - Seleccione la versión de SolidWorks.
+3. 🤖 AUTO - Busca la GPU utilizada por esa versión de SolidWorks 🖥️.
+   1. 🚧 En caso de no encontrar GPU, se solicitará al usuario que ingrese el modelo.
+   2. Ingrese en el Administrador de dispositivos y busque la GPU dentro de Adaptadores de pantalla.
+   3. Abra las propiedades de la GPU y copie el nombre del dispositivo dentro de la pestaña Detalles.
+   4. ✍️ Ingrese el nombre del dispositivo en el programa y presione Enter.
+4. 🤖 AUTO - Se generará un archivo `.reg` que puede ser revisado manualmente antes de la ejecución para habilitar RealView 📝.
+5. 🧑✨ MANUAL - Ejecución del archivo `.reg`.
+   1. 🕵️ OPCIONAL - Revise (con cualquier editor de texto) el `.reg`
+   2. 🚀 MANUAL - Ejecute el archivo `.reg` haciendo doble click sobre el.
+
+## Soluciones si algo no funciona 👩‍🔧🖥️
+En caso de encontrar errores modifique los valores `dword` del archivo con los ejemplos para su marca comentados en el archivo.
+
+### RealView no funciona
+Modifique los valores `dword` de GL2Shaders.
+
+### Sketchs y errores visuales
+Modifique los valores `dword` de la marca.
+
+## Contribuir 🤝
+
+Agradecemos cualquier comentario sobre el funcionamiento de la herramienta, ya sea que funcione o no.
+Si es necesario, podemos ofrecer asistencia para garantizar un uso adecuado y también para identificar posibles áreas de mejora.
+
+Si necesitaste cambiar los valores, por favor comparta:
+
+- **Valores:** valores `dword` y cambios en el archivo `.reg`.
+- **Renderer:** GPU
+- **Versión de SolidWorks:** versiones de SW en las que deseas habilitar RealView.
 
 ## Compatibilidad 🖥️
 
@@ -113,17 +152,6 @@ ___
   - ⭐⭐⭐: [GPUs probadas > 1] && [Versiones de SW probadas  > 1]
   - ⭐⭐: [GPU real probada]
   - ⭐: [Prueba teórica]
-
-## Contribuir 🤝
-
-Agradecemos cualquier comentario sobre el funcionamiento de la herramienta, ya sea que funcione o no.
-Si es necesario, podemos ofrecer asistencia para garantizar un uso adecuado y también para identificar posibles áreas de mejora.
-
-Si necesitaste cambiar los valores, por favor comparta:
-
-- **Valores:** valores `dword` y cambios en el archivo `.reg`.
-- **Renderer:** GPU
-- **Versión de SolidWorks:** versiones de SW en las que deseas habilitar RealView.
 
 ## Descargo de Responsabilidad ⚠️
 
