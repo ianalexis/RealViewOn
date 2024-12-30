@@ -31,8 +31,8 @@
    2. Go to the Device Manager and search for the GPU under Display Adapters.
    3. Open the GPU properties and copy the name of the device under the Details tab.
    4. ✍️ Enter the device name into the program and press Enter.
-4. 🤖 AUTO - A `.reg` file will be generated that can be manually checked prior to execution to enable RealView 📝.
-5. 🧑✨ MANUAL - Execution of the `.reg` file.
+4. 🤖 AUTO - A custom `.reg` file will be generated📝.
+5. ✨ MANUAL - Execution of the `.reg` file.
    1. 🕵️ OPTIONAL - Review (with any text editor) the `.reg` file.
    2. 🚀 MANUAL - Execute the `.reg` file by double clicking on it.
 
@@ -113,8 +113,8 @@ ___
    2. Ingrese en el Administrador de dispositivos y busque la GPU dentro de Adaptadores de pantalla.
    3. Abra las propiedades de la GPU y copie el nombre del dispositivo dentro de la pestaña Detalles.
    4. ✍️ Ingrese el nombre del dispositivo en el programa y presione Enter.
-4. 🤖 AUTO - Se generará un archivo `.reg` que puede ser revisado manualmente antes de la ejecución para habilitar RealView 📝.
-5. 🧑✨ MANUAL - Ejecución del archivo `.reg`.
+4. 🤖 AUTO - Se generará un archivo `.reg` personalizado 📝.
+5. ✨ MANUAL - Ejecución del archivo `.reg`.
    1. 🕵️ OPCIONAL - Revise (con cualquier editor de texto) el `.reg`
    2. 🚀 MANUAL - Ejecute el archivo `.reg` haciendo doble click sobre el.
 
