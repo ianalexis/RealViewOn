@@ -7,7 +7,7 @@
 [![C++](https://img.shields.io/badge/C++-%2300599C.svg?logo=c%2B%2B&logoColor=white&style=flat-square)](https://isocpp.org/)
 [![Windows](https://custom-icon-badges.demolab.com/badge/Windows-0078D6?logo=windows11&logoColor=white&style=flat-square)](https://www.microsoft.com/windows/)
 
-**RealViewOn** enables RealView in SolidWorks versions after 2010 and fixes errors in "Enhanced graphics performance mode". The system can run directly on the target PC or manually generate the necessary file to enable RealView on another PC.
+**RealViewOn** enables RealView in SolidWorks versions after 2010 and fixes errors in "Enhanced graphics performance" mode. The system can run directly on the target PC or manually generate the necessary file to enable RealView on another PC.
 
 ## Key Features 🌟
 
