@@ -29,7 +29,7 @@ private:
     string elegirRenderer(vector<std::pair<string, string>> renderers);
 
     static const int vMin = 2010; // Versión mínima soportada
-    static const int vMax = 2024; // Versión máxima soportada
+    static const int vMax = 2025; // Versión máxima soportada
     static const int vCambioRaiz = 2023; // Año de cambio de ubicación del registro
     int anoActual; // Año actual + 1
     std::wstring swRegRuta = L"SOFTWARE\\SolidWorks\\SOLIDWORKS ";

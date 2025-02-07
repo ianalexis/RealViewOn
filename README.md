@@ -46,8 +46,6 @@ Modify the `dword` values of GL2Shaders.
 ### Sketchs and visual errors
 Modify the `dword` values of the mark.
 
-Translated with DeepL.com (free version)
-
 ## Contribute 🤝
 
 We welcome any feedback regarding the functionality of the tool, whether it works or not.

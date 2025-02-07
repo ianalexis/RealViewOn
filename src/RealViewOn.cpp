@@ -34,7 +34,11 @@ void playMidiAsync() {
 void configurarConsola() {
     try {
         SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
-        system("color 17"); // Fondo azul oscuro y texto blanco
+        if (FILE_VERSION_STABLE == 1) { // Si es estable
+            system("color 17"); // Fondo azul oscuro y texto blanco
+        } else {
+            system("color 4E"); // Fondo rojo y texto amarillo
+        }
         // Predefinir tamaño de consola
         HWND console = GetConsoleWindow();
         RECT r;
@@ -63,7 +67,7 @@ void encabezado() {
             << " || 888   T88b *Y8888  *Y888888 888     Y8P     888  *Y8888   *Y8888888P*   *Y88888P*  888  888 ||\n"
             << " ||                                                                                             ||\n"
             << " >>=============================================================================================<<\n";
-    string data = "v" + string(RVO_VERSION) + " c" + string(RVO_COMPILATION) + " - by [RF47] && [TitanBoreal]";
+    string data = "v" + string(RVO_VERSION) + " c" + string(RVO_COMPILATION) + " - " + releaseType() + " - by [RF47] && [IanAlexis] ";
     int width = 94; // Ancho total de la línea
     int padding = (width - data.length()) / 2;
     cout << " ||" << std::setw(padding) << "" << data << std::setw(padding) << "" << "||\n";
@@ -89,7 +93,7 @@ int main() {
     while (true) {
         // Bucle principal para solicitar la versión de SolidWorks
         while (true) {
-            cout << "\nEnter the SolidWorks version year (e.g., 2020, 2024) or press ESC to exit: ";
+            cout << "\nEnter the SolidWorks version year (e.g., 2020, 2025) or press ESC to exit: ";
             string entrada = entradaTeclado(4, true);
             // Validar entrada
             try {
