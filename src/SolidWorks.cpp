@@ -112,10 +112,6 @@ void SolidWorks::obtenerVersionesInstaladas() {
     }
     if (versiones.empty()) {
         cout << "No SolidWorks versions found installed.\n";
-        cout << "Do you want to proceed manually? ";
-        if (!yesOrNo()) {
-            throw std::runtime_error("Installation canceled by the user.");
-        }
     } else {
         cout << " ----------------|---------------\n";
     } 
