@@ -46,7 +46,6 @@ void SolidWorks::setVersion(int v) {
         }
         cout << "Do you want to continue in generic mode? ";
         if (yesOrNo()) {
-            //cout << "Continuando en modo genérico...\n";
             setGenerico(true);
         } else {
             throw std::runtime_error("Installation canceled by the user.");
@@ -133,33 +132,52 @@ GPU::Current SolidWorks::obtenerCurrent() {
     if (current.renderer.empty() || swVersion >= vCambioRaiz || generico) {
         tempCurrent = obtenerCurrentRaiz();
         if (!tempCurrent.renderer.empty()) {
-            if (!current.renderer.empty()) {
-                cout << "A renderer was found in both the root folder and the version folder.\n";
-                cout << "Do you want to use the renderer (" << tempCurrent.renderer << ") from the root folder? ";
-                if (yesOrNo()) {
-                    current = tempCurrent;
-                }
-            }
             current = tempCurrent;
         }
     }
-    if (current.renderer.empty()) {
-        current.renderer = obtenerRendererGenerico();
+    if (!current.renderer.empty()) {
+        cout << "Renderer detected: " << current.renderer << ". Is this correct? ";
+        if (!yesOrNo()) {
+            current.renderer = "";
+        }
     }
     if (current.renderer.empty()) {
-        cout << "Renderer not found.\n";
-        cout << "Do you want to enter the renderer manually? ";
-        if (yesOrNo()) {
-            current.renderer = rendererManual();
-            if (current.renderer.empty()) {
-                throw std::runtime_error("No renderer was entered.");
-            }
-        } else {
-            throw std::runtime_error("Installation canceled by the user.");
-        }
+        current.renderer = elegirRenderer();
+    }
+    if (current.renderer.empty()) {
+        throw std::runtime_error("Renderer not found.");
     }
     cout << "Renderer: " << current.renderer << "\n";
     return current;
+}
+
+std::vector<std::pair<std::string, std::string>> SolidWorks::windowsDisplayAdapters() {
+    std::vector<std::pair<std::string, std::string>> adaptadores;
+    DISPLAY_DEVICE dd;
+    dd.cb = sizeof(dd);
+    int deviceIndex = 0;
+
+    while (EnumDisplayDevices(NULL, deviceIndex, &dd, 0)) {
+        int size_needed = WideCharToMultiByte(CP_UTF8, 0, dd.DeviceString, -1, NULL, 0, NULL, NULL);
+        std::string deviceStringUtf8(size_needed - 1, 0); // Ajuste aquí para evitar el carácter nulo
+        WideCharToMultiByte(CP_UTF8, 0, dd.DeviceString, -1, &deviceStringUtf8[0], size_needed, NULL, NULL);
+
+        bool found = false;
+        for (auto& adaptador : adaptadores) {
+            if (adaptador.first == deviceStringUtf8) {
+                adaptador.second += " ," + std::to_string(deviceIndex);
+                found = true;
+                break;
+            }
+        }
+
+        if (!found && !deviceStringUtf8.empty()) {
+            adaptadores.push_back(std::make_pair(deviceStringUtf8, "Windows Display Adapter " + std::to_string(deviceIndex)));
+        }
+
+        deviceIndex++;
+    }
+    return adaptadores;
 }
 
 std::string SolidWorks::rendererManual() {
@@ -223,7 +241,10 @@ GPU::Current SolidWorks::obtenerCurrentAno() {
 }
 
 // Busca render en todo el registro (modo generico)
-string SolidWorks::obtenerRendererGenerico() {
+std::vector<std::pair<std::string, std::string>> SolidWorks::obtenerRendererGenerico() {
+    current.renderer = "";
+    current.vendor = "";
+    current.workarounds = "";
     HKEY hKey;
     std::vector<std::pair<std::string, std::string>> renderers;
     const std::wstring basePath = L"SOFTWARE\\SolidWorks";
@@ -268,12 +289,14 @@ string SolidWorks::obtenerRendererGenerico() {
     } else {
         std::wcerr << L"Error opening: " << basePath << std::endl;
     }
-    return renderers.empty() ? "" : (renderers.size() == 1 ? renderers[0].first : elegirRenderer(renderers));
+    return renderers;
 }
 
-string SolidWorks::elegirRenderer(std::vector<std::pair<std::string, std::string>> renderers) {
-    if (renderers.empty()) {
-        throw std::runtime_error("No renderers found in the registry.");
+string SolidWorks::elegirRenderer() {
+    auto renderers = obtenerRendererGenerico();
+    auto adaptadores = windowsDisplayAdapters();
+    for (const auto& adaptador : adaptadores) {
+        renderers.push_back(std::make_pair(adaptador.first, adaptador.second));
     }
     cout << "Available renderers:\n";
     cout << "0. Enter manually\n";
@@ -282,7 +305,7 @@ string SolidWorks::elegirRenderer(std::vector<std::pair<std::string, std::string
     }
     while (true) {
         cout << "Select the renderer (or press Esc to cancel): ";
-        string input = entradaTeclado(1, true);
+        string input = entradaTeclado(std::to_string(renderers.size()).length(), true);
         int opcion = std::stoi(input);
         if (opcion >= 1 && opcion <= renderers.size()) {
             return renderers[opcion - 1].first;

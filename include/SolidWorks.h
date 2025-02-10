@@ -18,15 +18,16 @@ public:
 
 private:
     int obtenerAnoActual(); // Obtiene el año actual del sistema operativo + 1.
+    bool versionInstalada(int v);
     GPU::Current obtenerCurrent(std::wstring path);
     GPU::Current obtenerCurrentRaiz();
     GPU::Current obtenerCurrentAno();
-    string obtenerRendererGenerico();
+    std::vector<std::pair<std::string, std::string>> obtenerRendererGenerico();
+    std::vector<std::pair<std::string, std::string>> windowsDisplayAdapters(); // Obtiene los adaptadores de Windows.
     string obtenerRegBaseAllowList();
     string obtenerRegBaseAno();
-    bool versionInstalada(int v);
+    string elegirRenderer();
     string rendererManual();
-    string elegirRenderer(vector<std::pair<string, string>> renderers);
 
     static const int vMin = 2010; // Versión mínima soportada
     static const int vMax = 2025; // Versión máxima soportada

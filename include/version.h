@@ -2,8 +2,8 @@
 
 #define FILE_VERSION_MAJOR 1
 #define FILE_VERSION_MINOR 6
-#define FILE_VERSION_PATCH 0
-#define FILE_VERSION_BUILD 0
+#define FILE_VERSION_PATCH 1
+#define FILE_VERSION_BUILD 1
 #define FILE_VERSION_STABLE 0 // 1 for stable, 0 for prerelease
 
 #define STRINGIFY(x) #x
