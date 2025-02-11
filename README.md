@@ -30,12 +30,12 @@ This tool can run directly on the target PC (recomended) or manually generate th
 2. 📑 MANUAL - Select the SolidWorks version.
 3. 🤖 AUTO - Search for the GPU used by that version of SolidWorks 🖥️.
    1. 🚧 In case no Renderer is found, the user will be prompted to select:
-      1. Renderers found in the registry.
-      2. Display Adapters found in the Device Manager.
-      3. Manually enter the GPU model.
-         1. Go to the Device Manager and search for the GPU under Display Adapters.
-         2. Open the GPU properties and copy the name of the device under the Details tab.
-         3. ✍️ Enter the device name into the program and press Enter.
+      1. 🔍 Renderers found in the registry.
+      2. 🖥️ Display Adapters found in the Device Manager.
+      3. ✍️ Manually enter the GPU model.
+         1. 📝 Go to the Device Manager and search for the GPU under Display Adapters.
+         2. 💻 Open the GPU properties and copy the name of the device under the Details tab.
+         3. ⌨️ Enter the device name into the program and press Enter.
 4. 🤖 AUTO - A custom `.reg` file will be generated📝.
 5. ✨ MANUAL - Execution of the `.reg` file.
    1. 🕵️ OPTIONAL - Review (with any text editor) the `.reg` file.
@@ -115,11 +115,11 @@ La herramienta puede ejecutarse directamente en el PC objetivo (recomendado) o g
 2. 📑 MANUAL - Seleccione la versión de SolidWorks.
 3. 🤖 AUTO - Busca la GPU utilizada por esa versión de SolidWorks 🖥️.
    1. 🚧 En caso de no encontrar GPU, se solicitará al usuario que seleccione:
-      1. Renders encontrados en el registro.
-      2. Adaptadores de pantalla encontrados en el Administrador de dispositivos.
-      3. Ingresar manualmente el modelo de la GPU.
-         1. Ingrese en el Administrador de dispositivos y busque la GPU dentro de Adaptadores de pantalla.
-         2. Abra las propiedades de la GPU y copie el nombre del dispositivo dentro de la pestaña Detalles.
+      1. 📝 Renders encontrados en el registro.
+      2. 🖥️ Adaptadores de pantalla encontrados en el Administrador de dispositivos.
+      3. ✍️ Ingresar manualmente el modelo de la GPU.
+         1. 💻 Ingrese en el Administrador de dispositivos y busque la GPU dentro de Adaptadores de pantalla.
+         2. 📋 Abra las propiedades de la GPU y copie el nombre del dispositivo dentro de la pestaña Detalles.
          3. ✍️ Ingrese el nombre del dispositivo en el programa y presione Enter.
 4. 🤖 AUTO - Se generará un archivo `.reg` personalizado 📝.
 5. ✨ MANUAL - Ejecución del archivo `.reg`.
