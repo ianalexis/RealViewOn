@@ -1,4 +1,4 @@
-# ![logo](RealViewOn.png) ![header](Header.png) ![logo](RealViewOnOff.gif)
+# ![logo](assets/images/RealViewOn.png) ![header](assets/images/Header.png) ![logo](assets/images/RealViewOnOff.gif)
 
 [![GitHub](https://img.shields.io/badge/GitHub-%23121011.svg?logo=github&logoColor=white&style=flat-square)](https://github.com/ianalexis/Real-View-On-Releases)
 [![GitHub stars](https://img.shields.io/github/stars/ianalexis/Real-View-On-Releases?style=flat-square&logo=github)](https://github.com/ianalexis/Real-View-On-Releases/stargazers)
