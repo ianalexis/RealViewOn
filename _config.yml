@@ -4,7 +4,7 @@ baseurl: "/Real-View-On-Releases"
 url: "https://ianalexis.github.io"
 remote_theme: "minima"
 minima:
-  skin: auto
+  skin: solarized-dark
 markdown: kramdown
 plugins:
   - jekyll-feed
