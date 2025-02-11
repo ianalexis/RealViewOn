@@ -1,3 +1,8 @@
+---
+layout: default
+title: Real View On
+---
+
 # ![logo](assets/images/RealViewOn.png) ![header](assets/images/Header.png) ![logo](assets/images/RealViewOnOff.gif)
 
 [![GitHub](https://img.shields.io/badge/GitHub-%23121011.svg?logo=github&logoColor=white&style=flat-square)](https://github.com/ianalexis/Real-View-On-Releases)
