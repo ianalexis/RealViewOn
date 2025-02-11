@@ -1,9 +1,9 @@
 title: Real View On
 description: RVO enables RealView in SolidWorks versions after 2010 and fixes errors in "Enhanced graphics performance".
-remote_theme: jekyll/minima
-minima:
-  skin: solarized-dark
+remote_theme: minima
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
   - jekyll-remote-theme
+minima:
+  skin: solarized-dark
