@@ -2,7 +2,7 @@ title: Real-View-On-Releases
 description: Habilita RealView en SolidWorks y soluciona errores gráficos.
 baseurl: "/Real-View-On-Releases"
 url: "https://ianalexis.github.io"
-theme: minima
+theme: hacker
 markdown: kramdown
 plugins:
   - jekyll-feed
