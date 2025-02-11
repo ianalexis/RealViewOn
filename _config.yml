@@ -4,8 +4,9 @@ baseurl: "/Real-View-On-Releases"
 url: "https://ianalexis.github.io"
 remote_theme: "minima"
 minima:
-  skin: dark
+  skin: auto
 markdown: kramdown
 plugins:
+  - jekyll-feed
   - jekyll-seo-tag
   - jekyll-remote-theme
