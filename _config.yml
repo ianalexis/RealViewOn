@@ -1,11 +1,8 @@
 title: Real View On
 description: RVO enables RealView in SolidWorks versions after 2010 and fixes errors in "Enhanced graphics performance".
-baseurl: "/Real-View-On-Releases"
-url: "https://ianalexis.github.io"
 remote_theme: "minima"
 minima:
   skin: solarized-dark
-markdown: kramdown
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
