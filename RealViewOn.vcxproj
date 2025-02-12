@@ -186,7 +186,7 @@
       </AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <StringPooling>true</StringPooling>
       <SmallerTypeCheck>true</SmallerTypeCheck>
