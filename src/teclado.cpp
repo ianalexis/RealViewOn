@@ -9,7 +9,7 @@ using std::string;
 using std::cout;
 using std::cin;
 
-// Funcion que lee por teclado la cantidad de caracteres recibidas y chequea que no sea la tecla escape. En caso de ser escape hace EXIT.
+// Captura una entrada de teclado del usuario con un límite caracteres (<= 0 para indefinido) y la opción de aceptar solo números. Si recibe escape cierra el programa.
 string entradaTeclado(int caracteres, bool number) {
     string entrada = "";
     bool done = false;
@@ -41,6 +41,7 @@ string entradaTeclado(int caracteres, bool number) {
     return entrada;
 }
 
+// Solicita, rebice y traduce una respuesta de sí o no del usuario.
 bool yesOrNo() {
     char opcion;
     while (true) {
