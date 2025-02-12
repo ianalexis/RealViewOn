@@ -177,8 +177,15 @@ std::vector<std::pair<std::string, std::string>> SolidWorks::windowsDisplayAdapt
 }
 
 std::string SolidWorks::rendererManual() {
+    string manual = "";
+    bool correct = false;
     cout << "Enter the renderer name manually: ";
-    return entradaTeclado(0, false);
+    while (manual.empty() || !correct) {
+        manual = entradaTeclado(0, false);
+        cout << "Renderer: " << manual << ". Is this correct? ";
+        correct = yesOrNo();
+    }
+    return manual;
 }
 
 GPU::Current SolidWorks::obtenerCurrent(std::wstring path){
