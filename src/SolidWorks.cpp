@@ -179,8 +179,9 @@ std::vector<std::pair<std::string, std::string>> SolidWorks::windowsDisplayAdapt
 std::string SolidWorks::rendererManual() {
     string manual = "";
     bool correct = false;
-    cout << "Enter the renderer name manually: ";
+    
     while (manual.empty() || !correct) {
+        cout << "Enter the renderer name manually: ";
         manual = entradaTeclado(0, false);
         cout << "Renderer: " << manual << ". Is this correct? ";
         correct = yesOrNo();
