@@ -1,3 +1,61 @@
 
+<<<<<<< HEAD
 update.bat
+=======
+# Visual Studio
+.vs/
+.vscode/
+*.vcxproj.user
+*.vcxproj.filters
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+~AutoRecover.*
+
+# Compiled Object files
+*.obj
+*.o
+*.lo
+*.slo
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.a
+*.la
+*.lo
+
+# Executables
+#*.exe
+*.out
+*.app
+*.iobj
+*.ipdb
+
+# Debug files
+*.pdb
+*.ilk
+*.tlog
+*.log
+
+# Directories
+x64/
+Debug/
+Release/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.bak
+*.swp
+
+# Generated files
+RealViewEnabler.reg
+/.vscode
+/.vscode
+>>>>>>> real-view-on/main
 *.reg
