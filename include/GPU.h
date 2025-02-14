@@ -12,6 +12,7 @@ class GPU {
         string renderer;
         string vendor;
         string workarounds;
+        string origin;
     };
 
     GPU(Current current); // Constructor
@@ -25,7 +26,6 @@ class GPU {
         UNKNOWN
     };
 
-
     string brandToString(GPU::Brand brand); // Convierte la marca de GPU a string.
 
 private:
@@ -33,11 +33,14 @@ private:
     void setBrWorkarounds(string w); // Eliminar calificación extra
     Brand buscarEnRenderMap(string buscado); // Declarar buscarEnRenderMap
     Brand selecectBrandManual(); // Selecciona la marca de la GPU en caso de no poder determinarla.
+    void setBaseData(Current current); // Setea la baseData de la GPU.
+    string GPU::baseDataToString(); // Convierte la baseData a string.
+
 
     Brand brand = Brand::UNKNOWN;
     string renderer;
     string brWorkarounds;
-
+    Current baseData;
     struct BrandData {
         string brPath; // Brand Path para el fix.
         string brandKey; // Clave para el fix. Va en la carpeta de la marca.

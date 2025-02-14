@@ -121,6 +121,7 @@ GPU::Current SolidWorks::obtenerCurrent() {
     current.renderer = "";
     current.vendor = "";
     current.workarounds = "";
+    current.origin = "SolidWorks " + std::to_string(swVersion);
     GPU::Current tempCurrent;
     if (swVersion < vCambioRaiz || generico) {
         current = obtenerCurrentAno();
@@ -129,16 +130,20 @@ GPU::Current SolidWorks::obtenerCurrent() {
         tempCurrent = obtenerCurrentRaiz();
         if (!tempCurrent.renderer.empty()) {
             current = tempCurrent;
+            current.origin = "SolidWorks Root";
         }
     }
     if (!current.renderer.empty()) {
         cout << "Renderer detected: " << current.renderer << ". Is this correct? ";
         if (!yesOrNo()) {
-            current.renderer = "";
+            current.renderer.clear();
         }
     }
     if (current.renderer.empty()) {
-        current.renderer = elegirRenderer();
+        current.vendor.clear();
+        current.workarounds.clear();
+        current.origin.clear();
+        current = elegirRenderer();
     }
     if (current.renderer.empty()) {
         throw std::runtime_error("Renderer not found.");
@@ -246,9 +251,6 @@ GPU::Current SolidWorks::obtenerCurrentAno() {
 
 // Busca render en todo el registro (modo generico)
 std::vector<std::pair<std::string, std::string>> SolidWorks::obtenerRendererGenerico() {
-    current.renderer = "";
-    current.vendor = "";
-    current.workarounds = "";
     HKEY hKey;
     std::vector<std::pair<std::string, std::string>> renderers;
     const std::wstring basePath = L"SOFTWARE\\SolidWorks";
@@ -296,9 +298,10 @@ std::vector<std::pair<std::string, std::string>> SolidWorks::obtenerRendererGene
     return renderers;
 }
 
-string SolidWorks::elegirRenderer() {
+GPU::Current SolidWorks::elegirRenderer() {
     auto renderers = obtenerRendererGenerico();
     auto adaptadores = windowsDisplayAdapters();
+    GPU::Current tempCurrent;
     for (const auto& adaptador : adaptadores) {
         renderers.push_back(std::make_pair(adaptador.first, adaptador.second));
     }
@@ -312,10 +315,15 @@ string SolidWorks::elegirRenderer() {
         string input = entradaTeclado(std::to_string(renderers.size()).length(), true);
         int opcion = std::stoi(input);
         if (opcion >= 1 && opcion <= renderers.size()) {
-            return renderers[opcion - 1].first;
+            tempCurrent.renderer = renderers[opcion - 1].first;
+            tempCurrent.origin = renderers[opcion - 1].second;
         }
         if (opcion == 0){
-            return rendererManual();
+            tempCurrent.renderer = rendererManual();
+            tempCurrent.origin = "Manual";
+        }
+        if (!tempCurrent.renderer.empty()) {
+            return tempCurrent;
         }
         cout << "Invalid option. Please try again.\n";
     }

@@ -26,7 +26,7 @@ private:
     std::vector<std::pair<std::string, std::string>> windowsDisplayAdapters(); // Obtiene los adaptadores de Windows.
     string obtenerRegBaseAllowList();
     string obtenerRegBaseAno();
-    string elegirRenderer();
+    GPU::Current elegirRenderer();
     string rendererManual();
 
     static const int vMin = 2010; // Versión mínima soportada

@@ -11,6 +11,7 @@ using std::cout;
 
 // Constructor
 GPU::GPU(Current current) {
+    setBaseData(current);
     renderer = current.renderer;
     setBrand(current.vendor, renderer);
     setBrWorkarounds(current.workarounds);
@@ -26,11 +27,19 @@ void GPU::setBrand(string v,string r) {
     if (brand == Brand::UNKNOWN){
         cout << "GPU Brand not detected. Please select the GPU brand manually.\n";
         brand = selecectBrandManual();
+        baseData.vendor += brandToString(brand);
     }
 }
 
 void GPU::setBrWorkarounds(string w) {
     brWorkarounds = (w.empty() || w == brandKeysMap.at(brand).brandBaseAvoid) ? brandKeysMap.at(brand).brandKey : w;
+}
+
+void GPU::setBaseData(Current current) {
+    baseData.renderer = !current.renderer.empty() ? ";  - **Renderer:** " + current.renderer : "";
+    baseData.vendor = !current.vendor.empty() ? ";  - **Vendor:** " + current.vendor : "";
+    baseData.workarounds = !current.workarounds.empty() ? ";  - **Workarounds:** " + current.workarounds : "";
+    baseData.origin = !current.origin.empty() ? ";  - **Origin:** " + current.origin : "";
 }
 
 // Busca la marca de la GPU en el mapeo de palabras clave.
@@ -69,6 +78,10 @@ std::string GPU::brandToString(GPU::Brand brand) {
 
 // Selecciona la marca de la GPU en caso de no poder determinarla.
 GPU::Brand GPU::selecectBrandManual() {
+    if (!baseData.vendor.empty()){
+        baseData.vendor += "\n";
+    }
+    baseData.vendor += ";   - Manual selected: ";
     cout << "Select the GPU brand:\n";
     cout << "1. NVIDIA\n";
     cout << "2. AMD\n";
@@ -94,6 +107,7 @@ GPU::Brand GPU::selecectBrandManual() {
 
 vector<string> GPU::completarContenidoReg(const vector<string>& regBase) {
     vector<string> result;
+    result.push_back(baseDataToString());
     for (const auto& reg : regBase) {
         result.push_back("\n;RealView Enabler:");
         result.push_back(reg + "\\Gl2Shaders\\"+ brandKeysMap.at(brand).glPath +"\\" + renderer + "]");
@@ -106,3 +120,12 @@ vector<string> GPU::completarContenidoReg(const vector<string>& regBase) {
     }
     return result;
 }
+
+string GPU::baseDataToString() {
+    string baseDataString = "; - **Base Data:**\n";
+    baseDataString += !baseData.renderer.empty() ? baseData.renderer + "\n" : "";
+    baseDataString += !baseData.vendor.empty() ? baseData.vendor + "\n" : "";
+    baseDataString += !baseData.workarounds.empty() ? baseData.workarounds + "\n" : "";
+    baseDataString += !baseData.origin.empty() ? baseData.origin + "\n" : "";
+    return baseDataString;
+} 
