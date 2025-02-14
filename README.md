@@ -57,7 +57,7 @@ If needed, we are happy to assist you , not only to ensure proper usage but also
 
 ### Workarounds
 A great way to help us is to share with us the values of your SolidWorks installation.
-Just run the [GetWorka.ps1](https://github.com/ianalexis/Real-View-On-Releases/blob/main/GetWorka.ps1?raw=true) file and share the generated file with us.
+Just [![Download](https://img.shields.io/badge/Download-GetWorka.ps1-blue.svg?style=flat-square&logo=download)](/GetWorka.ps1?raw=true) and run the file and share the generated file with us.
 It is simple, fast, safe, requires no technical knowledge and will help us to improve the tool.
 
 ### If you needed to change the values, please share:
