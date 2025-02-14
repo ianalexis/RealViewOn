@@ -34,6 +34,8 @@ private:
     Brand buscarEnRenderMap(string buscado); // Declarar buscarEnRenderMap
     Brand selecectBrandManual(); // Selecciona la marca de la GPU en caso de no poder determinarla.
     void setBaseData(Current current); // Setea la baseData de la GPU.
+    vector<string> GPU::completarRealViewEnabler(string reg);
+    vector<string> GPU::completarPerformanceFix(string reg);
     string GPU::baseDataToString(); // Convierte la baseData a string.
 
 

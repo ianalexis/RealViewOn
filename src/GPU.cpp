@@ -105,19 +105,38 @@ GPU::Brand GPU::selecectBrandManual() {
     }
 }
 
+vector<string> GPU::completarRealViewEnabler(string reg){
+    vector<string> rvEnabler;
+    rvEnabler.push_back(reg + "\\Gl2Shaders\\"+ brandKeysMap.at(brand).glPath +"\\" + renderer + "]");
+    rvEnabler.push_back("\"Workarounds\"=dword:" + brandKeysMap.at(brand).glKey);
+    return rvEnabler;
+}
+
+vector<string> GPU::completarPerformanceFix(string reg){
+    vector<string> performanceFix;
+    performanceFix.push_back(reg + "\\"+ brandKeysMap.at(brand).brPath +"\\" + renderer + "]");
+    performanceFix.push_back("\"Workarounds\"=dword:" + brWorkarounds);
+    return performanceFix;
+}
+
 vector<string> GPU::completarContenidoReg(const vector<string>& regBase) {
     vector<string> result;
     result.push_back(baseDataToString());
+    result.push_back("\n;RealView Enabler:");// Completa con RealView Enabler
     for (const auto& reg : regBase) {
-        result.push_back("\n;RealView Enabler:");
-        result.push_back(reg + "\\Gl2Shaders\\"+ brandKeysMap.at(brand).glPath +"\\" + renderer + "]");
-        result.push_back("\"Workarounds\"=dword:" + brandKeysMap.at(brand).glKey);
-        result.push_back(";GL2Shaders Alternative Workarounds: " + brandKeysMap.at(brand).glKeyAlt + "\n");
-        result.push_back(";Sketchs and visual errors for Performance for Brand " + brandKeysMap.at(brand).brPath);
-        result.push_back(reg + "\\"+ brandKeysMap.at(brand).brPath +"\\" + renderer + "]");
-        result.push_back("\"Workarounds\"=dword:" + brWorkarounds);
-        result.push_back(";Brand Alternative Workarounds: " + brandKeysMap.at(brand).brandKeyAlt);
+        for (const auto& rv : completarRealViewEnabler(reg)) {
+            result.push_back(rv);
+        }        
     }
+    result.push_back(";GL2Shaders Alternative Workarounds: " + brandKeysMap.at(brand).glKeyAlt + "\n\n");
+
+    result.push_back(";Sketchs and visual errors for Performance with Brand " + brandKeysMap.at(brand).brPath); // Completa con Performance Fix
+    for (const auto& reg : regBase) { // Completa con Performance Fix
+        for (const auto& pf : completarPerformanceFix(reg)) {
+            result.push_back(pf);
+        }
+    }
+    result.push_back(";Brand Alternative Workarounds: " + brandKeysMap.at(brand).brandKeyAlt);
     return result;
 }
 

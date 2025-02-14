@@ -15,6 +15,7 @@ public:
     void setVersion(int v);
     int esCompatible(int v);
     void setGenerico(bool g);
+    string vMaxSW = std::to_string(vMax); // Versión máxima de SolidWorks soportada.
 
 private:
     int obtenerAnoActual(); // Obtiene el año actual del sistema operativo + 1.
@@ -30,8 +31,9 @@ private:
     string rendererManual();
 
     static const int vMin = 2010; // Versión mínima soportada
-    static const int vMax = 2025; // Versión máxima soportada
     static const int vCambioRaiz = 2023; // Año de cambio de ubicación del registro
+    static const int vMax = 2024; // Versión máxima soportada
+
     int anoActual; // Año actual + 1
     std::wstring swRegRuta = L"SOFTWARE\\SolidWorks\\SOLIDWORKS ";
     int swVersion = 0;
