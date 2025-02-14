@@ -95,12 +95,14 @@ GPU::Brand GPU::selecectBrandManual() {
 vector<string> GPU::completarContenidoReg(const vector<string>& regBase) {
     vector<string> result;
     for (const auto& reg : regBase) {
-        result.push_back(reg + "\\"+ brandKeysMap.at(brand).brPath +"\\" + renderer + "]");
-        result.push_back("\"Workarounds\"=dword:" + brWorkarounds);
-        result.push_back(";Alternative " + brandKeysMap.at(brand).brPath + " Workarounds: " + brandKeysMap.at(brand).brandKeyAlt);
+        result.push_back("\n;RealView Enabler:");
         result.push_back(reg + "\\Gl2Shaders\\"+ brandKeysMap.at(brand).glPath +"\\" + renderer + "]");
         result.push_back("\"Workarounds\"=dword:" + brandKeysMap.at(brand).glKey);
-        result.push_back(";Alternative GL2Shaders Workarounds: " + brandKeysMap.at(brand).glKeyAlt);
+        result.push_back(";GL2Shaders Alternative Workarounds: " + brandKeysMap.at(brand).glKeyAlt + "\n");
+        result.push_back(";Sketchs and visual errors for Performance for Brand " + brandKeysMap.at(brand).brPath);
+        result.push_back(reg + "\\"+ brandKeysMap.at(brand).brPath +"\\" + renderer + "]");
+        result.push_back("\"Workarounds\"=dword:" + brWorkarounds);
+        result.push_back(";Brand Alternative Workarounds: " + brandKeysMap.at(brand).brandKeyAlt);
     }
     return result;
 }

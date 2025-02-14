@@ -15,7 +15,7 @@ void guardarArchivoReg(int& version, const vector<string>& contenido, const stri
     std::string fullPath = std::filesystem::current_path().string() + "\\" + filePath;
     std::ofstream regFile(filePath);
     if (regFile.is_open()) {
-        regFile << "Windows Registry Editor Version 5.00\n;Created with: RealViewOn v" << RVO_VERSION << "\n\n";
+        regFile << "Windows Registry Editor Version 5.00\n;Created with: RealViewOn v" << RVO_VERSION << "\n";
         for (const auto& line : contenido) {
             regFile << line << "\n";
         }
