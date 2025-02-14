@@ -30,7 +30,7 @@ void GPU::setBrand(string v,string r) {
 }
 
 void GPU::setBrWorkarounds(string w) {
-    brWorkarounds = empty(w) ? brandKeysMap.at(brand).brandKey : w;
+    brWorkarounds = (w.empty() || w == brandKeysMap.at(brand).brandBaseAvoid) ? brandKeysMap.at(brand).brandKey : w;
 }
 
 // Busca la marca de la GPU en el mapeo de palabras clave.

@@ -39,19 +39,21 @@ private:
     string brWorkarounds;
 
     struct BrandData {
-        string brPath;
-        string brandKey; // Clave para el fix. Va en la carpeta de la marca y casi seguro es igual al workarounds de current.
-        string brandKeyAlt;
-        string glPath;
-        string glKey; // Clave para el RealView. Va en Gl2Shaders y por ahora la vamos hardcodeando.
+        string brPath; // Brand Path para el fix.
+        string brandKey; // Clave para el fix. Va en la carpeta de la marca.
+        string brandKeyAlt; // Clave alternativa para el fix.
+        string brandBaseAvoid; // Clave raiz de la marca para evitar (quizas en un futuro cambiar para que sea un blacklist).
+        string glPath; // GL Path para el RealView.
+        string glKey; // Clave para el RealView. Va en Gl2Shaders.
         string glKeyAlt; // Clave alternativa para el Gl2Shaders.
     };
 
     const std::map<Brand, BrandData> brandKeysMap = {
         {Brand::NVIDIA, {
             "NVIDIA Corporation",
-            "40000",
-            "4000000, 2000001, 2000000, 6000000, 53001001, 53001000, 52040001, 52000000, 46000000, 44000100, 4000100, 40000, 2501001, 2141001, 16000000, 14000100, 14000000, 12000001, 12000000",
+            "4000000",
+            "4000000, 2000001, 2000000, 6000000, 53001001, 53001000, 52040001, 52000000, 46000000, 44000100, 4000100, 40000, 2141001, 16000000, 14000100, 14000000, 12000001, 12000000, 2501001",
+            "2501001",
             "NV40",
             "32408",
             "32408, 30408, 20008, 31408, 33408, 10008, 20408, 22408, 208, 5C, 30008, 7C, 20208, 108, 8, 1"}},
@@ -59,6 +61,7 @@ private:
             "Advanced Micro Devices",
             "4000085",//Quizas sea 84000005
             "84000085, 84000084, 84000005, 84000004, 4000085, 4000005, 52400C84",
+            "52400c84",
             "R420",
             "32408", // TODO: Probar con 30008
             "30008, 0, 32408, 20008, 40, 8, 22408"}},
@@ -66,6 +69,7 @@ private:
             "Intel",
             "4080080",
             "4000080, 4080080, 10000010, 4000480, 4000000, 10080080, 10000480, 10000080, 10",
+            "10",
             "Other",
             "30008",// TODO: Probar con 30408 ya que 30008 no existe en intel.
             "30408, 8, 20408, 20008, 1"}}
