@@ -55,7 +55,12 @@ Modify the `dword` values of the brand.
 We welcome any feedback regarding the functionality of the tool, whether it works or not.
 If needed, we are happy to assist you , not only to ensure proper usage but also to identify potential areas for improvement.
 
-If you needed to change the values, please share:
+### Workarounds
+A great way to help us is to share with us the values of your SolidWorks installation.
+Just run the [GetWorka.ps1](/GetWorka.ps1?raw=true) file and share the generated file with us.
+It is simple, fast, safe, requires no technical knowledge and will help us to improve the tool.
+
+### If you needed to change the values, please share:
 
 - **Values:** `dword` values and changes in the `.reg` file.
 - **Renderer:** GPU
@@ -140,7 +145,12 @@ Modifique los valores `dword` de la marca.
 Agradecemos cualquier comentario sobre el funcionamiento de la herramienta, ya sea que funcione o no.
 Si es necesario, podemos ofrecer asistencia para garantizar un uso adecuado y también para identificar posibles áreas de mejora.
 
-Si necesitaste cambiar los valores, por favor comparta:
+### Workarounds
+Una gran manera de ayudarnos es compartirnos los valores de tu instalacion de SolidWorks.
+Solamente deberas ejecutar el archivo [GetWorka.ps1](/GetWorka.ps1?raw=true) y compartirnos el archivo generado.
+Es simple, rapido , seguro , no requiere conocimientos tecnicos y nos ayudara a mejorar la herramienta.
+
+### Si necesitaste cambiar los valores, por favor comparta:
 
 - **Valores:** valores `dword` y cambios en el archivo `.reg`.
 - **Renderer:** GPU
