@@ -93,7 +93,7 @@ int main() {
     while (true) {
         // Bucle principal para solicitar la versión de SolidWorks
         while (true) {
-            cout << "\nEnter the SolidWorks version year (e.g., 2020, " + sw.vMaxSW + ") or press ESC to exit: ";
+            cout << "\nEnter the SolidWorks version year (e.g. " + sw.versions + ") or press ESC to exit: ";
             string entrada = entradaTeclado(4, true);
             // Validar entrada
             try {
