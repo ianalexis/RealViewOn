@@ -48,7 +48,7 @@ In case you find errors modify the `dword` values of the file with the examples 
 Modify the `dword` values of GL2Shaders.
 
 ### Sketchs and visual errors
-Modify the `dword` values of the mark.
+Modify the `dword` values of the brand.
 
 ## Contribute 🤝
 
