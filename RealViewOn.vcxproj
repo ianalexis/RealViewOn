@@ -214,7 +214,7 @@
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>00UPX.bat</Command>
+      <Command>ReleaseUPXZIP.bat</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Compresion UPX y 7Z</Message>
