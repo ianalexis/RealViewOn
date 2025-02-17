@@ -36,10 +36,10 @@ void GPU::setBrWorkarounds(string w) {
 }
 
 void GPU::setBaseData(Current current) {
-    baseData.renderer = !current.renderer.empty() ? ";  - **Renderer:** " + current.renderer : "";
-    baseData.vendor = !current.vendor.empty() ? ";  - **Vendor:** " + current.vendor : "";
-    baseData.workarounds = !current.workarounds.empty() ? ";  - **Workarounds:** " + current.workarounds : "";
-    baseData.origin = !current.origin.empty() ? ";  - **Origin:** " + current.origin : "";
+    baseData.renderer = !current.renderer.empty() ? "; - **Renderer:** " + current.renderer : "";
+    baseData.vendor = !current.vendor.empty() ? "; - **Vendor:** " + current.vendor : "";
+    baseData.workarounds = !current.workarounds.empty() ? "; - **Workarounds:** " + current.workarounds : "";
+    baseData.origin = !current.origin.empty() ? "; - **Origin:** " + current.origin : "";
 }
 
 // Busca la marca de la GPU en el mapeo de palabras clave.
@@ -122,26 +122,26 @@ vector<string> GPU::completarPerformanceFix(string reg){
 vector<string> GPU::completarContenidoReg(const vector<string>& regBase) {
     vector<string> result;
     result.push_back(baseDataToString());
-    result.push_back("\n;RealView Enabler:");// Completa con RealView Enabler
+    result.push_back("\n;## RealView Enabler: ##\n;```");// Completa con RealView Enabler
     for (const auto& reg : regBase) {
         for (const auto& rv : completarRealViewEnabler(reg)) {
             result.push_back(rv);
-        }        
+        }
     }
-    result.push_back(";GL2Shaders Alternative Workarounds: " + brandKeysMap.at(brand).glKeyAlt + "\n\n");
+    result.push_back(";```\n;GL2Shaders Alternative Workarounds: " + brandKeysMap.at(brand).glKeyAlt + "\n\n");
 
-    result.push_back(";Sketchs and visual errors for Performance with Brand " + brandKeysMap.at(brand).brPath); // Completa con Performance Fix
+    result.push_back(";## Performance ##\n; - Sketches and visual fixes for  " + brandKeysMap.at(brand).brPath + "\n;```"); // Completa con Performance Fix
     for (const auto& reg : regBase) { // Completa con Performance Fix
         for (const auto& pf : completarPerformanceFix(reg)) {
             result.push_back(pf);
         }
     }
-    result.push_back(";Brand Alternative Workarounds: " + brandKeysMap.at(brand).brandKeyAlt);
+    result.push_back(";```\n;Brand Alternative Workarounds: " + brandKeysMap.at(brand).brandKeyAlt);
     return result;
 }
 
 string GPU::baseDataToString() {
-    string baseDataString = "; - **Base Data:**\n";
+    string baseDataString = "";
     baseDataString += !baseData.renderer.empty() ? baseData.renderer + "\n" : "";
     baseDataString += !baseData.vendor.empty() ? baseData.vendor + "\n" : "";
     baseDataString += !baseData.workarounds.empty() ? baseData.workarounds + "\n" : "";

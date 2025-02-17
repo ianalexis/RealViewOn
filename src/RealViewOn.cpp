@@ -17,9 +17,6 @@ using std::cin;
 using std::cout;
 using std::string;
 
-// Prototipos de funciones
-void configurarConsola();
-
 void playMidiAsync() {
     // Esta función se ejecutará en un hilo separado
     try{
@@ -54,6 +51,12 @@ void configurarConsola() {
     }
 }
 
+void lineaEncabezado(string texto) {
+    int width = 93; // Ancho total de la línea
+    int padding = (width - texto.length()) / 2;
+    cout << " ||" << std::setw(padding) << "" << texto << std::setw(padding) << "" << " ||\n";
+}
+
 void encabezado() {
     cout    << " >>=============================================================================================<<\n"
             << " ||                                                                                             ||\n"
@@ -67,10 +70,8 @@ void encabezado() {
             << " || 888   T88b *Y8888  *Y888888 888     Y8P     888  *Y8888   *Y8888888P*   *Y88888P*  888  888 ||\n"
             << " ||                                                                                             ||\n"
             << " >>=============================================================================================<<\n";
-    string data = "v" + string(RVO_VERSION) + " c" + string(RVO_COMPILATION) + " - " + releaseType() + " - by [RF47] && [IanAlexis] ";
-    int width = 94; // Ancho total de la línea
-    int padding = (width - data.length()) / 2;
-    cout << " ||" << std::setw(padding) << "" << data << std::setw(padding) << "" << "||\n";
+    lineaEncabezado("v" + string(RVO_VERSION) + " c" + string(RVO_COMPILATION) + " - " + releaseType() + " - by [RF47] && [IanAlexis]");
+    lineaEncabezado("https://github.com/ianalexis/Real-View-On-Releases");
     cout << " >>=============================================================================================<<" << std::endl;
 }
 
@@ -101,11 +102,9 @@ int main() {
                 if (sw.esCompatible(swVersion) == 0) {
                     throw std::invalid_argument("Incompatible version");
                 }
-                //cout << "Processing version: " << swVersion << std::endl;
                 sw.setVersion(swVersion);
                 GPU gpu(sw.obtenerCurrent());
                 guardarArchivoReg(swVersion, gpu.completarContenidoReg(sw.obtenerRegBase()), RVO_VERSION);
-                //cout << "Finished..." << std::endl;
                 break; // Salir del bucle principal si todo es correcto
             }
             catch (const std::exception& e) {
