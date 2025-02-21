@@ -26,7 +26,6 @@ This tool can run directly on the target PC (recomended) or manually generate th
 ## Usage 📋
 
 0. 🧑 MANUAL - [Download the latest version from Releases (exe or 7z) 📥](https://github.com/ianalexis/Real-View-On-Releases/releases).
-   * *SolidWorks 2025* "compatible" **🛑PRE-RELEASE🛑**: [Branch 2025](https://github.com/ianalexis/Real-View-On-Releases/tree/2025)
 1. 🤖 AUTO - The tool detects the installed versions of SolidWorks 🔍.
 2. 📑 MANUAL - Select the SolidWorks version.
 3. 🤖 AUTO - Search for the GPU used by that version of SolidWorks 🖥️.
