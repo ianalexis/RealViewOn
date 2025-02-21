@@ -75,6 +75,16 @@ void encabezado() {
     cout << " >>=============================================================================================<<" << std::endl;
 }
 
+vector<string> regContent;
+
+void modoAvanzado() {
+    cout << "Do you want to enable advanced mode? (Y/N): ";
+    if (yesOrNo()) {
+        system("color 0B"); // Fondo negro y texto Aguamarina claro
+        regContent.push_back("\n;## Advance Mode:");
+    }
+}
+
 // Función principal
 int main() {
     configurarConsola();
@@ -104,7 +114,9 @@ int main() {
                 }
                 sw.setVersion(swVersion);
                 GPU gpu(sw.obtenerCurrent());
-                guardarArchivoReg(swVersion, gpu.completarContenidoReg(sw.obtenerRegBase()), RVO_VERSION);
+                regContent = gpu.completarContenidoReg(sw.obtenerRegBase());
+                modoAvanzado();
+                guardarArchivoReg(swVersion, regContent, RVO_VERSION);
                 break; // Salir del bucle principal si todo es correcto
             }
             catch (const std::exception& e) {
