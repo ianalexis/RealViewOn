@@ -12,6 +12,7 @@
 #include "Playmidi.h"
 #include "Version.h"
 #include <thread>
+#include "AdvanceMode.h"
 
 using std::cin;
 using std::cout;
@@ -77,11 +78,13 @@ void encabezado() {
 
 vector<string> regContent;
 
-void modoAvanzado() {
+void modoAvanzado(int swVersion) {
     cout << "Do you want to enable advanced mode? (Y/N): ";
     if (yesOrNo()) {
         system("color 0B"); // Fondo negro y texto Aguamarina claro
-        regContent.push_back("\n;## Advance Mode:");
+        regContent.push_back("\n;## Advance Mode: ##"); //TODO: Pasar a su misma clase y que quede solo si se puso que si a alguna opcion
+        AdvanceMode am(swVersion);
+        regContent.push_back(am.askAdvanceOptions());
     }
 }
 
@@ -115,7 +118,7 @@ int main() {
                 sw.setVersion(swVersion);
                 GPU gpu(sw.obtenerCurrent());
                 regContent = gpu.completarContenidoReg(sw.obtenerRegBase());
-                modoAvanzado();
+                modoAvanzado(swVersion);
                 guardarArchivoReg(swVersion, regContent, RVO_VERSION);
                 break; // Salir del bucle principal si todo es correcto
             }
