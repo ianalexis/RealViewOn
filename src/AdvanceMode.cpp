@@ -19,7 +19,7 @@ string AdvanceMode::askAdvanceOptions(){
     for (int i = 0 ; i < regSettings.size() ; i++){
         std::cout << "Do you want to enable " + regSettings[i].name + "? (Y/N): ";
         if (yesOrNo()){
-            options += "\n;- " + regSettings[i].name + "\n;```" + completeBase(regSettings[i].content) + "\n;```";
+            options += "\n;- " + regSettings[i].name + "\n;```" + completeBase(regSettings[i].content) + "\n;```\n";
             AnySelected = true;
         }
     }
