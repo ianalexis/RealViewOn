@@ -81,7 +81,7 @@ SolidWorks sw;
 AdvanceMode advMode;
 
 void modoAvanzado(int swVersion) {
-    cout << "Do you want to enable advanced mode? (Y/N): ";
+    cout << "Advanced Mode? (Recommended) (Y/N): ";
     if (yesOrNo()) {
         system("color 0B"); // Fondo negro y texto Aguamarina claro
         advMode.setSwVersion(swVersion);
