@@ -2,8 +2,7 @@
 #include "teclado.h"
 #include <iostream>
 
-AdvanceMode::AdvanceMode(int swVersion){
-    setSwVersion(swVersion);
+AdvanceMode::AdvanceMode(){
 }
 
 void AdvanceMode::setSwVersion(int swVersion){
@@ -15,13 +14,17 @@ string AdvanceMode::completeBase (string complement){
 }
 
 string AdvanceMode::askAdvanceOptions(){
-    string options = "";
-    for (int i = 0; i < 6; i++){
+    string options = "\n\n;## Advance Mode: ##";
+    bool AnySelected = false;
+    for (int i = 0 ; i < regSettings.size() ; i++){
         std::cout << "Do you want to enable " + regSettings[i].name + "? (Y/N): ";
         if (yesOrNo()){
-            options += ";- " + regSettings[i].name + "\n;```" + completeBase(regSettings[i].content) + "\n;```\n\n";
+            options += "\n;- " + regSettings[i].name + "\n;```" + completeBase(regSettings[i].content) + "\n;```";
+            AnySelected = true;
         }
     }
-    options.erase(options.size() - 2);
+    if (!AnySelected){
+        options += "\n; - No Advance options selected.";
+    }
     return options;
 }

@@ -77,14 +77,15 @@ void encabezado() {
 }
 
 vector<string> regContent;
+SolidWorks sw;
+AdvanceMode advMode;
 
 void modoAvanzado(int swVersion) {
     cout << "Do you want to enable advanced mode? (Y/N): ";
     if (yesOrNo()) {
         system("color 0B"); // Fondo negro y texto Aguamarina claro
-        regContent.push_back("\n;## Advance Mode: ##"); //TODO: Pasar a su misma clase y que quede solo si se puso que si a alguna opcion
-        AdvanceMode am(swVersion);
-        regContent.push_back(am.askAdvanceOptions());
+        advMode.setSwVersion(swVersion);
+        regContent.push_back(advMode.askAdvanceOptions());
     }
 }
 
@@ -92,7 +93,6 @@ void modoAvanzado(int swVersion) {
 int main() {
     configurarConsola();
     encabezado();
-    SolidWorks sw;
     try {
         sw.obtenerVersionesInstaladas();
     }
