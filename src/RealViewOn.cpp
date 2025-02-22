@@ -105,26 +105,23 @@ int main() {
 
     // While para que el programa reinicie si se desea probar otra versión.
     while (true) {
-        // Bucle principal para solicitar la versión de SolidWorks
-        while (true) {
-            cout << "\nEnter the SolidWorks version year (e.g. " + sw.versions + ") or press ESC to exit: ";
-            string entrada = entradaTeclado(4, true);
-            // Validar entrada
-            try {
-                int swVersion = std::stoi(entrada);
-                if (sw.esCompatible(swVersion) == 0) {
-                    throw std::invalid_argument("Incompatible version");
-                }
-                sw.setVersion(swVersion);
-                GPU gpu(sw.obtenerCurrent());
-                regContent = gpu.completarContenidoReg(sw.obtenerRegBase());
-                modoAvanzado(swVersion);
-                guardarArchivoReg(swVersion, regContent, RVO_VERSION);
-                break; // Salir del bucle principal si todo es correcto
+        cout << "\nEnter the SolidWorks version year (e.g. " + sw.versions + ") or press ESC to exit: ";
+        string entrada = entradaTeclado(4, true);
+        // Validar entrada
+        try {
+            int swVersion = std::stoi(entrada);
+            if (sw.esCompatible(swVersion) == 0) {
+                throw std::invalid_argument("Incompatible version");
             }
-            catch (const std::exception& e) {
-                cout << "Error: " << e.what() << ". Try again." << std::endl;
-            }
+            sw.setVersion(swVersion);
+            GPU gpu(sw.obtenerCurrent());
+            regContent = gpu.completarContenidoReg(sw.obtenerRegBase());
+            modoAvanzado(swVersion);
+            guardarArchivoReg(swVersion, regContent, RVO_VERSION);
+            break; // Salir del bucle principal si todo es correcto
+        }
+        catch (const std::exception& e) {
+            cout << "Error: " << e.what() << ". Try again." << std::endl;
         }
     }
     return 0;
