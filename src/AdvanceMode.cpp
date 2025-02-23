@@ -19,7 +19,9 @@ string AdvanceMode::askAdvanceOptions(){
     for (int i = 0 ; i < regSettings.size() ; i++){
         std::cout << "Enable " + regSettings[i].name + "? (Y/N): ";
         if (yesOrNo()){
-            options += "\n;- " + regSettings[i].name + "\n;```" + completeBase(regSettings[i].content) + "\n;```\n";
+            options += "\n;- " + regSettings[i].name + "\n;```";
+            options += completeBase(regSettings[i].content);//TODO: Hacer algun tipo de for que por cada multiRegSetting.path complete con sus values
+            options += "\n;```\n";
             AnySelected = true;
         }
     }
