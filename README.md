@@ -41,6 +41,18 @@ This tool can run directly on the target PC (recomended) or manually generate th
    1. 🕵️ OPTIONAL - Review (with any text editor) the `.reg` file.
    2. 🚀 MANUAL - Execute the `.reg` file by double clicking on it.
 
+## Advance Mode 🛠️
+
+Advanced mode includes a set of additional configurations that can be executed from the same `.reg` file.
+Its main use is to avoid the SolidWorks Setting Wizard, which often retains unnecessary data and generates numerous conflicts.
+
+ - 🔄 **Reverse Mouse Wheel:** Reverses the mouse wheel direction.
+ - 🌑 **DarkMode:** Enables Dark Mode (in comments you can see alternative themes).
+ - 🎮 **FPS Viewer:** Shows the Frames Per Second in the 3D space.
+ - 🚀 **Performance Enhance graphics:** Enables the Performance Enhance graphics option and Hardware accelerated silhouette edges.
+ - 🖌️ **Full AntiAliasing:** Enables Full AntiAliasing instead of edges/sketches only.
+ - ⚙️ **QoL Commands:** Adds Quality of Life commands like "Normal To" in the toolbar and "Scale", "Flex" and "Deform" in Direct Editing.
+
 ## Solutions if something does not work 👩‍🔧🖥️
 In case you find errors modify the `dword` values of the file with the examples for your brand to commented in the file.
 
