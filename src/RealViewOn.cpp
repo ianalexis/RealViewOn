@@ -28,15 +28,19 @@ void playMidiAsync() {
     }
 }
 
+void terminalColorAuto(){
+    if (FILE_VERSION_STABLE == 1) { // Si es estable
+        system("color 17"); // Fondo azul oscuro y texto blanco
+    } else {
+        system("color 4E"); // Fondo rojo y texto amarillo
+    }
+}
+
 // Definición de funciones
 void configurarConsola() {
     try {
         SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
-        if (FILE_VERSION_STABLE == 1) { // Si es estable
-            system("color 17"); // Fondo azul oscuro y texto blanco
-        } else {
-            system("color 4E"); // Fondo rojo y texto amarillo
-        }
+        terminalColorAuto();
         // Predefinir tamaño de consola
         HWND console = GetConsoleWindow();
         RECT r;
@@ -86,6 +90,7 @@ void modoAvanzado(int swVersion) {
         system("color 0B"); // Fondo negro y texto Aguamarina claro
         advMode.setSwVersion(swVersion);
         regContent.push_back(advMode.askAdvanceOptions());
+        terminalColorAuto();
     }
 }
 

@@ -45,13 +45,26 @@ private:
                 {"\"Show Anti Alias Shaded Edges\"=dword:00000000",
                 "\"Show Fullscene Anti Alias\"=dword:00000001"}}}},
         {"QoL Commands",
-            {{"User Interface\\CommandManager\\PartContext\\Tab11\\GB5",
+            {{"User Interface\\CommandManager\\PartContext\\Tab11\\GB5",//TODO: Make it smart searching the last GB in the path and adding the new GB in the next position.
                 {"\"Btn0\"=\"2,34247\"",
                 "\"Btn1\"=\"2,37915\"",
                 "\"Btn2\"=\"2,38240\""}},
-            {"User Interface\\CommandManager\\PartContext\\Tab11\\GB5",
-                {"\"Btn11\"=\"33594\""}}}}
-
-    //TODO: Enable \User Interface\CommandManager\PartContext\Tab{4,5,7,8,11} reading the "Tab Props" key and changing the third value to 1 (Example: "Tab Props"="23278,1,0,16" to "Tab Props"="23278,1,1,16")
+            {"User Interface\\ViewTools\\Part-Assy",
+                {"\"Btn11\"=\"33594\""}}}}//TODO: Make it smart searching the last Btn in the path and adding the new Btn in the next position.
     };
+    //TODO: Enable \User Interface\CommandManager\PartContext\Tab{4,5,7,8,11} reading the "Tab Props" key and changing the third value to 1 (Example: "Tab Props"="23278,1,0,16" to "Tab Props"="23278,1,1,16")
+    //User Interface\CommandManager\PartContext\Tab4]
+    //"Tab Props"="23275,1,1,27"
+    //            
+    //User Interface\CommandManager\PartContext\Tab11]
+    //"Tab Props"="58490,1,1,17"
+    //            
+    //User Interface\CommandManager\PartContext\Tab5]
+    //"Tab Props"="23276,1,1,33"
+    //            
+    //User Interface\CommandManager\PartContext\Tab7]
+    //"Tab Props"="23277,1,1,18"
+    //            
+    //User Interface\CommandManager\PartContext\Tab8]
+    //"Tab Props"="23278,1,1,16"
 };
