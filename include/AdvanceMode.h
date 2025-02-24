@@ -23,30 +23,35 @@ private:
     
     struct RegSetting {
         string name;
-        multiRegSetting content;
+        std::vector<multiRegSetting> content;
     };
 
-    const std::vector<RegSetting> regSettings = {
+    const std::vector<RegSetting> advanceRegOptions = {
         {"Reverse Mouse Wheel",
-            {"General",
-                {"Reverse Zoom Direction\"=dword:00000001"}}},
+            {{"General",
+                {"\"Reverse Zoom Direction\"=dword:00000001"}}}},
         {"DarkMode",
-            {"General",
-                {"Color Theme ID\"=dword:00000003\n;Light: 1, Medium: 2, Dark: 3, Medium Light: 4."}}},
+            {{"General",
+                {"\"Color Theme ID\"=dword:00000003\n;Light: 1, Medium: 2, Dark: 3, Medium Light: 4."}}}},
         {"FPS Viewer",
-            {"Performance",
-                {"OpenGL Print Statistics\"=dword:00000001"}}},
+            {{"Performance",
+                {"\"OpenGL Print Statistics\"=dword:00000001"}}}},
         {"Performance Enhance graphics (Recommended)",
-            {"Performance",
-                {"Use Performance Pipeline 2020\"=dword:00000001",
-                "Use GPU Silhouette Edges\"=dword:00000001"}}},
+            {{"Performance",
+                {"\"Use Performance Pipeline 2020\"=dword:00000001",
+                "\"Use GPU Silhouette Edges\"=dword:00000001"}}}},
         {"Full AntiAliasing (Recommended)",
-            {"Edges",
-                {"Show Anti Alias Shaded Edges\"=dword:00000000",
-                "Show Fullscene Anti Alias\"=dword:00000001"}}},
-        {"Advance Menu Options (Recommended)",
-            {"TBD",
-                {"TBD\"=dword:TBD"}}}
+            {{"Edges",
+                {"\"Show Anti Alias Shaded Edges\"=dword:00000000",
+                "\"Show Fullscene Anti Alias\"=dword:00000001"}}}},
+        {"QoL Commands",
+            {{"User Interface\\CommandManager\\PartContext\\Tab11\\GB5",
+                {"\"Btn0\"=\"2,34247\"",
+                "\"Btn1\"=\"2,37915\"",
+                "\"Btn2\"=\"2,38240\""}},
+            {"User Interface\\CommandManager\\PartContext\\Tab11\\GB5",
+                {"\"Btn11\"=\"33594\""}}}}
+
+    //TODO: Enable \User Interface\CommandManager\PartContext\Tab{4,5,7,8,11} reading the "Tab Props" key and changing the third value to 1 (Example: "Tab Props"="23278,1,0,16" to "Tab Props"="23278,1,1,16")
     };
 };
-
