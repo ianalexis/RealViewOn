@@ -16,16 +16,11 @@ string AdvanceMode::completeBase (string complement){
 string AdvanceMode::askAdvanceOptions(){
     string options = "\n\n;## Advance Mode: ##";
     bool AnySelected = false;
-    for (int i = 0 ; i < advanceRegOptions.size() ; i++){
-        std::cout << "Enable " + advanceRegOptions[i].name + "? (Y/N): ";
+    for (int i = 0 ; i < regSettings.size() ; i++){
+        std::cout << "Enable " + regSettings[i].name + "? (Y/N): ";
         if (yesOrNo()){
-            options += "\n;- " + advanceRegOptions[i].name + "\n;```";
-            for (int j = 0 ; j < advanceRegOptions[i].content.size() ; j++){
-                options += completeBase(advanceRegOptions[i].content[j].path) + "]";
-                for (int k = 0 ; k < advanceRegOptions[i].content[j].value.size() ; k++){
-                    options += "\n" + advanceRegOptions[i].content[j].value[k];
-                }
-            }
+            options += "\n;- " + regSettings[i].name + "\n;```";
+            options += completeBase(regSettings[i].content);//TODO: Hacer algun tipo de for que por cada multiRegSetting.path complete con sus values
             options += "\n;```\n";
             AnySelected = true;
         }
