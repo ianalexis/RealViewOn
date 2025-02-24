@@ -47,10 +47,11 @@ Advanced mode includes a set of additional configurations that can be executed f
 Its main use is to avoid the SolidWorks Setting Wizard, which often retains unnecessary data and generates numerous conflicts.
 
  - 🔄 **Reverse Mouse Wheel:** Reverses the mouse wheel direction.
- - 🌑 **DarkMode:** Enables Dark Mode (in comments you can see alternative themes).
+ - ~~- 🌑 **DarkMode:** Enables Dark Mode (in comments you can see alternative themes).~~ //FIXME: Error in text colors.
  - 🎮 **FPS Viewer:** Shows the Frames Per Second in the 3D space.
  - 🚀 **Performance Enhance graphics:** Enables the Performance Enhance graphics option and Hardware accelerated silhouette edges.
  - 🖌️ **Full AntiAliasing:** Enables Full AntiAliasing instead of edges/sketches only.
+ - 📏 **Spin Box Increment:** Changes the mm steps from 10mm to 1mm.
  - ⚙️ **QoL Commands:** Adds Quality of Life commands like "Normal To" in the toolbar and "Scale", "Flex" and "Deform" in Direct Editing.
 
 ## Solutions if something does not work 👩‍🔧🖥️

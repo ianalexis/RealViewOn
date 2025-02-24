@@ -30,9 +30,9 @@ private:
         {"Reverse Mouse Wheel",
             {{"General",
                 {"\"Reverse Zoom Direction\"=dword:00000001"}}}},
-        {"DarkMode",
-            {{"General",
-                {"\"Color Theme ID\"=dword:00000003\n;Light: 1, Medium: 2, Dark: 3, Medium Light: 4."}}}},
+        //{"DarkMode",//FIXME: Text colors not changing.
+        //    {{"General",
+        //        {"\"Color Theme ID\"=dword:00000003\n;Light: 1, Medium: 2, Dark: 3, Medium Light: 4."}}}},
         {"FPS Viewer",
             {{"Performance",
                 {"\"OpenGL Print Statistics\"=dword:00000001"}}}},
@@ -44,6 +44,9 @@ private:
             {{"Edges",
                 {"\"Show Anti Alias Shaded Edges\"=dword:00000000",
                 "\"Show Fullscene Anti Alias\"=dword:00000001"}}}},
+        {"Spin Box Increment 1mm",
+            {{"General",
+                {"\"Length Increment (Metric)\"=\"0.001\""}}}},
         {"QoL Commands",
             {{"User Interface\\CommandManager\\PartContext\\Tab11\\GB5",//TODO: Make it smart searching the last GB in the path and adding the new GB in the next position.
                 {"\"Btn0\"=\"2,34247\"",
