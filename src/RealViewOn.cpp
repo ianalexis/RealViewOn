@@ -45,7 +45,7 @@ void configurarConsola() {
         HWND console = GetConsoleWindow();
         RECT r;
         GetWindowRect(console, &r); // Obtener el tamaño actual de la consola
-        MoveWindow(console, r.left, r.top, 825, 600, TRUE); // Cambiar el tamaño de la consola a 825x600 (Tamaño perfecto para todos los easteregg)
+        MoveWindow(console, r.left, r.top, 825, 700, TRUE); // Cambiar el tamaño de la consola a 825x700 (Tamaño perfecto para todos los easteregg)
         // Bloquear el redimensionamiento de la ventana
         LONG style = GetWindowLong(console, GWL_STYLE);
         style &= ~(WS_SIZEBOX | WS_MAXIMIZEBOX); // Quitar estilos de redimensionamiento
