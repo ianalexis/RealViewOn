@@ -100,12 +100,10 @@ int main() {
     encabezado();
     try {
         sw.obtenerVersionesInstaladas();
+        guardarBackUp();
     }
     catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
-        cout << "Press any key to exit..." << std::endl;
-        _getch();
-        return 1;
     }
 
     // While para que el programa reinicie si se desea probar otra versión.
