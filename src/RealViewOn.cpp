@@ -124,7 +124,7 @@ int main() {
                 GPU gpu(sw.obtenerCurrent());
                 regContent = gpu.completarContenidoReg(sw.obtenerRegBase());
                 modoAvanzado(swVersion, sw.getGenerico());
-                guardarArchivoReg(swVersion, regContent, RVO_VERSION);
+                guardarArchivoReg(std::to_string(swVersion), regContent, RVO_VERSION);
                 break; // Salir del bucle principal si todo es correcto
             }
             catch (const std::exception& e) {
