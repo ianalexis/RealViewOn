@@ -13,10 +13,10 @@ This tool can run directly on the target PC (recomended) or manually generate th
 
 ## Key Features 🌟
 
-- **Simplifies RealView Activation 🛠️:** Creates a `.reg` file to enable RealView in a straightforward way without needing to browse regedit.
+- **Simplifies RealView Activation 🛠️:** Creates a `.reg` file to [enable RealView](assets/images/BeforeAfter.png) in a straightforward way without needing to browse regedit.
 - **FULL USER CONTROL 🖐️:** This tool **DOES NOT apply any changes** directly. It simply generates a `.reg` file for you that you can read and decide to run or not.
 - **Supports Old & New Methods 🕰️:** Works with both old and new methods as needed.
-- **Fixes Visual & Graphics Issues 🖼️:** Resolves many common graphical errors and visual glitches users experience when enabling enhanced graphics performance.
+- **Fixes Visual & Graphics Issues 🖼️:** Resolves many common [graphical errors and visual glitches](assets/images/SketchVisualError.png) users experience when enabling enhanced graphics performance.
 
 ## Operation Modes ⚙️
 
