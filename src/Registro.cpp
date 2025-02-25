@@ -10,15 +10,20 @@ using std::vector;
 using std::cout;
 
 //Guarda el contenido generado en un archivo .reg y maneja posibles errores.
-void guardarArchivoReg(int& version, const vector<string>& contenido, const string& RVO_VERSION) {//TODO: Modificar para que en lugar de ir escribiendo, primero pase por un string nuevo y limpie saltos de lineas al final para luego escribirlo todo de una.
+void guardarArchivoReg(int& version, const vector<string>& contenido, const string& RVO_VERSION) {
     std::string filePath = "RealViewEnable" + std::to_string(version) + ".reg";
     std::string fullPath = std::filesystem::current_path().string() + "\\" + filePath;
     std::ofstream regFile(filePath);
     if (regFile.is_open()) {
-        regFile << "Windows Registry Editor Version 5.00\n;# Created with: RealViewOn v" << RVO_VERSION << " #\n;## Base Data: ##\n; - **SW Target:** " << version << "\n";
+        std::string fileContent = "Windows Registry Editor Version 5.00\n;# Created with: RealViewOn v" + RVO_VERSION + " #\n;## Base Data: ##\n; - **SW Target:** " + std::to_string(version) + "\n";
         for (const auto& line : contenido) {
-            regFile << line << "\n";
+            fileContent += line + "\n";
         }
+        // Remove trailing newlines
+        while (!fileContent.empty() && fileContent.back() == '\n') {
+            fileContent.pop_back();
+        }
+        regFile << fileContent;
         regFile.close();
         cout << "File " << filePath << " created successfully at:\n" << fullPath << std::endl;
     }
