@@ -93,7 +93,7 @@ It is simple, fast, safe, requires no technical knowledge and will help us to im
 
 - **SolidWorks:** Versions after 2010.
 - **GPU Brand:**
-  - 🟢Nvidia ⭐⭐⭐
+  - 🟢Nvidia ⭐⭐⭐⭐
   - 🔴AMD ⭐⭐
   - 🔵Intel ⭐⭐
 
