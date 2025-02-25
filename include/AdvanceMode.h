@@ -8,13 +8,24 @@ using std::string;
 class AdvanceMode {
 public:
     AdvanceMode(); // Constructor
-    void setSwVersion(int swVersion);
+    void setSwVersion(int swVersion, bool generico);
     string askAdvanceOptions();
 
 private:
+    bool generico = false;
     const string rutaBase = "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\SOLIDWORKS ";
     string rutaVersionada = "";
+    const string rutaTab = "User Interface\\CommandManager\\PartContext\\Tab";
     string completeBase (string complement);
+    bool anySelected = false;
+    std::vector <int> tabsToEnable = {4,5,7,8,11};
+
+    string selectRegOptions();
+    string qolCommands();
+    string enableTabs();
+    string enableTab(string value);
+    string getOriginalValue(string tabPath, string valueName);
+    string enableBtn();
 
     struct multiRegSetting {
         string path;
@@ -26,7 +37,7 @@ private:
         std::vector<multiRegSetting> content;
     };
 
-    const std::vector<RegSetting> advanceRegOptions = {
+    const std::vector<RegSetting> regOptions = {
         {"Reverse Mouse Wheel",
             {{"General",
                 {"\"Reverse Zoom Direction\"=dword:00000001"}}}},
@@ -49,28 +60,15 @@ private:
                 "\"Show Fullscene Anti Alias\"=dword:00000001"}}}},
         {"Spin Box Increment 1mm (Recommended)",
             {{"General",
-                {"\"Length Increment (Metric)\"=\"0.001\""}}}},
-        {"QoL Commands",
-            {{"User Interface\\CommandManager\\PartContext\\Tab11\\GB5",//TODO: Make it smart searching the last GB in the path and adding the new GB in the next position.
-                {"\"Btn0\"=\"2,34247\"",
-                "\"Btn1\"=\"2,37915\"",
-                "\"Btn2\"=\"2,38240\""}},
-            {"User Interface\\ViewTools\\Part-Assy",
-                {"\"Btn11\"=\"33594\""}}}}//TODO: Make it smart searching the last Btn in the path and adding the new Btn in the next position.
+                {"\"Length Increment (Metric)\"=\"0.001\""}}}}
     };
-    //TODO: Enable \User Interface\CommandManager\PartContext\Tab{4,5,7,8,11} reading the "Tab Props" key and changing the third value to 1 (Example: "Tab Props"="23278,1,0,16" to "Tab Props"="23278,1,1,16")
-    //User Interface\CommandManager\PartContext\Tab4]
-    //"Tab Props"="23275,1,1,27"
-    //            
-    //User Interface\CommandManager\PartContext\Tab11]
-    //"Tab Props"="58490,1,1,17"
-    //            
-    //User Interface\CommandManager\PartContext\Tab5]
-    //"Tab Props"="23276,1,1,33"
-    //            
-    //User Interface\CommandManager\PartContext\Tab7]
-    //"Tab Props"="23277,1,1,18"
-    //            
-    //User Interface\CommandManager\PartContext\Tab8]
-    //"Tab Props"="23278,1,1,16"
+
+    const std::vector<multiRegSetting> btnsToEnable = {
+        {"User Interface\\CommandManager\\PartContext\\Tab11\\GB4",
+            {"2,34247",
+            "2,37915",
+            "2,38240"}},
+        {"User Interface\\ViewTools\\Part-Assy",
+            {"33594"}}
+    };  
 };

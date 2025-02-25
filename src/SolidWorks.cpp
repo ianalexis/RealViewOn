@@ -353,3 +353,7 @@ bool SolidWorks::versionInstalada(int v) {
     }
     return false;
 }
+
+bool SolidWorks::getGenerico() {
+    return generico;
+}

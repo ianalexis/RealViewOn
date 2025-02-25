@@ -84,11 +84,11 @@ vector<string> regContent;
 SolidWorks sw;
 AdvanceMode advMode;
 
-void modoAvanzado(int swVersion) {
+void modoAvanzado(int swVersion, bool generico) {
     cout << "Advanced Mode? (Recommended) (Y/N): ";
     if (yesOrNo()) {
         system("color 0B"); // Fondo negro y texto Aguamarina claro
-        advMode.setSwVersion(swVersion);
+        advMode.setSwVersion(swVersion, generico);
         regContent.push_back(advMode.askAdvanceOptions());
         terminalColorAuto();
     }
@@ -123,7 +123,7 @@ int main() {
                 sw.setVersion(swVersion);
                 GPU gpu(sw.obtenerCurrent());
                 regContent = gpu.completarContenidoReg(sw.obtenerRegBase());
-                modoAvanzado(swVersion);
+                modoAvanzado(swVersion, sw.getGenerico());
                 guardarArchivoReg(swVersion, regContent, RVO_VERSION);
                 break; // Salir del bucle principal si todo es correcto
             }

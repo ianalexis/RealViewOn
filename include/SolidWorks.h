@@ -15,6 +15,7 @@ public:
     void setVersion(int v);
     int esCompatible(int v);
     void setGenerico(bool g);
+    bool getGenerico();
     string versions = std::to_string(vMin) + ", " + std::to_string(vCambioRaiz) + ", " + std::to_string(vMax); // Versión máxima de SolidWorks soportada.
 
 private:
