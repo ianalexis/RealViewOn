@@ -25,7 +25,7 @@ void guardarArchivoReg(int& version, const vector<string>& contenido, const stri
         }
         regFile << fileContent;
         regFile.close();
-        cout << "File " << filePath << " created successfully at:\n" << fullPath << std::endl;
+        cout << "\nFile " << filePath << " created successfully at:\n" << fullPath << std::endl;
     }
     else {
         throw std::runtime_error("Could not create the file at\n" + fullPath + ". \nPlease ensure the program has write permissions in the folder and that no file with the same name is open.");
