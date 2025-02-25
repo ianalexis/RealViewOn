@@ -42,27 +42,35 @@ string AdvanceMode::qolCommands(){
     return tempOptions;
 }
 
-string AdvanceMode::enableBtn(){//TODO: Revisar que el boton no exista ya en ese path.
-    string tempBtn = ";  - Enable Buttons;\n;```";
+string AdvanceMode::enableBtn(){
+    string tempBtn = "";
+    string tempBtnData = "";
+    bool btnWrited = false;
+    std::vector<string> btnsAlreadyEnabled;
     bool error = false;
     for (int i = 0 ; i < btnsToEnable.size() ; i++){
         string path = completeBase(btnsToEnable[i].path) + "]";
         int btnNumber = 0;
-        while (!getOriginalValue(path, "Btn" + std::to_string(btnNumber)).empty() && !error){
+        string originalValue;
+        while (!(originalValue = getOriginalValue(path, "Btn" + std::to_string(btnNumber))).empty() && !error){
+            btnsAlreadyEnabled.push_back(originalValue);
             btnNumber++;
             error = (btnNumber > 25);
         }
         if (!error){
-            tempBtn += path;
             for (int j = 0 ; j < btnsToEnable[i].value.size() ; j++){
-                tempBtn += "\n\"Btn" + std::to_string(btnNumber) + "\"=\"" + btnsToEnable[i].value[j] + "\"";
-                btnNumber++;
+                if (!(std::find(btnsAlreadyEnabled.begin(), btnsAlreadyEnabled.end(), btnsToEnable[i].value[j]) != btnsAlreadyEnabled.end())){
+                    tempBtnData += "\n\"Btn" + std::to_string(btnNumber) + "\"=\"" + btnsToEnable[i].value[j] + "\"";
+                    btnNumber++;
+                }
+            }
+            if (!tempBtnData.empty()){
+                tempBtn += path + tempBtnData+="\n";
+                tempBtnData = "";
             }
         }
-        tempBtn += "\n";
     }
-    tempBtn += ";```\n";
-    return tempBtn;
+    return !tempBtn.empty() ? "\n;  - Enable Buttons;\n;```" + tempBtn + ";```\n" : ";No buttons added";
 }
 
 string AdvanceMode::selectRegOptions(){
@@ -95,7 +103,7 @@ string AdvanceMode::enableTabs(){
         }
     }
     anySelected = !tempTabs.empty();
-    return tempTabs;
+    return !tempTabs.empty() ? tempTabs : ";No tabs added";
 }
 
 //Pasa el tercer valor a 1 para habilitar la pestaña, si ya estaba habilitada devuelve un string vacío.
