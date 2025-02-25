@@ -52,7 +52,17 @@ Its main use is to avoid the SolidWorks Setting Wizard, which often retains unne
  - 🚀 **Performance Enhance graphics:** Enables the Performance Enhance graphics option and Hardware accelerated silhouette edges.
  - 🖌️ **Full AntiAliasing:** Enables Full AntiAliasing instead of edges/sketches only.
  - 📏 **Spin Box Increment:** Changes the mm steps from 10mm to 1mm.
- - ⚙️ **QoL Commands:** Adds Quality of Life commands like "Normal To" in the toolbar and "Scale", "Flex" and "Deform" in Direct Editing.
+ - ⚙️ **QoL Commands:** Adds Quality of Life commands and tabs like
+   - Toolbar:
+     - "Normal To"
+   - Direct Editing:
+     - "Scale"
+     - "Flex"
+     - "Deform"
+   - Tabs:
+     - Surfaces
+     - Weldments
+     - etc.
 
 ## Solutions if something does not work 👩‍🔧🖥️
 In case you find errors modify the `dword` values of the file with the examples for your brand to commented in the file.
