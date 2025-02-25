@@ -15,12 +15,13 @@ public:
     void setVersion(int v);
     int esCompatible(int v);
     void setGenerico(bool g);
+    bool getGenerico();
     string versions = std::to_string(vMin) + ", " + std::to_string(vCambioRaiz) + ", " + std::to_string(vMax); // Versión máxima de SolidWorks soportada.
 
 private:
     int obtenerAnoActual(); // Obtiene el año actual del sistema operativo + 1.
     bool versionInstalada(int v);
-    GPU::Current obtenerCurrent(std::wstring path);
+    GPU::Current obtenerCurrent(string path);
     GPU::Current obtenerCurrentRaiz();
     GPU::Current obtenerCurrentAno();
     std::vector<std::pair<std::string, std::string>> obtenerRendererGenerico();
@@ -35,7 +36,7 @@ private:
     static const int vMax = 2025; // Versión máxima soportada
 
     int anoActual; // Año actual + 1
-    std::wstring swRegRuta = L"SOFTWARE\\SolidWorks\\SOLIDWORKS ";
+    string swRegRuta = "SOFTWARE\\SolidWorks\\SOLIDWORKS ";
     int swVersion = 0;
     vector<std::pair<int, int>> versiones;
     bool generico = false;

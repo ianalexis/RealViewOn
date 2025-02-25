@@ -12,6 +12,7 @@
 #include "Playmidi.h"
 #include "Version.h"
 #include <thread>
+#include "AdvanceMode.h"
 
 using std::cin;
 using std::cout;
@@ -27,15 +28,19 @@ void playMidiAsync() {
     }
 }
 
+void terminalColorAuto(){
+    if (FILE_VERSION_STABLE == 1) { // Si es estable
+        system("color 17"); // Fondo azul oscuro y texto blanco
+    } else {
+        system("color 4E"); // Fondo rojo y texto amarillo
+    }
+}
+
 // Definición de funciones
 void configurarConsola() {
     try {
         SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
-        if (FILE_VERSION_STABLE == 1) { // Si es estable
-            system("color 17"); // Fondo azul oscuro y texto blanco
-        } else {
-            system("color 4E"); // Fondo rojo y texto amarillo
-        }
+        terminalColorAuto();
         // Predefinir tamaño de consola
         HWND console = GetConsoleWindow();
         RECT r;
@@ -75,11 +80,24 @@ void encabezado() {
     cout << " >>=============================================================================================<<" << std::endl;
 }
 
+vector<string> regContent;
+SolidWorks sw;
+AdvanceMode advMode;
+
+void modoAvanzado(int swVersion, bool generico) {
+    cout << "Advanced Mode? (Recommended) (Y/N): ";
+    if (yesOrNo()) {
+        system("color 0B"); // Fondo negro y texto Aguamarina claro
+        advMode.setSwVersion(swVersion, generico);
+        regContent.push_back(advMode.askAdvanceOptions());
+        terminalColorAuto();
+    }
+}
+
 // Función principal
 int main() {
     configurarConsola();
     encabezado();
-    SolidWorks sw;
     try {
         sw.obtenerVersionesInstaladas();
     }
@@ -104,7 +122,9 @@ int main() {
                 }
                 sw.setVersion(swVersion);
                 GPU gpu(sw.obtenerCurrent());
-                guardarArchivoReg(swVersion, gpu.completarContenidoReg(sw.obtenerRegBase()), RVO_VERSION);
+                regContent = gpu.completarContenidoReg(sw.obtenerRegBase());
+                modoAvanzado(swVersion, sw.getGenerico());
+                guardarArchivoReg(swVersion, regContent, RVO_VERSION);
                 break; // Salir del bucle principal si todo es correcto
             }
             catch (const std::exception& e) {
