@@ -13,6 +13,8 @@ public:
 
 private:
     bool generico = false;
+    int optionsQty = 0;
+    int optionNumber = 1;
     const string rutaBase = "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\SOLIDWORKS ";
     string rutaVersionada = "";
     const string rutaTab = "User Interface\\CommandManager\\PartContext\\Tab";
@@ -26,6 +28,7 @@ private:
     string enableTab(string value);
     string getOriginalValue(string tabPath, string valueName);
     string enableBtn();
+    void AdvanceMode::askToEnable(string optionName);
 
     struct multiRegSetting {
         string path;
@@ -43,7 +46,7 @@ private:
                 {"\"Reverse Zoom Direction\"=dword:00000001"}}}},
         {"DarkMode",
             {{"General",
-                {"\"Color Theme ID\"=dword:00000003\n;Light: 1, Medium: 2, Dark: 3, Medium Light: 4."}},
+                {"\"Color Theme ID\"=dword:00000003"}},
             {"Colors",
                 {"\"Assembly, Edit Part\"=\"16776960\"",
                 "\"Tree Item Normal\"=\"15790320\""}}}},

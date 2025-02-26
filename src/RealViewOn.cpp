@@ -28,11 +28,19 @@ void playMidiAsync() {
     }
 }
 
-void terminalColorAuto(){
+void terminalColorAuto(bool advMode){
     if (FILE_VERSION_STABLE == 1) { // Si es estable
-        system("color 17"); // Fondo azul oscuro y texto blanco
+        if (!advMode) {
+            system("color 17"); // Fondo azul oscuro y texto blanco
+        } else {
+            system("color 0B"); // Fondo negro y texto aguamarina claro
+        }
     } else {
-        system("color 4E"); // Fondo rojo y texto amarillo
+        if (!advMode) {
+            system("color 4E"); // Fondo rojo y texto amarillo
+        } else {
+            system("color 06"); // Fondo negro y texto amarillo oscuro
+        }
     }
 }
 
@@ -40,12 +48,12 @@ void terminalColorAuto(){
 void configurarConsola() {
     try {
         SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
-        terminalColorAuto();
+        terminalColorAuto(false);
         // Predefinir tamaño de consola
         HWND console = GetConsoleWindow();
         RECT r;
         GetWindowRect(console, &r); // Obtener el tamaño actual de la consola
-        MoveWindow(console, r.left, r.top, 825, 600, TRUE); // Cambiar el tamaño de la consola a 825x600 (Tamaño perfecto para todos los easteregg)
+        MoveWindow(console, r.left, r.top, 825, 700, TRUE); // Cambiar el tamaño de la consola a 825x700 (Tamaño perfecto para todos los easteregg)
         // Bloquear el redimensionamiento de la ventana
         LONG style = GetWindowLong(console, GWL_STYLE);
         style &= ~(WS_SIZEBOX | WS_MAXIMIZEBOX); // Quitar estilos de redimensionamiento
@@ -76,7 +84,7 @@ void encabezado() {
             << " ||                                                                                             ||\n"
             << " >>=============================================================================================<<\n";
     lineaEncabezado("v" + string(RVO_VERSION) + " c" + string(RVO_COMPILATION) + " - " + releaseType() + " - by [RF47] && [IanAlexis]");
-    lineaEncabezado("https://github.com/ianalexis/Real-View-On-Releases");
+    lineaEncabezado("Oficial Repository: https://github.com/ianalexis");
     cout << " >>=============================================================================================<<" << std::endl;
 }
 
@@ -87,10 +95,11 @@ AdvanceMode advMode;
 void modoAvanzado(int swVersion, bool generico) {
     cout << "Advanced Mode? (Recommended) (Y/N): ";
     if (yesOrNo()) {
-        system("color 0B"); // Fondo negro y texto Aguamarina claro
+        terminalColorAuto(true);
+        guardarBackUp();
         advMode.setSwVersion(swVersion, generico);
         regContent.push_back(advMode.askAdvanceOptions());
-        terminalColorAuto();
+        terminalColorAuto(false);
     }
 }
 
@@ -103,9 +112,6 @@ int main() {
     }
     catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
-        cout << "Press any key to exit..." << std::endl;
-        _getch();
-        return 1;
     }
 
     // While para que el programa reinicie si se desea probar otra versión.
@@ -124,7 +130,7 @@ int main() {
                 GPU gpu(sw.obtenerCurrent());
                 regContent = gpu.completarContenidoReg(sw.obtenerRegBase());
                 modoAvanzado(swVersion, sw.getGenerico());
-                guardarArchivoReg(swVersion, regContent, RVO_VERSION);
+                guardarArchivoReg(std::to_string(swVersion), regContent, RVO_VERSION);
                 break; // Salir del bucle principal si todo es correcto
             }
             catch (const std::exception& e) {
