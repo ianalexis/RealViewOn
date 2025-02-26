@@ -28,11 +28,19 @@ void playMidiAsync() {
     }
 }
 
-void terminalColorAuto(){
+void terminalColorAuto(bool advMode){
     if (FILE_VERSION_STABLE == 1) { // Si es estable
-        system("color 17"); // Fondo azul oscuro y texto blanco
+        if (!advMode) {
+            system("color 17"); // Fondo azul oscuro y texto blanco
+        } else {
+            system("color 0B"); // Fondo negro y texto aguamarina claro
+        }
     } else {
-        system("color 4E"); // Fondo rojo y texto amarillo
+        if (!advMode) {
+            system("color 4E"); // Fondo rojo y texto amarillo
+        } else {
+            system("color 06"); // Fondo negro y texto amarillo oscuro
+        }
     }
 }
 
@@ -40,7 +48,7 @@ void terminalColorAuto(){
 void configurarConsola() {
     try {
         SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
-        terminalColorAuto();
+        terminalColorAuto(false);
         // Predefinir tamaño de consola
         HWND console = GetConsoleWindow();
         RECT r;
@@ -87,11 +95,11 @@ AdvanceMode advMode;
 void modoAvanzado(int swVersion, bool generico) {
     cout << "Advanced Mode? (Recommended) (Y/N): ";
     if (yesOrNo()) {
-        system("color 0B"); // Fondo negro y texto Aguamarina claro
+        terminalColorAuto(true);
         guardarBackUp();
         advMode.setSwVersion(swVersion, generico);
         regContent.push_back(advMode.askAdvanceOptions());
-        terminalColorAuto();
+        terminalColorAuto(false);
     }
 }
 
