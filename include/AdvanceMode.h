@@ -13,6 +13,8 @@ public:
 
 private:
     bool generico = false;
+    int optionsQty = 0;
+    int optionNumber = 1;
     const string rutaBase = "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\SOLIDWORKS ";
     string rutaVersionada = "";
     const string rutaTab = "User Interface\\CommandManager\\PartContext\\Tab";
@@ -26,6 +28,7 @@ private:
     string enableTab(string value);
     string getOriginalValue(string tabPath, string valueName);
     string enableBtn();
+    void AdvanceMode::askToEnable(string optionName);
 
     struct multiRegSetting {
         string path;

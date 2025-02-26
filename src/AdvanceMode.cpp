@@ -12,6 +12,8 @@ AdvanceMode::AdvanceMode(){
 void AdvanceMode::setSwVersion(int swVersion, bool generico){
     rutaVersionada = "\n" + std::string(rutaBase.begin(), rutaBase.end()) + std::to_string(swVersion) + "\\";
     this->generico = generico;
+    optionsQty = regOptions.size() + (generico ? 0 : 1);
+    optionNumber = 1;
 }
 
 string AdvanceMode::completeBase (string complement){
@@ -30,9 +32,13 @@ string AdvanceMode::askAdvanceOptions(){
     return options;
 }
 
+void AdvanceMode::askToEnable(string optionName){
+    std::cout << "(" + std::to_string(optionNumber++) + "/" + std::to_string(optionsQty) + ") Enable " + optionName + "? (Y/N): ";
+}
+
 string AdvanceMode::qolCommands(){
     string tempOptions = "";
-    std::cout << "Enable QoL Commands? (Y/N): "; 
+    askToEnable ("QoL Commands"); 
     if (yesOrNo()){
         tempOptions += "\n; - QoL Commands";
         tempOptions += enableTabs();
@@ -76,7 +82,7 @@ string AdvanceMode::enableBtn(){
 string AdvanceMode::selectRegOptions(){
     string tempOptions = "";
     for (int i = 0 ; i < regOptions.size() ; i++){
-        std::cout << "Enable " + regOptions[i].name + "? (Y/N): ";
+        askToEnable(regOptions[i].name);
         if (yesOrNo()){
             tempOptions += "\n; - " + regOptions[i].name + "\n;```";
             for (int j = 0 ; j < regOptions[i].content.size() ; j++){
