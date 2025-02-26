@@ -51,7 +51,6 @@ string AdvanceMode::qolCommands(){
 string AdvanceMode::enableBtn(){
     string tempBtn = "";
     string tempBtnData = "";
-    bool btnWrited = false;
     std::vector<string> btnsAlreadyEnabled;
     bool error = false;
     for (int i = 0 ; i < btnsToEnable.size() ; i++){
