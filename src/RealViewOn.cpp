@@ -88,6 +88,7 @@ void modoAvanzado(int swVersion, bool generico) {
     cout << "Advanced Mode? (Recommended) (Y/N): ";
     if (yesOrNo()) {
         system("color 0B"); // Fondo negro y texto Aguamarina claro
+        guardarBackUp();
         advMode.setSwVersion(swVersion, generico);
         regContent.push_back(advMode.askAdvanceOptions());
         terminalColorAuto();
@@ -100,7 +101,6 @@ int main() {
     encabezado();
     try {
         sw.obtenerVersionesInstaladas();
-        guardarBackUp();
     }
     catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
