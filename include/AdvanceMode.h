@@ -46,7 +46,7 @@ private:
                 {"\"Reverse Zoom Direction\"=dword:00000001"}}}},
         {"DarkMode",
             {{"General",
-                {"\"Color Theme ID\"=dword:00000003\n;Light: 1, Medium: 2, Dark: 3, Medium Light: 4."}},
+                {"\"Color Theme ID\"=dword:00000003"}},
             {"Colors",
                 {"\"Assembly, Edit Part\"=\"16776960\"",
                 "\"Tree Item Normal\"=\"15790320\""}}}},

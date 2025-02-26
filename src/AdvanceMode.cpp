@@ -40,7 +40,7 @@ string AdvanceMode::qolCommands(){
     string tempOptions = "";
     askToEnable ("QoL Commands"); 
     if (yesOrNo()){
-        tempOptions += "\n; - QoL Commands";
+        tempOptions += "\n;### QoL Commands ###";
         tempOptions += enableTabs();
         tempOptions += enableBtn();
         anySelected = true;
@@ -76,7 +76,7 @@ string AdvanceMode::enableBtn(){
             }
         }
     }
-    return !tempBtn.empty() ? "\n;  - Enable Buttons;\n;```" + tempBtn + ";```\n" : ";No buttons added";
+    return !tempBtn.empty() ? "\n; - Enable Buttons\n;```" + tempBtn + ";```\n" : ";No buttons added";
 }
 
 string AdvanceMode::selectRegOptions(){
@@ -104,7 +104,7 @@ string AdvanceMode::enableTabs(){
         string path = completeBase(rutaTab + std::to_string(tabsToEnable[i])) + "]";
         string value = enableTab(getOriginalValue(path, "Tab Props"));
         if (!value.empty()) {
-            tempTabs += "\n;  - Enable Tab " + std::to_string(tabsToEnable[i]) + "\n;```";
+            tempTabs += "\n; - Enable Tab " + std::to_string(tabsToEnable[i]) + "\n;```";
             tempTabs += path + "\n\"Tab Props\"=\"" + value + "\"\n;```\n";
         }
     }
