@@ -49,6 +49,6 @@ void guardarBackUp() {
     if (system(command.c_str()) == 0) {
         cout << "Backup created successfully: " << fileName << std::endl;
     } else {
-        throw std::runtime_error("Failed to create backup. Please ensure the program has the necessary permissions.");
+        throw std::runtime_error("Failed to create backup.");
     }
 }
