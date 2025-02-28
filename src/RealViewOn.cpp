@@ -96,7 +96,11 @@ void modoAvanzado(int swVersion, bool generico) {
     cout << "Advanced Mode? (Recommended) (Y/N): ";
     if (yesOrNo()) {
         terminalColorAuto(true);
-        guardarBackUp();
+        try {
+            guardarBackUp();
+        } catch (const std::exception& ex) {
+            std::cerr << "Error: " << ex.what() << std::endl;
+        }
         advMode.setSwVersion(swVersion, generico);
         regContent.push_back(advMode.askAdvanceOptions());
         terminalColorAuto(false);
