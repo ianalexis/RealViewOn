@@ -70,6 +70,9 @@ void lineaEncabezado(string texto) {
     cout << " ||" << std::setw(padding) << "" << texto << std::setw(padding) << "" << " ||\n";
 }
 
+string v =string(RVO_VERSION);
+string c = string(RVO_COMPILATION);
+
 void encabezado() {
     cout    << " >>=============================================================================================<<\n"
             << " ||                                                                                             ||\n"
@@ -83,7 +86,7 @@ void encabezado() {
             << " || 888   T88b *Y8888  *Y888888 888     Y8P     888  *Y8888   *Y8888888P*   *Y88888P*  888  888 ||\n"
             << " ||                                                                                             ||\n"
             << " >>=============================================================================================<<\n";
-    lineaEncabezado("v" + string(RVO_VERSION) + " c" + string(RVO_COMPILATION) + " - " + releaseType() + " - by [RF47] && [IanAlexis]");
+    lineaEncabezado("v" + v + " c" + c + " - " + releaseType() + " - by [RF47] && [IanAlexis]");
     lineaEncabezado("Oficial Repository: https://github.com/ianalexis");
     cout << " >>=============================================================================================<<" << std::endl;
 }
