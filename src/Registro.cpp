@@ -12,7 +12,7 @@ using std::cout;
 
 //Guarda el contenido generado en un archivo .reg y maneja posibles errores.
 void guardarArchivoReg(const string& version, const vector<string>& contenido, const string& RVO_VERSION) {
-    std::string filePath = "RealViewEnable" + version + ".reg";
+    std::string filePath = "RealViewOn" + version + ".reg";
     std::string fullPath = std::filesystem::current_path().string() + "\\" + filePath;
     std::ofstream regFile(filePath);
     if (regFile.is_open()) {
@@ -38,7 +38,7 @@ void guardarBackUp() {
     SYSTEMTIME st;
     GetLocalTime(&st);
     char fileName[100];
-    sprintf_s(fileName, "SWbackup_%02d-%02d-%02d_%02d-%02d.reg", st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute);
+    sprintf_s(fileName, "RVO_SWbackup_%02d-%02d-%02d_%02d-%02d.reg", st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute);
 
     // Comando para exportar la clave del registro
     std::string command = "reg export HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks ";
