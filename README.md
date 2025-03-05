@@ -49,7 +49,7 @@
 
 Advanced mode includes a set of additional configurations that can be executed from the same `.reg` file.
 Its main use is to avoid the SolidWorks Setting Wizard, which often retains unnecessary data and generates numerous conflicts.
-This mode generates a complete backup of the SolidWorks registry with the name `Wbackup_YY-MM-DD_HH-MM.reg`.
+This mode generates a complete backup of the SolidWorks registry with the name `RVO_Wbackup_YY-MM-DD_HH-MM.reg`.
 
  - 🔄 **Reverse Mouse Wheel:** Reverses the mouse wheel direction.
  - 🌑 **DarkMode:** Enables Dark Mode.

@@ -38,7 +38,7 @@ void guardarBackUp() {
     SYSTEMTIME st;
     GetLocalTime(&st);
     char fileName[100];
-    sprintf_s(fileName, "SWbackup_%02d-%02d-%02d_%02d-%02d.reg", st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute);
+    sprintf_s(fileName, "RVO_SWbackup_%02d-%02d-%02d_%02d-%02d.reg", st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute);
 
     // Comando para exportar la clave del registro
     std::string command = "reg export HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks ";
