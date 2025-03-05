@@ -12,7 +12,7 @@ using std::cout;
 
 //Guarda el contenido generado en un archivo .reg y maneja posibles errores.
 void guardarArchivoReg(const string& version, const vector<string>& contenido, const string& RVO_VERSION) {
-    std::string filePath = "RealViewEnable" + version + ".reg";
+    std::string filePath = "RealViewOn" + version + ".reg";
     std::string fullPath = std::filesystem::current_path().string() + "\\" + filePath;
     std::ofstream regFile(filePath);
     if (regFile.is_open()) {
