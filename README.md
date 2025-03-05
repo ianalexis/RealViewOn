@@ -8,15 +8,16 @@
 [![C++](https://img.shields.io/badge/C++-%2300599C.svg?logo=c%2B%2B&logoColor=white&style=flat-square)](https://isocpp.org/)
 [![Windows](https://custom-icon-badges.demolab.com/badge/Windows-0078D6?logo=windows11&logoColor=white&style=flat-square)](https://www.microsoft.com/windows/)
 
-**RealViewOn** enables RealView in SolidWorks versions after 2010 and fixes errors in "Enhanced graphics performance".
-This tool can run directly on the target PC (recomended) or manually generate the necessary file to enable RealView on another PC.
+**RealViewOn** its a tool to enhance and fix your SolidWorks installation.
 
 ## Key Features 🌟
 
-- **Simplifies RealView Activation 🛠️:** Creates a `.reg` file to [enable RealView](assets/images/BeforeAfter.png) in a straightforward way without needing to browse regedit.
-- **FULL USER CONTROL 🖐️:** This tool **DOES NOT apply any changes** directly. It simply generates a `.reg` file for you that you can read and decide to run or not.
+- **Enable RealView 🛠️:** [Simplifies RealView Activation](assets/images/BeforeAfter.png) for any GPU, including non-certified ones, by creating a `.reg` file to run in a straightforward way without needing to browse regedit.
+- **Fixes Visual & Graphics Issues 🖼️:** Resolves many common [graphical errors and visual glitches](assets/images/SketchVisualError.png) users experience when enabling Enhanced Graphics Performance.
+- **Advanced Mode 🛠️:** Allows for additional configurations to be made to the SolidWorks registry, such as enabling Dark Mode, FPS Viewer, and more.
 - **Supports Old & New Methods 🕰️:** Works with both old and new methods as needed.
-- **Fixes Visual & Graphics Issues 🖼️:** Resolves many common [graphical errors and visual glitches](assets/images/SketchVisualError.png) users experience when enabling enhanced graphics performance.
+- **FULL USER CONTROL 🖐️:** This tool **DOES NOT apply any changes** directly. It simply generates a `.reg` file for you that you can read and decide to run or not.
+
 
 ## Operation Modes ⚙️
 
@@ -36,8 +37,11 @@ This tool can run directly on the target PC (recomended) or manually generate th
          1. 📝 Go to the Device Manager and search for the GPU under Display Adapters.
          2. 💻 Open the GPU properties and copy the name of the device under the Details tab.
          3. ⌨️ Enter the device name into the program and press Enter.
-4. 🤖 AUTO - A custom `.reg` file will be generated📝.
-5. ✨ MANUAL - Execution of the `.reg` file.
+4. 🧑 OPTIONAL - Advance Mode.
+   1. 🤖 AUTO - A backup file is generated.
+   2. 📑 MANUAL - Select the desired options.
+5. 🤖 AUTO - A custom `RealViewOn[SWVersion].reg` file will be generated📝.
+6. ✨ MANUAL - Execution of the `.reg` file.
    1. 🕵️ OPTIONAL - Review (with any text editor) the `.reg` file.
    2. 🚀 MANUAL - Execute the `.reg` file by double clicking on it.
 
