@@ -1,7 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <thread>
-#include <windows.h>
+#include <Windows.h>
 #include <RtMidi.h>
 #include "MidiFile.h" 
 #include "resource.h"

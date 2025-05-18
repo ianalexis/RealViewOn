@@ -147,4 +147,4 @@ string GPU::baseDataToString() {
     baseDataString += !baseData.workarounds.empty() ? baseData.workarounds + "\n" : "";
     baseDataString += !baseData.origin.empty() ? baseData.origin + "\n" : "";
     return baseDataString;
-} 
+}
