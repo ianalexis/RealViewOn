@@ -47,13 +47,11 @@ GPU::Brand GPU::buscarEnRenderMap(string buscado) {
     // Convierte el renderer a mayúsculas para comparar.
     Brand brandEncontrada = Brand::UNKNOWN;
     std::transform(buscado.begin(), buscado.end(), buscado.begin(), ::toupper);
-    
     for (const auto& pair : rendererMap) {
         string key = pair.first;
         //cout << "Key buscada: " << key << "\n";
         // Convertir la clave a mayúsculas para comparar.
         std::transform(key.begin(), key.end(), key.begin(), ::toupper);
-        
         if (buscado.find(key) != string::npos) {
             brand = pair.second;
             cout << "GPU Brand detected: " << brandToString(brand) << "\n";

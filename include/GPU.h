@@ -15,7 +15,7 @@ class GPU {
         string origin;
     };
 
-    GPU(Current current); // Constructor
+    GPU(Current current);
 
     vector<string> completarContenidoReg(const vector<string>& regBase);
 
@@ -64,11 +64,11 @@ private:
             "32408, 30408, 20008, 31408, 33408, 10008, 20408, 22408, 208, 5C, 30008, 7C, 20208, 108, 8, 1"}},
         {Brand::AMD, {
             "Advanced Micro Devices",
-            "4000085",//Quizas sea 84000005
+            "4000085", //Quizas sea 84000005
             "84000085, 84000084, 84000005, 84000004, 4000085, 4000005, 52400C84",
             "52400c84",
             "R420",
-            "32408", // TODO: Probar con 30008
+            "32408", //TODO: Probar con 30008
             "30008, 0, 32408, 20008, 40, 8, 22408"}},
         {Brand::INTEL, {
             "Intel",
@@ -76,7 +76,7 @@ private:
             "4000080, 4080080, 10000010, 4000480, 4000000, 10080080, 10000480, 10000080, 10",
             "10",
             "Other",
-            "30008",// TODO: Probar con 30408 ya que 30008 no existe en intel.
+            "30008", //TODO: Probar con 30408 ya que 30008 no existe en intel.
             "30408, 8, 20408, 20008, 1"}}
     };
 

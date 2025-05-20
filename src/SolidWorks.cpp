@@ -82,7 +82,7 @@ void SolidWorks::obtenerVersionesInstaladas() {
                 cout << " ----------------|---------------\n";
             }
             int compatibilidad = esCompatible(i);
-            cout << " SolidWorks " << i << " | ";    
+            cout << " SolidWorks " << i << " | ";
             // Cambia el color y muestra "[OK]", "[X]" o "[?]" utilizando un switch case
             switch (compatibilidad) {
                 case 1:  // Compatible
@@ -113,7 +113,7 @@ void SolidWorks::obtenerVersionesInstaladas() {
         cout << "No SolidWorks versions found installed.\n";
     } else {
         cout << " ----------------|---------------\n";
-    } 
+    }
 }
 
 GPU::Current SolidWorks::obtenerCurrent() {
@@ -181,7 +181,7 @@ std::vector<std::pair<std::string, std::string>> SolidWorks::windowsDisplayAdapt
 std::string SolidWorks::rendererManual() {
     string manual = "";
     bool correct = false;
-    
+
     while (manual.empty() || !correct) {
         cout << "Enter the renderer name manually: ";
         manual = entradaTeclado(0, false);
@@ -199,7 +199,7 @@ GPU::Current SolidWorks::obtenerCurrent(string path){
         char value[256];
         DWORD bufferSize = sizeof(value);
         DWORD valueType;
-        
+
         // Obtener renderer
         if (RegQueryValueExA(hKey, "renderer", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
             currentTemp.renderer = string(value, bufferSize);

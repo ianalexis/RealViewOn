@@ -24,8 +24,8 @@ string AdvanceMode::askAdvanceOptions(){
     string options = "\n\n;## Advance Mode: ##";
     options += selectRegOptions();
     if (!generico){
-        options += qolCommands();  
-    }  
+        options += qolCommands();
+    }
     if (!anySelected){
         options += "\n; - No Advance options selected.";
     }
@@ -38,7 +38,7 @@ void AdvanceMode::askToEnable(string optionName){
 
 string AdvanceMode::qolCommands(){
     string tempOptions = "";
-    askToEnable ("QoL Commands"); 
+    askToEnable ("QoL Commands");
     if (yesOrNo()){
         tempOptions += "\n;### QoL Commands ###";
         tempOptions += enableTabs();

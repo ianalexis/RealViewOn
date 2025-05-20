@@ -34,7 +34,7 @@ private:
         string path;
         std::vector<string> value;
     };
-    
+
     struct RegSetting {
         string name;
         std::vector<multiRegSetting> content;
@@ -73,5 +73,5 @@ private:
             "2,38240"}},
         {"User Interface\\ViewTools\\Part-Assy",
             {"33594"}}
-    };  
+    };
 };
