@@ -1,4 +1,3 @@
-#pragma once
 #include <map>
 
 std::map<int, std::string> numberTextMap = {

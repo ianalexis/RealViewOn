@@ -1,10 +1,8 @@
-#pragma once
-
 #include <iostream>
 #include <sstream>
 #include <thread>
 #include <vector>
-#include <windows.h>
+#include <Windows.h>
 #include <RtMidi.h>
 #include "MidiFile.h"
 #include "resource.h"

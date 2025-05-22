@@ -1,4 +1,5 @@
-#pragma once
+#ifndef GPU_H
+#define GPU_H
 #include <string>
 #include <vector>
 #include <map>
@@ -34,9 +35,9 @@ private:
     Brand buscarEnRenderMap(string buscado); // Declarar buscarEnRenderMap
     Brand selecectBrandManual(); // Selecciona la marca de la GPU en caso de no poder determinarla.
     void setBaseData(Current current); // Setea la baseData de la GPU.
-    vector<string> GPU::completarRealViewEnabler(string reg);
-    vector<string> GPU::completarPerformanceFix(string reg);
-    string GPU::baseDataToString(); // Convierte la baseData a string.
+    vector<string> completarRealViewEnabler(string reg);
+    vector<string> completarPerformanceFix(string reg);
+    string baseDataToString(); // Convierte la baseData a string.
 
 
     Brand brand = Brand::UNKNOWN;
@@ -115,3 +116,5 @@ private:
         {"GT", Brand::NVIDIA}
     };
 };
+
+#endif  // GPU_H
