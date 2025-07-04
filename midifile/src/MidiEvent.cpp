@@ -14,6 +14,7 @@
 #include "MidiEvent.h"
 
 #include <cstdlib>
+#include <initializer_list>
 
 
 namespace smf {
@@ -154,6 +155,12 @@ MidiEvent& MidiEvent::operator=(const vector<int>& bytes) {
 	clearVariables();
 	setMessage(bytes);
 	return *this;
+}
+
+
+MidiEvent& MidiEvent::operator=(const std::initializer_list<int>& list) {
+    MidiMessage::operator=(list);
+    return *this;
 }
 
 

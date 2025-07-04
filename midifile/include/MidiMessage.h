@@ -44,6 +44,7 @@ class MidiMessage : public std::vector<uchar> {
 		MidiMessage&   operator=            (const std::vector<uchar>& bytes);
 		MidiMessage&   operator=            (const std::vector<char>& bytes);
 		MidiMessage&   operator=            (const std::vector<int>& bytes);
+		MidiMessage&   operator=            (const std::initializer_list<int>& list);
 
 		void           sortTrack            (void);
 		void           sortTrackWithSequence(void);
