@@ -2,10 +2,23 @@
 chcp 65001 >nul
 setlocal
 
-set SOURCE_FILE="x64\Release\RealViewOn.exe"
-set DEST_FILE="%~dp0RealViewOn.exe"
-set UPX_EXEC="upx.exe"
-set COMPRESSED_FILE="%~dp0RealViewOn.7z"
+REM Detectar si estamos ejecutando desde la carpeta tools o desde la raíz del proyecto
+if exist ".\upx.exe" (
+    REM Ejecutándose desde la carpeta tools (manual)
+    set BASE_PATH=..
+    set TOOLS_PATH=.
+) else (
+    REM Ejecutándose desde la raíz del proyecto (VS)
+    set BASE_PATH=.
+    set TOOLS_PATH=.\tools
+)
+
+REM Configurar rutas usando las variables base
+set SOURCE_FILE="%BASE_PATH%\x64\Release\RealViewOn.exe"
+set DEST_FILE="%BASE_PATH%\RealViewOn.exe"
+set UPX_EXEC="%TOOLS_PATH%\upx.exe"
+set COMPRESSED_FILE="%BASE_PATH%\RealViewOn.7z"
+set SEVEN_ZIP_EXEC="%TOOLS_PATH%\7zr.exe"
 
 if not exist %SOURCE_FILE% (
     echo Archivo %SOURCE_FILE% no encontrado.
@@ -41,7 +54,7 @@ if %errorlevel% neq 0 (
     pause
     exit /b
 )
-echo Archivo copiado a la raíz del directorio donde se ejecuta el script.
+echo Archivo copiado a la raíz del proyecto.
 
 if not exist %UPX_EXEC% (
     echo %UPX_EXEC% no encontrado.
@@ -56,8 +69,6 @@ if %errorlevel% neq 0 (
     exit /b
 )
 echo Compresión completada.
-
-set SEVEN_ZIP_EXEC="C:\Program Files\7-Zip\7z.exe"
 
 if not exist %SEVEN_ZIP_EXEC% (
     echo %SEVEN_ZIP_EXEC% no encontrado.

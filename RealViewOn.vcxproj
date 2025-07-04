@@ -154,7 +154,8 @@
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>00UPX.bat</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -214,7 +215,7 @@
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>ReleaseUPXZIP.bat</Command>
+      <Command>.\tools\ReleaseUPXZIP.bat</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Compresion UPX y 7Z</Message>
