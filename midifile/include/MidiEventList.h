@@ -31,6 +31,8 @@ class MidiEventList {
 		MidiEventList&   operator=          (MidiEventList& other);
 		MidiEvent&       operator[]         (int index);
 		const MidiEvent& operator[]         (int index) const;
+		MidiEvent&       at                 (int index);
+		const MidiEvent& at                 (int index) const;
 
 		MidiEvent&       back               (void);
 		const MidiEvent& back               (void) const;
@@ -67,14 +69,18 @@ class MidiEventList {
 		std::vector<MidiEvent*> list;
 
 	private:
-		void             sort                (void);
+		void             sort                   (void) { return sortNoteOnsBeforeOffs(); }
+		void             sortNoteOnsBeforeOffs  (void);
+		void             sortNoteOffsBeforeOns  (void);
 
 	// MidiFile class calls sort()
 	friend class MidiFile;
+
+	static int eventCompareNoteOffsBeforeOns(const void* a, const void* b);
+	static int eventCompareNoteOnsBeforeOffs(const void* a, const void* b);
+	static int eventCompare(const void* a, const void* b) { return eventCompareNoteOnsBeforeOffs(a, b); }
 };
 
-
-int eventcompare(const void* a, const void* b);
 
 } // end of namespace smf
 

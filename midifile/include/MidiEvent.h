@@ -40,6 +40,7 @@ class MidiEvent : public MidiMessage {
 		MidiEvent& operator=             (const std::vector<uchar>& bytes);
 		MidiEvent& operator=             (const std::vector<char>& bytes);
 		MidiEvent& operator=             (const std::vector<int>& bytes);
+		MidiEvent& operator=             (const std::initializer_list<int>& list);
 
 		void       clearVariables        (void);
 

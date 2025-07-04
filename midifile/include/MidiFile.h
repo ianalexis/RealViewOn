@@ -89,8 +89,10 @@ class MidiFile {
 
 		// tick-related functions:
 		void             makeDeltaTicks            (void);
+		void             setDeltaTicks             (void) { makeDeltaTicks(); }
 		void             deltaTicks                (void);
 		void             makeAbsoluteTicks         (void);
+		void             setAbsoluteTicks          (void) { makeAbsoluteTicks(); }
 		void             absoluteTicks             (void);
 		int              getTickState              (void) const;
 		bool             isDeltaTicks              (void) const;
@@ -107,12 +109,16 @@ class MidiFile {
 		int              getSplitTrack             (int index) const;
 
 		// track sorting funcionality:
-		void             sortTrack                 (int track);
-		void             sortTracks                (void);
-		void             markSequence              (void);
-		void             markSequence              (int track, int sequence = 1);
-		void             clearSequence             (void);
-		void             clearSequence             (int track);
+		void             sortTrack                  (int track) { sortTrackNoteOnsBeforeOffs(track); }
+		void             sortTrackNoteOnsBeforeOffs (int track);
+		void             sortTrackNoteOffsBeforeOns (int track);
+		void             sortTracks                 (void) { sortTracksNoteOnsBeforeOffs(); }
+		void             sortTracksNoteOnsBeforeOffs(void);
+		void             sortTracksNoteOffsBeforeOns(void);
+		void             markSequence               (void);
+		void             markSequence               (int track, int sequence = 1);
+		void             clearSequence              (void);
+		void             clearSequence              (int track);
 
 		// track manipulation functionality:
 		int              addTrack                  (void);

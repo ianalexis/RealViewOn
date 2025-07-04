@@ -15,6 +15,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <initializer_list>
 #include <iomanip>
 #include <iostream>
 #include <iterator>
@@ -115,6 +116,16 @@ MidiMessage& MidiMessage::operator=(const std::vector<int>& bytes) {
 	setMessage(bytes);
 	return *this;
 }
+
+
+MidiMessage& MidiMessage::operator=(const std::initializer_list<int>& list) {
+    this->clear();
+    for (int value : list) {
+        this->push_back(static_cast<uchar>(value & 0xFF));
+    }
+    return *this;
+}
+
 
 
 

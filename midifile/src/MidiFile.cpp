@@ -583,46 +583,53 @@ bool MidiFile::write(std::ostream& out) {
 	ch = 'h'; out << ch;
 	ch = 'd'; out << ch;
 
-	// 2. write the size of the header (always a "6" stored in unsigned long
-	//    (4 bytes).
+	// 2. Write the size of the header (always a "6" stored in unsigned long
+	//    (unsigned long assumed to be at least 4 bytes).
 	ulong longdata = 6;
 	writeBigEndianULong(out, longdata);
 
-	// 3. MIDI file format, type 0, 1, or 2
+	// 3. MIDI file format: type 0, 1, or 2 (cannot handle type-2 MIDI file writing yet).
 	ushort shortdata;
 	shortdata = static_cast<ushort>(getNumTracks() == 1 ? 0 : 1);
 	writeBigEndianUShort(out,shortdata);
 
-	// 4. write out the number of tracks.
+	// 4. Write out the number of tracks.
 	shortdata = static_cast<ushort>(getNumTracks());
 	writeBigEndianUShort(out, shortdata);
 
-	// 5. write out the number of ticks per quarternote. (avoiding SMPTE for now)
+	// 5. Write out the number of ticks per quarternote (ignoring SMPTE for now).
 	shortdata = static_cast<ushort>(getTicksPerQuarterNote());
 	writeBigEndianUShort(out, shortdata);
 
-	// now write each track.
-	std::vector<uchar> trackdata;
-	uchar endoftrack[4] = {0, 0xff, 0x2f, 0x00};
-	int i, j, k;
-	int size;
-	for (i=0; i<getNumTracks(); i++) {
-		trackdata.reserve(123456);   // make the track data larger than
-		                             // expected data input
+	// 6. Now write each track.
+	std::vector<uchar> trackdata; // Buffer for track data (count bytes later for track header).
+	for (int i=0; i<getNumTracks(); i++) {
+		trackdata.reserve(123456);   // Make the track data larger than the expected data input.
 		trackdata.clear();
-		for (j=0; j<(int)m_events[i]->size(); j++) {
-			if ((*m_events[i])[j].empty()) {
-				// Don't write empty m_events (probably a delete message).
+		for (int j=0; j<(int)m_events[i]->size(); j++) {
+			MidiEvent& event = (*m_events[i]).at(j);
+			if (event.empty()) {
+				// Don't write empty m_events (probably a deleted event).
 				continue;
 			}
-			if ((*m_events[i])[j].isEndOfTrack()) {
+			if (j == (int)m_events[i]->size() - 1) {
+				// If the last MIDI event in the track is an end-of-track
+				// meta message, then write that message to the MIDI file.
+				if (event.isEndOfTrack()) {
+					writeVLValue(event.tick, trackdata);
+					trackdata.push_back(0xff); // meta message
+					trackdata.push_back(0x2f); // message type (end-of-track)
+					trackdata.push_back(0x0);  // no data bytes in message
+					continue;
+				}
+			}
+			if (event.isEndOfTrack()) {
 				// Suppress end-of-track meta messages (one will be added
 				// automatically after all track data has been written).
 				continue;
 			}
-			writeVLValue((*m_events[i])[j].tick, trackdata);
-			if (((*m_events[i])[j].getCommandByte() == 0xf0) ||
-					((*m_events[i])[j].getCommandByte() == 0xf7)) {
+			writeVLValue(event.tick, trackdata);
+			if ((event.getCommandByte() == 0xf0) || (event.getCommandByte() == 0xf7)) {
 				// 0xf0 == Complete sysex message (0xf0 is part of the raw MIDI).
 				// 0xf7 == Raw byte message (0xf7 not part of the raw MIDI).
 				// Print the first byte of the message (0xf0 or 0xf7), then
@@ -630,41 +637,43 @@ bool MidiFile::write(std::ostream& out) {
 				// In other words, when creating a 0xf0 or 0xf7 MIDI message,
 				// do not insert the VLV byte length yourself, as this code will
 				// do it for you automatically.
-				trackdata.push_back((*m_events[i])[j][0]); // 0xf0 or 0xf7;
-				writeVLValue(((int)(*m_events[i])[j].size())-1, trackdata);
-				for (k=1; k<(int)(*m_events[i])[j].size(); k++) {
-					trackdata.push_back((*m_events[i])[j][k]);
+				trackdata.push_back(event[0]); // 0xf0 or 0xf7;
+				writeVLValue((int)(event.size())-1, trackdata);
+				for (int k=1; k<(int)event.size(); k++) {
+					trackdata.push_back(event[k]);
 				}
 			} else {
 				// non-sysex type of message, so just output the
 				// bytes of the message:
-				for (k=0; k<(int)(*m_events[i])[j].size(); k++) {
-					trackdata.push_back((*m_events[i])[j][k]);
+				for (int k=0; k<(int)event.size(); k++) {
+					trackdata.push_back(event[k]);
 				}
 			}
-		}
-		size = (int)trackdata.size();
-		if ((size < 3) || !((trackdata[size-3] == 0xff)
-				&& (trackdata[size-2] == 0x2f))) {
-			trackdata.push_back(endoftrack[0]);
-			trackdata.push_back(endoftrack[1]);
-			trackdata.push_back(endoftrack[2]);
-			trackdata.push_back(endoftrack[3]);
+
 		}
 
-		// now ready to write to MIDI file.
+		// Add end-of-track message if not already written:
+		MidiEvent& lastevent = m_events[i]->back();
+		if (!lastevent.isEndOfTrack()) {
+			trackdata.push_back(0x0);  // delta tick value
+			trackdata.push_back(0xff); // meta message
+			trackdata.push_back(0x2f); // message type (end-of-track)
+			trackdata.push_back(0x0);  // no data bytes in message
+		}
 
-		// first write the track ID marker "MTrk":
+		// Now ready to write to MIDI file track.
+
+		// First write the track ID marker "MTrk":
 		ch = 'M'; out << ch;
 		ch = 'T'; out << ch;
 		ch = 'r'; out << ch;
 		ch = 'k'; out << ch;
 
-		// A. write the size of the MIDI data to follow:
-		longdata = (int)trackdata.size();
+		// A. Write the size of the MIDI data to follow:
+		longdata = (ulong)trackdata.size();
 		writeBigEndianULong(out, longdata);
 
-		// B. write the actual data
+		// B. Write the actual data:
 		out.write((char*)trackdata.data(), trackdata.size());
 	}
 
@@ -2491,9 +2500,18 @@ void MidiFile::setMillisecondTicks(void) {
 //    was done.
 //
 
-void MidiFile::sortTrack(int track) {
+
+void MidiFile::sortTrackNoteOnsBeforeOffs(int track) {
 	if ((track >= 0) && (track < getTrackCount())) {
-		m_events.at(track)->sort();
+		m_events.at(track)->sortNoteOnsBeforeOffs();
+	} else {
+		std::cerr << "Warning: track " << track << " does not exist." << std::endl;
+	}
+}
+
+void MidiFile::sortTrackNoteOffsBeforeOns(int track) {
+	if ((track >= 0) && (track < getTrackCount())) {
+		m_events.at(track)->sortNoteOffsBeforeOns();
 	} else {
 		std::cerr << "Warning: track " << track << " does not exist." << std::endl;
 	}
@@ -2506,10 +2524,20 @@ void MidiFile::sortTrack(int track) {
 // MidiFile::sortTracks -- sort all tracks in the MidiFile.
 //
 
-void MidiFile::sortTracks(void) {
+void MidiFile::sortTracksNoteOnsBeforeOffs(void) {
 	if (m_theTimeState == TIME_STATE_ABSOLUTE) {
 		for (int i=0; i<getTrackCount(); i++) {
-			m_events.at(i)->sort();
+			m_events.at(i)->sortNoteOnsBeforeOffs();
+		}
+	} else {
+		std::cerr << "Warning: Sorting only allowed in absolute tick mode.";
+	}
+}
+
+void MidiFile::sortTracksNoteOffsBeforeOns(void) {
+	if (m_theTimeState == TIME_STATE_ABSOLUTE) {
+		for (int i=0; i<getTrackCount(); i++) {
+			m_events.at(i)->sortNoteOffsBeforeOns();
 		}
 	} else {
 		std::cerr << "Warning: Sorting only allowed in absolute tick mode.";
