@@ -4,7 +4,7 @@
 #define FILE_VERSION_MAJOR 2
 #define FILE_VERSION_MINOR 0
 #define FILE_VERSION_PATCH 7
-#define FILE_VERSION_BUILD 4
+#define FILE_VERSION_BUILD 5
 #define FILE_VERSION_STABLE 0 // 1 for stable, 0 for prerelease
 
 #define STRINGIFY(x) #x
@@ -22,15 +22,20 @@
 inline std::string getVersionFromDateTime() {
     // Get current time
     std::time_t t = std::time(nullptr);
-    std::tm* tm_ptr = std::localtime(&t);
-    
-    // Format as YYYYMMDD
+    std::tm tm_ptr;
+
+    // Use localtime_s for safer conversion
+    localtime_s(&tm_ptr, &t);
+
+    // Format as YYYYMMDDHHMM
     std::ostringstream oss;
-    oss << std::setfill('0') 
-        << std::setw(4) << (tm_ptr->tm_year + 1900)
-        << std::setw(2) << (tm_ptr->tm_mon + 1)
-        << std::setw(2) << tm_ptr->tm_mday;
-    
+    oss << std::setfill('0')
+        << std::setw(2) << (tm_ptr.tm_year % 100)
+        << std::setw(2) << (tm_ptr.tm_mon + 1)
+        << std::setw(2) << tm_ptr.tm_mday
+        << std::setw(2) << tm_ptr.tm_hour
+        << std::setw(2) << tm_ptr.tm_min;
+
     return oss.str();
 }
 
@@ -39,7 +44,7 @@ inline std::string releaseType() {
     if (FILE_VERSION_STABLE == 1) {
         return "Stable";
     } else {
-        return "Pre-release";
+        return "PreRelease";
     }
 }
 
