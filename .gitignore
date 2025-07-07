@@ -1,7 +1,4 @@
 
-<<<<<<< HEAD
-update.bat
-=======
 # Visual Studio
 .vs/
 .vscode/
@@ -29,11 +26,15 @@ update.bat
 *.lo
 
 # Executables
-#*.exe
+*.exe
 *.out
 *.app
 *.iobj
 *.ipdb
+
+# Zip
+*.zip
+*.7z
 
 # Debug files
 *.pdb
@@ -57,6 +58,5 @@ Release/
 RealViewEnabler.reg
 /.vscode
 /.vscode
->>>>>>> real-view-on/main
 *.reg
 *.sldreg
