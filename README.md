@@ -6,6 +6,7 @@
 [![Version](https://img.shields.io/github/v/release/ianalexis/Real-View-On-Releases?color=orangered&label=Download%20Pre-Release&style=flat-square&include_prereleases)](https://github.com/ianalexis/Real-View-On-Releases/releases)
 [![C++](https://img.shields.io/badge/C++-%2300599C.svg?logo=c%2B%2B&logoColor=white&style=flat-square)](https://isocpp.org/)
 [![Windows](https://custom-icon-badges.demolab.com/badge/Windows-0078D6?logo=windows11&logoColor=white&style=flat-square)](https://www.microsoft.com/windows/)
+[![VirusTotal](https://img.shields.io/badge/VirusTotal-Scan%20Report-blue?style=flat-square&logo=virustotal)](https://www.virustotal.com/gui/file/5a3d9dad0af25f145b141045677b499fd15b7a034a6bb5ef88b3b946c8e4f924)
 
 **RealViewOn** its a tool to enhance and fix your SolidWorks installation.
 
