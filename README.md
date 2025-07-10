@@ -6,6 +6,7 @@
 [![Version](https://img.shields.io/github/v/release/ianalexis/Real-View-On-Releases?color=orangered&label=Download%20Pre-Release&style=flat-square&include_prereleases)](https://github.com/ianalexis/Real-View-On-Releases/releases)
 [![C++](https://img.shields.io/badge/C++-%2300599C.svg?logo=c%2B%2B&logoColor=white&style=flat-square)](https://isocpp.org/)
 [![Windows](https://custom-icon-badges.demolab.com/badge/Windows-0078D6?logo=windows11&logoColor=white&style=flat-square)](https://www.microsoft.com/windows/)
+[![VirusTotal](https://img.shields.io/badge/VirusTotal-Scan%20Report-blue?style=flat-square&logo=virustotal)](https://www.virustotal.com/gui/file/5a3d9dad0af25f145b141045677b499fd15b7a034a6bb5ef88b3b946c8e4f924)
 
 **RealViewOn** its a tool to enhance and fix your SolidWorks installation.
 
@@ -50,31 +51,34 @@ Advanced mode includes a set of additional configurations that can be executed f
 Its main use is to avoid the SolidWorks Setting Wizard, which often retains unnecessary data and generates numerous conflicts.
 This mode generates a complete backup of the SolidWorks registry with the name `RVO_Wbackup_YY-MM-DD_HH-MM.reg`.
 
- - 🔄 **Reverse Mouse Wheel:** Reverses the mouse wheel direction.
- - 🌑 **DarkMode:** Enables Dark Mode.
- - 🎮 **FPS Viewer:** Shows the Frames Per Second in the 3D space.
- - 🚀 **Performance Enhance graphics:** Enables the Performance Enhance graphics option and Hardware accelerated silhouette edges.
- - 🖌️ **Full AntiAliasing:** Enables Full AntiAliasing instead of edges/sketches only.
- - 📏 **Spin Box Increment:** Changes the mm steps from 10mm to 1mm.
- - ⚙️ **QoL Commands:** Adds Quality of Life commands and tabs like
-   - Toolbar:
-     - "Normal To"
-   - Direct Editing:
-     - "Scale"
-     - "Flex"
-     - "Deform"
-   - Tabs:
-     - Surfaces
-     - Weldments
-     - etc.
+- 🔄 **Reverse Mouse Wheel:** Reverses the mouse wheel direction.
+- 🌑 **DarkMode:** Enables Dark Mode.
+- 🎮 **FPS Viewer:** Shows the Frames Per Second in the 3D space.
+- 🚀 **Performance Enhance graphics:** Enables the Performance Enhance graphics option and Hardware accelerated silhouette edges.
+- 🖌️ **Full AntiAliasing:** Enables Full AntiAliasing instead of edges/sketches only.
+- 📏 **Spin Box Increment:** Changes the mm steps from 10mm to 1mm.
+- ⚙️ **QoL Commands:** Adds Quality of Life commands and tabs like
+  - Toolbar:
+    - "Normal To"
+  - Direct Editing:
+    - "Scale"
+    - "Flex"
+    - "Deform"
+  - Tabs:
+    - Surfaces
+    - Weldments
+    - etc.
 
 ## Solutions if something does not work 👩‍🔧🖥️
+
 In case you find errors modify the `dword` values of the file with the examples for your brand to commented in the file.
 
 ### RealView does not work
+
 Modify the `dword` values of GL2Shaders.
 
 ### Sketchs and visual errors
+
 Modify the `dword` values of the brand.
 
 ## Contribute 🤝
@@ -83,6 +87,7 @@ We welcome any feedback regarding the functionality of the tool, whether it work
 If needed, we are happy to assist you , not only to ensure proper usage but also to identify potential areas for improvement.
 
 ### Workarounds
+
 A great way to help us is to share with us the values of your SolidWorks installation.
 Just download and run the [GetWorka.ps1](https://github.com/ianalexis/Real-View-On-Releases/blob/main/GetWorka.ps1) file and share the generated file with us.
 It is simple, fast, safe, requires no technical knowledge and will help us to improve the tool.
@@ -114,13 +119,14 @@ This software facilitates enabling features in SolidWorks. Use it at your own di
 SolidWorks & RealView are registered trademarks of Dassault Systèmes.
 
 ## Special Thanks 💖
+
 - 👷 All the **users** that have contributed with feedback and testing.
--  👨‍💻 **Main Developers:**
-   - [RF47](https://github.com/RF47) - Initial project development, logic engineering and MIDI implementation.
-   - [Ian Alexis](https://github.com/ianalexis) - Project mantainer, developer lead, documentation.
- - **📚 Libraries:**
-   - **🎼 Midifile:** C++ MIDI file parsing [library](https://github.com/craigsapp/midifile).
-   - **🎵 RtMidi:** C++ MIDI I/O [library](https://github.com/thestk/rtmidi).
+- 👨‍💻 **Main Developers:**
+  - [RF47](https://github.com/RF47) - Initial project development, logic engineering and MIDI implementation.
+  - [Ian Alexis](https://github.com/ianalexis) - Project mantainer, developer lead, documentation.
+- **📚 Libraries:**
+  - **🎼 Midifile:** C++ MIDI file parsing [library](https://github.com/craigsapp/midifile).
+  - **🎵 RtMidi:** C++ MIDI I/O [library](https://github.com/thestk/rtmidi).
 - **📦 Tools:**
   - **🦇 LLVM Clang:** C++ [Compiler](https://clang.llvm.org/).
   - **🗜️ UPX:** Ultimate [Packer](https://github.com/upx/upx) for eXecutables.
