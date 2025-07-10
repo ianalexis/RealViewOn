@@ -2,7 +2,7 @@
 
 Thank you for considering contributing to our project! Here are some guidelines to help you get started:
 
-1. **Branch Creation**: 
+1. **Branch Creation**:
    - Create a new branch for your feature or bug fix.
    - Use a descriptive name for your branch that reflects the purpose of your changes.
 
