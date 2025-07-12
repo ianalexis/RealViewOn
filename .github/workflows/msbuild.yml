@@ -100,6 +100,7 @@ jobs:
           $isStable = $false
           if (Test-Path $versionFile) {
             $versionContent = Get-Content $versionFile -Raw
+            $versionContent = Get-Content $versionFile -Raw
             if ($versionContent -match '#define FILE_VERSION_STABLE (\d+)') {
               $stableValue = [int]$matches[1]
               $isStable = ($stableValue -eq 1)
@@ -130,6 +131,56 @@ jobs:
             $version = "$(Get-Date -Format 'yyyy.MM.dd.HHmm')-$shortSha"
             echo "VERSION=$version" >> $env:GITHUB_OUTPUT
             echo "IS_STABLE=$isStable" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Get changelog since last release
+        id: get_changelog
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          Write-Host "📋 Obteniendo changelog desde el último release..."
+
+          # Obtener el último release
+          try {
+            $headers = @{
+              'Authorization' = 'token ${{ secrets.GITHUB_TOKEN }}'
+              'Accept' = 'application/vnd.github.v3+json'
+            }
+
+            $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases" -Headers $headers -Method Get
+            $lastRelease = $releases | Where-Object { $_.tag_name -ne "v${{ steps.get_version.outputs.VERSION }}" } | Select-Object -First 1
+
+            if ($lastRelease) {
+              $lastTag = $lastRelease.tag_name
+              Write-Host "📋 Último release encontrado: $lastTag"
+
+              # Obtener commits desde el último release
+              $commits = git log --oneline --pretty=format:"- %s" "$lastTag..HEAD"
+
+              if ($commits) {
+                $changelogText = $commits -join "`n"
+                Write-Host "📋 Changelog generado:"
+                Write-Host $changelogText
+              } else {
+                $changelogText = "- ${{ github.event.head_commit.message }}"
+                Write-Host "📋 No hay commits nuevos, usando commit actual"
+              }
+            } else {
+              Write-Host "📋 No se encontró release anterior, usando commit actual"
+              $changelogText = "- ${{ github.event.head_commit.message }}"
+            }
+
+            # Escapar caracteres especiales para JSON
+            $changelogText = $changelogText -replace '"', '\"'
+            $changelogText = $changelogText -replace "`r`n", "`n"
+            $changelogText = $changelogText -replace "`r", "`n"
+
+            echo "CHANGELOG=$changelogText" >> $env:GITHUB_OUTPUT
+
+          } catch {
+            Write-Host "⚠️ Error al obtener changelog: $($_.Exception.Message)"
+            Write-Host "📋 Usando commit actual como fallback"
+            $changelogText = "- ${{ github.event.head_commit.message }}"
+            echo "CHANGELOG=$changelogText" >> $env:GITHUB_OUTPUT
           }
 
       - name: Upload build artifacts
@@ -195,10 +246,12 @@ jobs:
 
             **Version Info:**
             - Version: `${{ steps.get_version.outputs.VERSION }}`
-            - Changes: ${{ github.event.head_commit.message }}
 
             **Build Details:**
             - Commit: `${{ github.sha }}`
+
+            **Changes:**
+            ${{ steps.get_changelog.outputs.CHANGELOG }}
 
             ---
             *This is an automated ${{ steps.get_version.outputs.IS_STABLE == 'True' && 'release' || 'pre-release' }} generated from the latest commit.*
@@ -227,20 +280,20 @@ jobs:
             name = "${{ steps.get_version.outputs.VERSION }}🛠️"
             body = if ($isStable) {
               @"
-          **# Release v${{ steps.get_version.outputs.VERSION }} 🚀 **
+          # Release v${{ steps.get_version.outputs.VERSION }} 🚀
 
           ## What's Changed
-          - Changes: ${{ github.event.head_commit.message }}
+          ${{ steps.get_changelog.outputs.CHANGELOG }}
 
           ---
           *This is an automated $releaseType generated from the latest commit.*
           "@
             } else {
               @"
-          **# 🛑 Pre-Release v${{ steps.get_version.outputs.VERSION }} 🛑**
+          # 🛑 Pre-Release v${{ steps.get_version.outputs.VERSION }} 🛑
 
           ## What's Changed
-          - Changes: ${{ github.event.head_commit.message }}
+          ${{ steps.get_changelog.outputs.CHANGELOG }}
 
           ---
           *This is an automated $releaseType generated from the latest commit.*
