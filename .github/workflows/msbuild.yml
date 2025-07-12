@@ -100,7 +100,6 @@ jobs:
           $isStable = $false
           if (Test-Path $versionFile) {
             $versionContent = Get-Content $versionFile -Raw
-            $versionContent = Get-Content $versionFile -Raw
             if ($versionContent -match '#define FILE_VERSION_STABLE (\d+)') {
               $stableValue = [int]$matches[1]
               $isStable = ($stableValue -eq 1)
@@ -154,12 +153,28 @@ jobs:
               Write-Host "📋 Último release encontrado: $lastTag"
 
               # Obtener commits desde el último release
-              $commits = git log --oneline --pretty=format:"- %s" "$lastTag..HEAD"
+              $commits = git log --oneline --pretty=format:"%s" "$lastTag..HEAD"
 
-              if ($commits) {
-                $changelogText = $commits -join "`n"
-                Write-Host "📋 Changelog generado:"
-                Write-Host $changelogText
+              if ($commits -and $commits.Length -gt 0) {
+                # Filtrar y formatear commits
+                $validCommits = @()
+                foreach ($commit in $commits) {
+                  if ($commit -and $commit.Trim() -ne "") {
+                    $cleanCommit = $commit.Trim()
+                    # Escapar caracteres especiales
+                    $cleanCommit = $cleanCommit -replace '"', '\"'
+                    $cleanCommit = $cleanCommit -replace '`', '\`'
+                    $validCommits += "- $cleanCommit"
+                  }
+                }
+                
+                if ($validCommits.Length -gt 0) {
+                  $changelogText = $validCommits -join "`n"
+                  Write-Host "📋 Changelog generado con $($validCommits.Length) commits"
+                } else {
+                  $changelogText = "- ${{ github.event.head_commit.message }}"
+                  Write-Host "📋 No hay commits válidos, usando commit actual"
+                }
               } else {
                 $changelogText = "- ${{ github.event.head_commit.message }}"
                 Write-Host "📋 No hay commits nuevos, usando commit actual"
@@ -169,18 +184,27 @@ jobs:
               $changelogText = "- ${{ github.event.head_commit.message }}"
             }
 
-            # Escapar caracteres especiales para JSON
-            $changelogText = $changelogText -replace '"', '\"'
+            # Limpiar el changelog text para evitar problemas con caracteres especiales
             $changelogText = $changelogText -replace "`r`n", "`n"
             $changelogText = $changelogText -replace "`r", "`n"
-
-            echo "CHANGELOG=$changelogText" >> $env:GITHUB_OUTPUT
+            
+            # Escribir el changelog usando un método más seguro
+            $changelogPath = "changelog_temp.txt"
+            $changelogText | Out-File -FilePath $changelogPath -Encoding utf8 -NoNewline
+            $changelogContent = Get-Content -Path $changelogPath -Raw
+            Remove-Item -Path $changelogPath -Force
+            
+            echo "CHANGELOG<<EOF" >> $env:GITHUB_OUTPUT
+            echo $changelogContent >> $env:GITHUB_OUTPUT
+            echo "EOF" >> $env:GITHUB_OUTPUT
 
           } catch {
             Write-Host "⚠️ Error al obtener changelog: $($_.Exception.Message)"
             Write-Host "📋 Usando commit actual como fallback"
-            $changelogText = "- ${{ github.event.head_commit.message }}"
-            echo "CHANGELOG=$changelogText" >> $env:GITHUB_OUTPUT
+            $fallbackText = "- ${{ github.event.head_commit.message }}"
+            echo "CHANGELOG<<EOF" >> $env:GITHUB_OUTPUT
+            echo $fallbackText >> $env:GITHUB_OUTPUT
+            echo "EOF" >> $env:GITHUB_OUTPUT
           }
 
       - name: Upload build artifacts
