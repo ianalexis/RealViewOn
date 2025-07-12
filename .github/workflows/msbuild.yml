@@ -1,23 +1,17 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+# Workflow para compilar el proyecto RealViewOn con MSBuild
+# Este workflow compila el proyecto C++ para arquitecturas x86 y x64
 
-name: MSBuild
+name: Build RealViewOn
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 env:
-  # Path to the solution file relative to the root of the project.
-  SOLUTION_FILE_PATH: .
-
-  # Configuration type to build.
-  # You can convert this to a build matrix if you need coverage of multiple configuration types.
-  # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+  SOLUTION_FILE_PATH: RealViewOn.sln
   BUILD_CONFIGURATION: Release
 
 permissions:
@@ -26,19 +20,85 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
-
+        
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-    - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
 
-    - name: Restore NuGet packages
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: nuget restore ${{env.SOLUTION_FILE_PATH}}
+    - name: Setup Visual Studio components
+      uses: microsoft/setup-msbuild@v2
+      with:
+        msbuild-architecture: x64
 
-    - name: Build
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      # Add additional options to the MSBuild command line here (like platform or verbosity level).
-      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          rtmidi/lib/
+          midifile/
+        key: ${{ runner.os }}-deps-${{ hashFiles('**/rtmidi/**', '**/midifile/**') }}
+
+    - name: Build x64
+      run: |
+        msbuild ${{ env.SOLUTION_FILE_PATH }} `
+          /p:Configuration=${{ env.BUILD_CONFIGURATION }} `
+          /p:Platform=x64 `
+          /p:PlatformToolset=ClangCL `
+          /p:WindowsTargetPlatformVersion=10.0.22621.0 `
+          /p:UseMultiToolTask=true `
+          /p:EnforceProcessCountAcrossBuilds=true `
+          /maxcpucount `
+          /verbosity:minimal
+
+    - name: Test executable exists
+      run: |
+        $exePath = "x64\Release\RealViewOn.exe"
+        
+        if (Test-Path $exePath) {
+          Write-Host "✅ Executable found: $exePath"
+          Get-Item $exePath | Select-Object Name, Length, LastWriteTime
+        } else {
+          Write-Host "❌ Executable not found: $exePath"
+          exit 1
+        }
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: RealViewOn-x64-${{ env.BUILD_CONFIGURATION }}
+        path: |
+          x64/Release/RealViewOn.exe
+          x64/Release/*.pdb
+        if-no-files-found: ignore
+
+  release:
+    needs: build
+    runs-on: windows-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      
+    - name: Create release package
+      run: |
+        New-Item -ItemType Directory -Path "release-package" -Force
+        
+        # Copiar ejecutable x64 si existe
+        if (Test-Path "RealViewOn-x64-Release\x64\Release\RealViewOn.exe") {
+          Copy-Item "RealViewOn-x64-Release\x64\Release\RealViewOn.exe" "release-package\RealViewOn.exe"
+        }
+        
+        # Listar contenido del paquete
+        Get-ChildItem "release-package" -Recurse
+
+    - name: Upload release package
+      uses: actions/upload-artifact@v4
+      with:
+        name: RealViewOn-Release-Package
+        path: release-package/*
