@@ -195,14 +195,10 @@ jobs:
 
             **Version Info:**
             - Version: `${{ steps.get_version.outputs.VERSION }}`
+            - Changes: ${{ github.event.head_commit.message }}
 
             **Build Details:**
             - Commit: `${{ github.sha }}`
-            - Branch: `${{ github.ref_name }}`
-            - Build Date: `${{ github.event.head_commit.timestamp }}`
-
-            **Changes:**
-            ${{ github.event.head_commit.message }}
 
             ---
             *This is an automated ${{ steps.get_version.outputs.IS_STABLE == 'True' && 'release' || 'pre-release' }} generated from the latest commit.*
@@ -228,24 +224,28 @@ jobs:
 
           $body = @{
             tag_name = $tagName
-            name = "RealViewOn v${{ steps.get_version.outputs.VERSION }}"
-            body = @"
-          🚀 **RealViewOn Release v${{ steps.get_version.outputs.VERSION }}**
+            name = "${{ steps.get_version.outputs.VERSION }}🛠️"
+            body = if ($isStable) {
+              @"
+          **# Release v${{ steps.get_version.outputs.VERSION }} 🚀 **
 
-          **Version Info:**
-          - Version: ``${{ steps.get_version.outputs.VERSION }}``
-
-          **Build Details:**
-          - Commit: ``${{ github.sha }}``
-          - Branch: ``${{ github.ref_name }}``
-          - Build Date: ``${{ github.event.head_commit.timestamp }}``
-
-          **Changes:**
-          ${{ github.event.head_commit.message }}
+          ## What's Changed
+          - Changes: ${{ github.event.head_commit.message }}
 
           ---
           *This is an automated $releaseType generated from the latest commit.*
           "@
+            } else {
+              @"
+          **# 🛑 Pre-Release v${{ steps.get_version.outputs.VERSION }} 🛑**
+
+          ## What's Changed
+          - Changes: ${{ github.event.head_commit.message }}
+
+          ---
+          *This is an automated $releaseType generated from the latest commit.*
+          "@
+            }
             draft = $false
             prerelease = -not $isStable
           } | ConvertTo-Json -Depth 3
