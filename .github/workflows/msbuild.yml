@@ -256,7 +256,7 @@ jobs:
             }
           }
 
-      - name: Create GitHub Pre-Release
+      - name: Create GitHub Release / Pre-Release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.check_release.outputs.EXISTS == 'false'
         uses: actions/create-release@v1
         env:
@@ -265,16 +265,26 @@ jobs:
           tag_name: v${{ steps.get_version.outputs.VERSION }}
           release_name: "RealViewOn v${{ steps.get_version.outputs.VERSION }}"
           body: |
-            🚀 **RealViewOn Release v${{ steps.get_version.outputs.VERSION }}**
+            # 🚀 RealViewOn Release v${{ steps.get_version.outputs.VERSION }}
 
-            **Version Info:**
-            - Version: `${{ steps.get_version.outputs.VERSION }}`
-
-            **Build Details:**
-            - Commit: `${{ github.sha }}`
-
-            **Changes:**
+            ## What's Changed
             ${{ steps.get_changelog.outputs.CHANGELOG }}
+
+            ---
+            *This is an automated $releaseType generated from the latest commit.*
+            "@
+              }
+              draft = $false
+              prerelease = -not $isStable
+            } | ConvertTo-Json -Depth 3
+
+            try {
+              $response = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId" -Headers $headers -Method Patch -Body $body
+              Write-Host "✅ Release actualizado exitosamente como $releaseType"
+            } catch {
+              Write-Host "❌ Error al actualizar release: $($_.Exception.Message)"
+              throw
+            }
 
             ---
             *This is an automated ${{ steps.get_version.outputs.IS_STABLE == 'True' && 'release' || 'pre-release' }} generated from the latest commit.*
