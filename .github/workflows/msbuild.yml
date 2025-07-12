@@ -15,7 +15,7 @@ env:
   BUILD_CONFIGURATION: Release
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -98,5 +98,50 @@ jobs:
           x64/Release/RealViewOn.exe
           x64/Release/*.pdb
         if-no-files-found: ignore
+
+    - name: Create GitHub Pre-Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ github.run_number }}-pre
+        release_name: 'RealViewOn Pre-Release v${{ github.run_number }}'
+        body: |
+          🚀 **Automatic Pre-Release Build**
+          
+          **Build Info:**
+          - Build Number: `${{ github.run_number }}`
+          - Commit: `${{ github.sha }}`
+          - Branch: `${{ github.ref_name }}`
+          - Build Date: `${{ github.event.head_commit.timestamp }}`
+          
+          **Changes:**
+          ${{ github.event.head_commit.message }}
+          
+          **Files included:**
+          - `RealViewOn.exe` - Main executable (UPX compressed)
+          - Debug symbols (PDB files)
+          
+          **Installation:**
+          1. Download `RealViewOn.exe`
+          2. Run the executable
+          
+          ---
+          *This is an automated pre-release generated from the latest commit.*
+        draft: false
+        prerelease: true
+      id: create_release
+
+    - name: Upload Release Asset
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: x64/Release/RealViewOn.exe
+        asset_name: RealViewOn.exe
+        asset_content_type: application/octet-stream
 
 
