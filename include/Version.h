@@ -19,33 +19,24 @@
 #include <ctime>
 
 // Implementation of getVersionFromDateTime function
-inline std::string getVersionFromDateTime() {
-    // Get current time
-    std::time_t t = std::time(nullptr);
-    std::tm tm_ptr;
-
-    // Use localtime_s for safer conversion
-    localtime_s(&tm_ptr, &t);
-
-    // Format as YYYYMMDDHHMM
-    std::ostringstream oss;
-    oss << std::setfill('0')
-        << std::setw(2) << (tm_ptr.tm_year % 100)
-        << std::setw(2) << (tm_ptr.tm_mon + 1)
-        << std::setw(2) << tm_ptr.tm_mday
-        << std::setw(2) << tm_ptr.tm_hour
-        << std::setw(2) << tm_ptr.tm_min;
-
-    return oss.str();
+std::string getVersionFromDateTime() {
+    std::tm t = {};
+    std::istringstream date_ss(__DATE__);
+    date_ss >> std::get_time(&t, "%b %d %Y");
+    std::istringstream time_ss(__TIME__);
+    time_ss >> std::get_time(&t, "%H:%M:%S");
+    std::ostringstream version_ss;
+    version_ss << std::setfill('0') << std::setw(2) << (t.tm_year % 100)
+               << std::setw(2) << (t.tm_mon + 1)
+               << std::setw(2) << t.tm_mday
+               << std::setw(2) << t.tm_hour
+               << std::setw(2) << t.tm_min;
+    return version_ss.str();
 }
 
 // Implementation of releaseType function
 inline std::string releaseType() {
-    if (FILE_VERSION_STABLE == 1) {
-        return "Stable";
-    } else {
-        return "PreRelease";
-    }
+    return (FILE_VERSION_STABLE == 1) ? "Stable" : "PreRelease";
 }
 
 // Define RVO_COMPILATION as a macro to avoid multiple definition issues
