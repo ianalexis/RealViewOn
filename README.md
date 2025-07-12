@@ -2,11 +2,13 @@
 
 [![GitHub](https://img.shields.io/badge/GitHub-%23121011.svg?logo=github&logoColor=white&style=flat-square)](https://github.com/ianalexis/Real-View-On-Releases)
 [![GitHub stars](https://img.shields.io/github/stars/ianalexis/Real-View-On-Releases?style=flat-square&logo=github)](https://github.com/ianalexis/Real-View-On-Releases/stargazers)
-[![Version](https://img.shields.io/github/v/release/ianalexis/Real-View-On-Releases?color=darkgreen&label=Download%20Stable&style=flat-square)](https://github.com/ianalexis/Real-View-On-Releases/releases/latest/download/RealViewOn.7z)
-[![Version](https://img.shields.io/github/v/release/ianalexis/Real-View-On-Releases?color=orangered&label=Download%20Pre-Release&style=flat-square&include_prereleases)](https://github.com/ianalexis/Real-View-On-Releases/releases)
 [![C++](https://img.shields.io/badge/C++-%2300599C.svg?logo=c%2B%2B&logoColor=white&style=flat-square)](https://isocpp.org/)
 [![Windows](https://custom-icon-badges.demolab.com/badge/Windows-0078D6?logo=windows11&logoColor=white&style=flat-square)](https://www.microsoft.com/windows/)
 [![VirusTotal](https://img.shields.io/badge/VirusTotal-Scan%20Report-blue?style=flat-square&logo=virustotal)](https://www.virustotal.com/gui/file/9e9d8a08569a0a1b5ab8943f63c5f4de13b1d25b484ae001a9d0df9e9efeae18)
+
+[![Build RealViewOn](https://github.com/ianalexis/RealViewOn/actions/workflows/msbuild.yml/badge.svg)](https://github.com/ianalexis/RealViewOn/actions/workflows/msbuild.yml)
+[![Version](https://img.shields.io/github/v/release/ianalexis/Real-View-On-Releases?color=darkgreen&label=Download%20Stable&style=flat)](https://github.com/ianalexis/Real-View-On-Releases/releases/latest/download/RealViewOn.7z)
+[![Version](https://img.shields.io/github/v/release/ianalexis/Real-View-On-Releases?color=orangered&label=Download%20Pre-Release&style=flat&include_prereleases)](https://github.com/ianalexis/Real-View-On-Releases/releases)
 
 **RealViewOn** its a tool to enhance and fix your SolidWorks installation.
 

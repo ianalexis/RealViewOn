@@ -26,6 +26,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Get compilation timestamp
+        id: compilation_time
+        run: |
+          # Crear el formato similar a getVersionFromDateTime (YYMMDDHHII)
+          $compilationCode = Get-Date -Format "yyMMddHHmm"
+          Write-Host "🔢 Código de compilación: $compilationCode"
+          echo "COMPILATION_CODE=$compilationCode" >> $env:GITHUB_OUTPUT
+
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
@@ -89,7 +97,7 @@ jobs:
             Write-Host "⚠️ UPX no encontrado, saltando compresión"
           }
 
-      - name: Get file version
+      - name: Get file version and release info
         id: get_version
         run: |
           $exePath = "x64\Release\RealViewOn.exe"
@@ -106,6 +114,10 @@ jobs:
             }
           }
 
+          # Determinar emoji y tipo de release
+          $emoji = if ($isStable) { "🚀" } else { "🛑" }
+          $releaseType = if ($isStable) { "release" } else { "pre-release" }
+
           try {
             $versionInfo = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($exePath)
             $fileVersion = $versionInfo.FileVersion
@@ -121,21 +133,30 @@ jobs:
             }
 
             Write-Host "📋 Versión detectada: $version"
+            Write-Host "📋 Tipo de release: $releaseType ($emoji)"
+
             echo "VERSION=$version" >> $env:GITHUB_OUTPUT
             echo "IS_STABLE=$isStable" >> $env:GITHUB_OUTPUT
+            echo "EMOJI=$emoji" >> $env:GITHUB_OUTPUT
+            echo "RELEASE_TYPE=$releaseType" >> $env:GITHUB_OUTPUT
+            echo "RELEASE_NAME=$emoji v$version" >> $env:GITHUB_OUTPUT
           } catch {
             Write-Host "⚠️ No se pudo obtener la versión del archivo, usando timestamp y commit"
             $shortSha = "${{ github.sha }}".Substring(0, 7)
             $version = "$(Get-Date -Format 'yyyy.MM.dd.HHmm')-$shortSha"
+
             echo "VERSION=$version" >> $env:GITHUB_OUTPUT
             echo "IS_STABLE=$isStable" >> $env:GITHUB_OUTPUT
+            echo "EMOJI=$emoji" >> $env:GITHUB_OUTPUT
+            echo "RELEASE_TYPE=$releaseType" >> $env:GITHUB_OUTPUT
+            echo "RELEASE_NAME=$emoji RealViewOn v$version" >> $env:GITHUB_OUTPUT
           }
 
       - name: Get changelog since last release
         id: get_changelog
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          Write-Host "📋 Obteniendo changelog desde el último release..."
+          Write-Host "📋 Obteniendo changelog detallado desde el último release..."
 
           # Obtener el último release
           try {
@@ -151,36 +172,134 @@ jobs:
               $lastTag = $lastRelease.tag_name
               Write-Host "📋 Último release encontrado: $lastTag"
 
-              # Obtener commits desde el último release
-              $commits = git log --oneline --pretty=format:"%s" "$lastTag..HEAD"
+              # Método corregido: usar git log con array forzado
+              Write-Host "📋 Obteniendo commits con método corregido..."
+              $commitList = @(git log --pretty=format:"%H|%h|%s" "$lastTag..HEAD")
 
-              if ($commits -and $commits.Length -gt 0) {
-                # Filtrar y formatear commits
+              Write-Host "📋 Commits encontrados: $($commitList.Count)"
+              Write-Host "📋 Tipo de datos: $($commitList.GetType().Name)"
+              
+              # Mostrar los primeros commits para depuración
+              if ($commitList.Count -gt 0) {
+                Write-Host "📋 Primeros commits encontrados:"
+                for ($i = 0; $i -lt [Math]::Min(3, $commitList.Count); $i++) {
+                  Write-Host "  $($i + 1). $($commitList[$i])"
+                }
+              }
+
+              if ($commitList -and $commitList.Count -gt 0) {
+                Write-Host "� Commits encontrados: $($commitList.Length)"
                 $validCommits = @()
-                foreach ($commit in $commits) {
-                  if ($commit -and $commit.Trim() -ne "") {
-                    $cleanCommit = $commit.Trim()
-                    # Escapar caracteres especiales
-                    $cleanCommit = $cleanCommit -replace '"', '\"'
-                    $cleanCommit = $cleanCommit -replace '`', '\`'
-                    $validCommits += "- $cleanCommit"
+
+                foreach ($commitLine in $commitList) {
+                  if ($commitLine -and $commitLine.Trim() -ne "") {
+                    $parts = $commitLine -split '\|', 3
+                    if ($parts.Length -ge 3) {
+                      $fullHash = $parts[0].Trim()
+                      $shortHash = $parts[1].Trim()
+                      $subject = $parts[2].Trim()
+
+                      Write-Host "🔍 Procesando commit $shortHash : $subject"
+
+                      # Obtener el cuerpo completo del commit específico
+                      $commitBody = git log -1 --pretty=format:"%b" $fullHash
+                      
+                      # Manejar casos donde el cuerpo es un array
+                      if ($commitBody -is [array]) {
+                        $commitBody = $commitBody -join "`n"
+                      }
+
+                      if ($commitBody -and $commitBody.Trim() -ne "") {
+                        Write-Host "  📄 Body encontrado: $($commitBody.Length) caracteres"
+                        Write-Host "  📄 Body preview: $($commitBody.Substring(0, [Math]::Min(200, $commitBody.Length)))"
+                      } else {
+                        Write-Host "  📄 No hay cuerpo para este commit"
+                      }
+
+                      # Escapar caracteres especiales
+                      $subject = $subject -replace '"', '\"' -replace '`', '\`'
+                      $commitBody = $commitBody -replace '"', '\"' -replace '`', '\`'
+
+                      # Construir entrada del changelog
+                      $commitEntry = "- [$shortHash] $subject"
+
+                      if ($commitBody -and $commitBody.Trim() -ne "") {
+                        # Dividir el cuerpo en líneas preservando estructura original
+                        $bodyLines = $commitBody -split "`n"
+                        if ($bodyLines.Length -gt 0) {
+                          $commitEntry += "`n"
+                          foreach ($line in $bodyLines) {
+                            $cleanLine = $line.Trim()
+                            # Procesar líneas que no están vacías
+                            if ($cleanLine -ne "") {
+                              # Si la línea ya comienza con '-', mantenerla como está con indentación
+                              if ($cleanLine.StartsWith('-')) {
+                                $commitEntry += "  $cleanLine`n"
+                              } elseif ($cleanLine.StartsWith('*')) {
+                                # Mantener viñetas con asterisco
+                                $commitEntry += "  $cleanLine`n"
+                              } elseif ($cleanLine.StartsWith('•')) {
+                                # Mantener viñetas con bullet
+                                $commitEntry += "  $cleanLine`n"
+                              } elseif ($cleanLine -match '^\d+\.') {
+                                # Mantener listas numeradas
+                                $commitEntry += "  $cleanLine`n"
+                              } else {
+                                # Para texto normal, agregar guión
+                                $commitEntry += "  - $cleanLine`n"
+                              }
+                            } else {
+                              # Preservar líneas vacías que pueden ser importantes para separar secciones
+                              if ($line -eq "") {
+                                $commitEntry += "`n"
+                              }
+                            }
+                          }
+                        }
+                      }
+
+                      $validCommits += $commitEntry
+                      Write-Host "  ✅ Commit $shortHash procesado, entrada generada con $($commitEntry.Length) caracteres"
+                    } else {
+                      Write-Host "  ⚠️ Commit line mal formateada (partes: $($parts.Length)): $commitLine"
+                    }
+                  } else {
+                    Write-Host "  ⚠️ Línea de commit vacía: '$commitLine'"
                   }
                 }
+                
+                Write-Host "📋 Total de commits válidos procesados: $($validCommits.Count)"
 
                 if ($validCommits.Length -gt 0) {
-                  $changelogText = $validCommits -join "`n"
-                  Write-Host "📋 Changelog generado con $($validCommits.Length) commits"
+                  $changelogText = $validCommits -join "`n`n"
+                  Write-Host "📋 Changelog detallado generado con $($validCommits.Length) commits"
+                  Write-Host "📋 Tamaño total del changelog: $($changelogText.Length) caracteres"
+
+                  # Mostrar preview del changelog para depuración
+                  Write-Host "📋 Preview del changelog:"
+                  Write-Host "--- INICIO CHANGELOG ---"
+                  Write-Host $changelogText.Substring(0, [Math]::Min(800, $changelogText.Length))
+                  if ($changelogText.Length -gt 800) {
+                    Write-Host "... (truncado, total: $($changelogText.Length) chars)"
+                  }
+                  Write-Host "--- FIN CHANGELOG ---"
                 } else {
-                  $changelogText = "- ${{ github.event.head_commit.message }}"
-                  Write-Host "📋 No hay commits válidos, usando commit actual"
+                  Write-Host "📋 No se generaron commits válidos, usando commit actual"
+                  $currentCommit = "${{ github.event.head_commit.message }}"
+                  $currentSha = "${{ github.sha }}".Substring(0, 7)
+                  $changelogText = "- [$currentSha] $currentCommit"
                 }
               } else {
-                $changelogText = "- ${{ github.event.head_commit.message }}"
-                Write-Host "📋 No hay commits nuevos, usando commit actual"
+                Write-Host "📋 No se encontraron commits, usando commit actual"
+                $currentCommit = "${{ github.event.head_commit.message }}"
+                $currentSha = "${{ github.sha }}".Substring(0, 7)
+                $changelogText = "- [$currentSha] $currentCommit"
               }
             } else {
               Write-Host "📋 No se encontró release anterior, usando commit actual"
-              $changelogText = "- ${{ github.event.head_commit.message }}"
+              $currentCommit = "${{ github.event.head_commit.message }}"
+              $currentSha = "${{ github.sha }}".Substring(0, 7)
+              $changelogText = "- [$currentSha] $currentCommit"
             }
 
             # Limpiar el changelog text para evitar problemas con caracteres especiales
@@ -200,7 +319,9 @@ jobs:
           } catch {
             Write-Host "⚠️ Error al obtener changelog: $($_.Exception.Message)"
             Write-Host "📋 Usando commit actual como fallback"
-            $fallbackText = "- ${{ github.event.head_commit.message }}"
+            $currentCommit = "${{ github.event.head_commit.message }}"
+            $currentSha = "${{ github.sha }}".Substring(0, 7)
+            $fallbackText = "- [$currentSha] $currentCommit"
             echo "CHANGELOG<<EOF" >> $env:GITHUB_OUTPUT
             echo $fallbackText >> $env:GITHUB_OUTPUT
             echo "EOF" >> $env:GITHUB_OUTPUT
@@ -213,39 +334,90 @@ jobs:
           path: |
             x64/Release/RealViewOn.exe
             x64/Release/*.pdb
+            release-assets/RealViewOn.7z
+            release-assets/RealViewOn.zip
           if-no-files-found: ignore
 
-      - name: Check if release exists
+      - name: Prepare release assets
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          # Crear directorio de staging para assets
+          New-Item -ItemType Directory -Force -Path "release-assets"
+          Copy-Item "x64\Release\RealViewOn.exe" "release-assets\RealViewOn.exe"
+
+          Write-Host "📦 Asset preparado para release: release-assets\RealViewOn.exe"
+          Get-Item "release-assets\RealViewOn.exe" | Select-Object Name, Length, LastWriteTime
+
+          # Comprimir con 7zip si está disponible
+          if (Test-Path "tools\7zr.exe") {
+            Write-Host "📦 Comprimiendo con 7zip..."
+            $originalSize = (Get-Item "release-assets\RealViewOn.exe").Length
+            Write-Host "Tamaño del ejecutable: $([math]::Round($originalSize/1MB, 2)) MB"
+
+            # Crear archivo 7z con máxima compresión
+            & ".\tools\7zr.exe" a -t7z -mx=9 -mfb=273 -ms=on "release-assets\RealViewOn.7z" "release-assets\RealViewOn.exe"
+
+            if ($LASTEXITCODE -eq 0) {
+              $compressedSize = (Get-Item "release-assets\RealViewOn.7z").Length
+              $compressionRatio = [math]::Round((($originalSize - $compressedSize) / $originalSize) * 100, 1)
+              Write-Host "✅ Compresión 7zip completada"
+              Write-Host "Tamaño comprimido: $([math]::Round($compressedSize/1MB, 2)) MB"
+              Write-Host "Reducción: $compressionRatio%"
+            } else {
+              Write-Host "⚠️ Error en compresión 7zip, continuando..."
+            }
+
+            # Crear archivo ZIP usando PowerShell (7zr.exe no soporta ZIP)
+            Write-Host "📦 Comprimiendo con ZIP usando PowerShell..."
+            try {
+              Compress-Archive -Path "release-assets\RealViewOn.exe" -DestinationPath "release-assets\RealViewOn.zip" -CompressionLevel Optimal -Force
+
+              $zipSize = (Get-Item "release-assets\RealViewOn.zip").Length
+              $zipRatio = [math]::Round((($originalSize - $zipSize) / $originalSize) * 100, 1)
+              Write-Host "✅ Compresión ZIP completada"
+              Write-Host "Tamaño ZIP: $([math]::Round($zipSize/1MB, 2)) MB"
+              Write-Host "Reducción ZIP: $zipRatio%"
+            } catch {
+              Write-Host "⚠️ Error en compresión ZIP: $($_.Exception.Message)"
+            }
+          } else {
+            Write-Host "⚠️ 7zip no encontrado, solo se subirá el ejecutable"
+          }
+
+      - name: Check and manage existing release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: check_release
         run: |
           $tagName = "v${{ steps.get_version.outputs.VERSION }}"
           Write-Host "🔍 Verificando si existe el release: $tagName"
 
-          try {
-            $headers = @{
-              'Authorization' = 'token ${{ secrets.GITHUB_TOKEN }}'
-              'Accept' = 'application/vnd.github.v3+json'
-            }
+          $headers = @{
+            'Authorization' = 'token ${{ secrets.GITHUB_TOKEN }}'
+            'Accept' = 'application/vnd.github.v3+json'
+          }
 
+          try {
             $response = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tagName" -Headers $headers -Method Get
             Write-Host "⚠️ El release $tagName ya existe (ID: $($response.id))"
 
-            # Buscar si existe un asset con el mismo nombre
-            $existingAsset = $response.assets | Where-Object { $_.name -eq "RealViewOn.exe" }
-            if ($existingAsset) {
-              Write-Host "🗑️ Eliminando asset existente: $($existingAsset.name)"
-              try {
-                Invoke-RestMethod -Uri $existingAsset.url -Headers $headers -Method Delete
-                Write-Host "✅ Asset anterior eliminado"
-              } catch {
-                Write-Host "⚠️ No se pudo eliminar el asset anterior: $($_.Exception.Message)"
+            # Eliminar assets existentes si existen
+            $assetsToDelete = @("RealViewOn.exe", "RealViewOn.7z", "RealViewOn.zip")
+            foreach ($assetName in $assetsToDelete) {
+              $existingAsset = $response.assets | Where-Object { $_.name -eq $assetName }
+              if ($existingAsset) {
+                Write-Host "🗑️ Eliminando asset existente: $($existingAsset.name)"
+                try {
+                  Invoke-RestMethod -Uri $existingAsset.url -Headers $headers -Method Delete
+                  Write-Host "✅ Asset $assetName eliminado"
+                } catch {
+                  Write-Host "⚠️ No se pudo eliminar el asset $assetName : $($_.Exception.Message)"
+                }
               }
             }
 
             echo "EXISTS=true" >> $env:GITHUB_OUTPUT
             echo "RELEASE_ID=$($response.id)" >> $env:GITHUB_OUTPUT
-            echo "UPLOAD_URL=$($response.upload_url)" >> $env:GITHUB_OUTPUT
+            echo "UPLOAD_URL=$($response.upload_url -replace '\{\?.*\}', '')" >> $env:GITHUB_OUTPUT
           } catch {
             if ($_.Exception.Response.StatusCode -eq 404) {
               Write-Host "✅ El release $tagName no existe, se creará uno nuevo"
@@ -256,41 +428,15 @@ jobs:
             }
           }
 
-      - name: Create GitHub Pre-Release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.check_release.outputs.EXISTS == 'false'
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ steps.get_version.outputs.VERSION }}
-          release_name: "RealViewOn v${{ steps.get_version.outputs.VERSION }}"
-          body: |
-            🚀 **RealViewOn Release v${{ steps.get_version.outputs.VERSION }}**
-
-            **Version Info:**
-            - Version: `${{ steps.get_version.outputs.VERSION }}`
-
-            **Build Details:**
-            - Commit: `${{ github.sha }}`
-
-            **Changes:**
-            ${{ steps.get_changelog.outputs.CHANGELOG }}
-
-            ---
-            *This is an automated ${{ steps.get_version.outputs.IS_STABLE == 'True' && 'release' || 'pre-release' }} generated from the latest commit.*
-          draft: false
-          prerelease: ${{ steps.get_version.outputs.IS_STABLE != 'True' }}
-        id: create_release
-
-      - name: Update existing release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.check_release.outputs.EXISTS == 'true'
+      - name: Create or update GitHub Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: release
         run: |
-          $releaseId = "${{ steps.check_release.outputs.RELEASE_ID }}"
           $tagName = "v${{ steps.get_version.outputs.VERSION }}"
+          $releaseName = "${{ steps.get_version.outputs.RELEASE_NAME }}"
           $isStable = "${{ steps.get_version.outputs.IS_STABLE }}" -eq "True"
-          $releaseType = if ($isStable) { "release" } else { "pre-release" }
-
-          Write-Host "🔄 Actualizando release existente: $tagName (ID: $releaseId) como $releaseType"
+          $emoji = "${{ steps.get_version.outputs.EMOJI }}"
+          $releaseType = "${{ steps.get_version.outputs.RELEASE_TYPE }}"
 
           $headers = @{
             'Authorization' = 'token ${{ secrets.GITHUB_TOKEN }}'
@@ -298,79 +444,110 @@ jobs:
             'Content-Type' = 'application/json'
           }
 
+          # Crear cuerpo del release
+          $titlePrefix = if ($isStable) { "RealViewOn Release" } else { "$emoji RealViewOn Pre-Release" }
+          $titleSuffix = if ($isStable) { " $emoji" } else { " $emoji" }
+
+          $releaseBody = @"
+          # $titlePrefix v${{ steps.get_version.outputs.VERSION }} (c${{ steps.compilation_time.outputs.COMPILATION_CODE }})$titleSuffix
+
+          ## Downloads 📥
+          - **RealViewOn.exe** - Main executable (UPX compressed)
+          - **RealViewOn.7z** - 7-zip compressed archive (UPX + 7Z compression)
+          - **RealViewOn.zip** - Zip compressed archive (UPX + Standard Zip)
+
+          ## What's Changed
+          ${{ steps.get_changelog.outputs.CHANGELOG }}
+
+          ---
+          *This is an automated $releaseType generated from the latest commit.*
+          "@
+
           $body = @{
             tag_name = $tagName
-            name = "${{ steps.get_version.outputs.VERSION }}🛠️"
-            body = if ($isStable) {
-              @"
-          # Release v${{ steps.get_version.outputs.VERSION }} 🚀
-
-          ## What's Changed
-          ${{ steps.get_changelog.outputs.CHANGELOG }}
-
-          ---
-          *This is an automated $releaseType generated from the latest commit.*
-          "@
-            } else {
-              @"
-          # 🛑 Pre-Release v${{ steps.get_version.outputs.VERSION }} 🛑
-
-          ## What's Changed
-          ${{ steps.get_changelog.outputs.CHANGELOG }}
-
-          ---
-          *This is an automated $releaseType generated from the latest commit.*
-          "@
-            }
+            name = $releaseName
+            body = $releaseBody
             draft = $false
             prerelease = -not $isStable
           } | ConvertTo-Json -Depth 3
 
           try {
-            $response = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId" -Headers $headers -Method Patch -Body $body
-            Write-Host "✅ Release actualizado exitosamente como $releaseType"
+            if ("${{ steps.check_release.outputs.EXISTS }}" -eq "true") {
+              # Actualizar release existente
+              $releaseId = "${{ steps.check_release.outputs.RELEASE_ID }}"
+              Write-Host "🔄 Actualizando release existente: $tagName (ID: $releaseId) como $releaseType"
+
+              $response = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId" -Headers $headers -Method Patch -Body $body
+              echo "UPLOAD_URL=${{ steps.check_release.outputs.UPLOAD_URL }}" >> $env:GITHUB_OUTPUT
+            } else {
+              # Crear nuevo release
+              Write-Host "🆕 Creando nuevo release: $tagName como $releaseType"
+
+              $response = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases" -Headers $headers -Method Post -Body $body
+              $uploadUrl = $response.upload_url -replace '\{\?.*\}', ''
+              echo "UPLOAD_URL=$uploadUrl" >> $env:GITHUB_OUTPUT
+            }
+
+            Write-Host "✅ Release procesado exitosamente como $releaseType"
+            echo "RELEASE_ID=$($response.id)" >> $env:GITHUB_OUTPUT
           } catch {
-            Write-Host "❌ Error al actualizar release: $($_.Exception.Message)"
+            Write-Host "❌ Error al procesar release: $($_.Exception.Message)"
             throw
           }
 
-      - name: Upload Release Asset
+      - name: Upload Release Assets
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          $uploadUrl = if ("${{ steps.check_release.outputs.EXISTS }}" -eq "true") {
-            "${{ steps.check_release.outputs.UPLOAD_URL }}"
-          } else {
-            "${{ steps.create_release.outputs.upload_url }}"
-          }
-
-          Write-Host "📤 URL base recibida: $uploadUrl"
-
-          # Remover {?name,label} del upload_url si está presente
-          $uploadUrl = $uploadUrl -replace '\{\?.*\}', ''
-          $uploadUrl = "$uploadUrl" + "?name=RealViewOn.exe"
-
-          Write-Host "📤 URL final para subir: $uploadUrl"
+          $uploadUrl = "${{ steps.release.outputs.UPLOAD_URL }}"
+          Write-Host "📤 Subiendo assets al release"
 
           $headers = @{
             'Authorization' = 'token ${{ secrets.GITHUB_TOKEN }}'
             'Content-Type' = 'application/octet-stream'
           }
 
-          try {
-            $filePath = "x64\Release\RealViewOn.exe"
+          # Lista de assets a subir
+          $assets = @(
+            @{ Name = "RealViewOn.exe"; Path = "release-assets\RealViewOn.exe"; Required = $true }
+            @{ Name = "RealViewOn.7z"; Path = "release-assets\RealViewOn.7z"; Required = $false }
+            @{ Name = "RealViewOn.zip"; Path = "release-assets\RealViewOn.zip"; Required = $false }
+          )
 
-            # Verificar que el archivo existe
-            if (-not (Test-Path $filePath)) {
-              throw "El archivo $filePath no existe"
+          foreach ($asset in $assets) {
+            $assetName = $asset.Name
+            $filePath = $asset.Path
+            $isRequired = $asset.Required
+
+            if (Test-Path $filePath) {
+              try {
+                $uploadAssetUrl = "$uploadUrl" + "?name=$assetName"
+                Write-Host "📦 Subiendo $assetName..."
+
+                $fileBytes = [System.IO.File]::ReadAllBytes($filePath)
+                $fileSizeMB = [math]::Round($fileBytes.Length/1MB, 2)
+                Write-Host "   📊 Tamaño: $fileSizeMB MB"
+
+                $response = Invoke-RestMethod -Uri $uploadAssetUrl -Method Post -Headers $headers -Body $fileBytes
+                Write-Host "   ✅ $assetName subido exitosamente"
+                Write-Host "   🔗 Download URL: $($response.browser_download_url)"
+              } catch {
+                Write-Host "   ❌ Error al subir $assetName : $($_.Exception.Message)"
+                if ($_.Exception.Response) {
+                  Write-Host "   🔍 Status: $($_.Exception.Response.StatusCode) - $($_.Exception.Response.StatusDescription)"
+                }
+                if ($isRequired) {
+                  throw "Error al subir asset requerido: $assetName"
+                } else {
+                  Write-Host "   ⚠️ Asset opcional $assetName no se pudo subir, continuando..."
+                }
+              }
+            } else {
+              if ($isRequired) {
+                throw "Asset requerido no encontrado: $filePath"
+              } else {
+                Write-Host "   ⚠️ Asset opcional no encontrado: $filePath (se omite)"
+              }
             }
-
-            $fileBytes = [System.IO.File]::ReadAllBytes($filePath)
-            Write-Host "📦 Archivo cargado: $([math]::Round($fileBytes.Length/1MB, 2)) MB"
-
-            $response = Invoke-RestMethod -Uri $uploadUrl -Method Post -Headers $headers -Body $fileBytes
-            Write-Host "✅ Asset subido exitosamente: $($response.name)"
-          } catch {
-            Write-Host "❌ Error al subir asset: $($_.Exception.Message)"
-            Write-Host "🔍 Detalles del error: $($_.Exception.Response.StatusCode) - $($_.Exception.Response.StatusDescription)"
-            throw
           }
+
+          Write-Host "🎉 Proceso de subida de assets completado"
