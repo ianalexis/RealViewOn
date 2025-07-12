@@ -85,20 +85,47 @@ jobs:
     - name: Download all artifacts
       uses: actions/download-artifact@v4
       
+    - name: List downloaded artifacts
+      run: |
+        Write-Host "Contenido del workspace después de descargar artefactos:"
+        Get-ChildItem -Recurse | Select-Object FullName, Length
+      
     - name: Create release package
       run: |
         New-Item -ItemType Directory -Path "release-package" -Force
         
-        # Copiar ejecutable x64 si existe
-        if (Test-Path "RealViewOn-x64-Release\x64\Release\RealViewOn.exe") {
-          Copy-Item "RealViewOn-x64-Release\x64\Release\RealViewOn.exe" "release-package\RealViewOn.exe"
+        # Buscar el ejecutable en todas las ubicaciones posibles
+        $possiblePaths = @(
+          "RealViewOn-x64-Release\x64\Release\RealViewOn.exe",
+          "RealViewOn-x64-Release\RealViewOn.exe",
+          "x64\Release\RealViewOn.exe",
+          "RealViewOn.exe"
+        )
+        
+        $found = $false
+        foreach ($path in $possiblePaths) {
+          if (Test-Path $path) {
+            Write-Host "✅ Encontrado ejecutable en: $path"
+            Copy-Item $path "release-package\RealViewOn.exe"
+            $found = $true
+            break
+          }
+        }
+        
+        if (-not $found) {
+          Write-Host "❌ No se encontró el ejecutable en ninguna ubicación"
+          Write-Host "Estructura de directorios actual:"
+          Get-ChildItem -Recurse | Where-Object { $_.Name -like "*.exe" } | Select-Object FullName
+          exit 1
         }
         
         # Listar contenido del paquete
+        Write-Host "Contenido del paquete de release:"
         Get-ChildItem "release-package" -Recurse
 
     - name: Upload release package
       uses: actions/upload-artifact@v4
       with:
         name: RealViewOn-Release-Package
-        path: release-package/*
+        path: release-package/
+        if-no-files-found: error
