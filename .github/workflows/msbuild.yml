@@ -90,6 +90,33 @@ jobs:
           Write-Host "⚠️ UPX no encontrado, saltando compresión"
         }
 
+    - name: Get file version
+      id: get_version
+      run: |
+        $exePath = "x64\Release\RealViewOn.exe"
+        try {
+          $versionInfo = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($exePath)
+          $fileVersion = $versionInfo.FileVersion
+          $productVersion = $versionInfo.ProductVersion
+          
+          # Usar ProductVersion si existe, si no FileVersion
+          $version = if ($productVersion) { $productVersion } else { $fileVersion }
+          
+          # Si no hay versión, usar fecha y hora
+          if (-not $version -or $version -eq "0.0.0.0") {
+            $version = "$(Get-Date -Format 'yyyy.MM.dd.HHmm')"
+          }
+          
+          Write-Host "📋 Versión detectada: $version"
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+          echo "FILE_VERSION=$fileVersion" >> $env:GITHUB_OUTPUT
+          echo "PRODUCT_VERSION=$productVersion" >> $env:GITHUB_OUTPUT
+        } catch {
+          Write-Host "⚠️ No se pudo obtener la versión del archivo, usando timestamp"
+          $version = "$(Get-Date -Format 'yyyy.MM.dd.HHmm')"
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+        }
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -105,13 +132,18 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: v${{ github.run_number }}-pre
-        release_name: 'RealViewOn Pre-Release v${{ github.run_number }}'
+        tag_name: v${{ steps.get_version.outputs.VERSION }}
+        release_name: 'RealViewOn v${{ steps.get_version.outputs.VERSION }}'
         body: |
-          🚀 **Automatic Pre-Release Build**
+          🚀 **RealViewOn Release v${{ steps.get_version.outputs.VERSION }}**
           
-          **Build Info:**
+          **Version Info:**
+          - Version: `${{ steps.get_version.outputs.VERSION }}`
+          - File Version: `${{ steps.get_version.outputs.FILE_VERSION }}`
+          - Product Version: `${{ steps.get_version.outputs.PRODUCT_VERSION }}`
           - Build Number: `${{ github.run_number }}`
+          
+          **Build Details:**
           - Commit: `${{ github.sha }}`
           - Branch: `${{ github.ref_name }}`
           - Build Date: `${{ github.event.head_commit.timestamp }}`
@@ -121,7 +153,6 @@ jobs:
           
           **Files included:**
           - `RealViewOn.exe` - Main executable (UPX compressed)
-          - Debug symbols (PDB files)
           
           **Installation:**
           1. Download `RealViewOn.exe`
