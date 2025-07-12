@@ -94,6 +94,19 @@ jobs:
         id: get_version
         run: |
           $exePath = "x64\Release\RealViewOn.exe"
+          $versionFile = "include\Version.h"
+
+          # Leer el archivo Version.h para obtener FILE_VERSION_STABLE
+          $isStable = $false
+          if (Test-Path $versionFile) {
+            $versionContent = Get-Content $versionFile -Raw
+            if ($versionContent -match '#define FILE_VERSION_STABLE (\d+)') {
+              $stableValue = [int]$matches[1]
+              $isStable = ($stableValue -eq 1)
+              Write-Host "📋 FILE_VERSION_STABLE: $stableValue ($(if($isStable) { 'Stable' } else { 'PreRelease' }))"
+            }
+          }
+
           try {
             $versionInfo = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($exePath)
             $fileVersion = $versionInfo.FileVersion
@@ -110,11 +123,13 @@ jobs:
 
             Write-Host "📋 Versión detectada: $version"
             echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+            echo "IS_STABLE=$isStable" >> $env:GITHUB_OUTPUT
           } catch {
             Write-Host "⚠️ No se pudo obtener la versión del archivo, usando timestamp y commit"
             $shortSha = "${{ github.sha }}".Substring(0, 7)
             $version = "$(Get-Date -Format 'yyyy.MM.dd.HHmm')-$shortSha"
             echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+            echo "IS_STABLE=$isStable" >> $env:GITHUB_OUTPUT
           }
 
       - name: Upload build artifacts
@@ -180,7 +195,6 @@ jobs:
 
             **Version Info:**
             - Version: `${{ steps.get_version.outputs.VERSION }}`
-            - Build Number: `${{ github.run_number }}`
 
             **Build Details:**
             - Commit: `${{ github.sha }}`
@@ -191,10 +205,58 @@ jobs:
             ${{ github.event.head_commit.message }}
 
             ---
-            *This is an automated pre-release generated from the latest commit.*
+            *This is an automated ${{ steps.get_version.outputs.IS_STABLE == 'True' && 'release' || 'pre-release' }} generated from the latest commit.*
           draft: false
-          prerelease: true
+          prerelease: ${{ steps.get_version.outputs.IS_STABLE != 'True' }}
         id: create_release
+
+      - name: Update existing release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.check_release.outputs.EXISTS == 'true'
+        run: |
+          $releaseId = "${{ steps.check_release.outputs.RELEASE_ID }}"
+          $tagName = "v${{ steps.get_version.outputs.VERSION }}"
+          $isStable = "${{ steps.get_version.outputs.IS_STABLE }}" -eq "True"
+          $releaseType = if ($isStable) { "release" } else { "pre-release" }
+
+          Write-Host "🔄 Actualizando release existente: $tagName (ID: $releaseId) como $releaseType"
+
+          $headers = @{
+            'Authorization' = 'token ${{ secrets.GITHUB_TOKEN }}'
+            'Accept' = 'application/vnd.github.v3+json'
+            'Content-Type' = 'application/json'
+          }
+
+          $body = @{
+            tag_name = $tagName
+            name = "RealViewOn v${{ steps.get_version.outputs.VERSION }}"
+            body = @"
+          🚀 **RealViewOn Release v${{ steps.get_version.outputs.VERSION }}**
+
+          **Version Info:**
+          - Version: ``${{ steps.get_version.outputs.VERSION }}``
+
+          **Build Details:**
+          - Commit: ``${{ github.sha }}``
+          - Branch: ``${{ github.ref_name }}``
+          - Build Date: ``${{ github.event.head_commit.timestamp }}``
+
+          **Changes:**
+          ${{ github.event.head_commit.message }}
+
+          ---
+          *This is an automated $releaseType generated from the latest commit.*
+          "@
+            draft = $false
+            prerelease = -not $isStable
+          } | ConvertTo-Json -Depth 3
+
+          try {
+            $response = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId" -Headers $headers -Method Patch -Body $body
+            Write-Host "✅ Release actualizado exitosamente como $releaseType"
+          } catch {
+            Write-Host "❌ Error al actualizar release: $($_.Exception.Message)"
+            throw
+          }
 
       - name: Upload Release Asset
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
