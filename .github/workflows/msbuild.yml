@@ -102,9 +102,10 @@ jobs:
           # Usar ProductVersion si existe, si no FileVersion
           $version = if ($productVersion) { $productVersion } else { $fileVersion }
           
-          # Si no hay versión, usar fecha y hora
+          # Si no hay versión o es 0.0.0.0, usar fecha, hora y commit SHA corto
           if (-not $version -or $version -eq "0.0.0.0") {
-            $version = "$(Get-Date -Format 'yyyy.MM.dd.HHmm')"
+            $shortSha = "${{ github.sha }}".Substring(0, 7)
+            $version = "$(Get-Date -Format 'yyyy.MM.dd.HHmm')-$shortSha"
           }
           
           Write-Host "📋 Versión detectada: $version"
@@ -112,8 +113,9 @@ jobs:
           echo "FILE_VERSION=$fileVersion" >> $env:GITHUB_OUTPUT
           echo "PRODUCT_VERSION=$productVersion" >> $env:GITHUB_OUTPUT
         } catch {
-          Write-Host "⚠️ No se pudo obtener la versión del archivo, usando timestamp"
-          $version = "$(Get-Date -Format 'yyyy.MM.dd.HHmm')"
+          Write-Host "⚠️ No se pudo obtener la versión del archivo, usando timestamp y commit"
+          $shortSha = "${{ github.sha }}".Substring(0, 7)
+          $version = "$(Get-Date -Format 'yyyy.MM.dd.HHmm')-$shortSha"
           echo "VERSION=$version" >> $env:GITHUB_OUTPUT
         }
 
@@ -126,8 +128,36 @@ jobs:
           x64/Release/*.pdb
         if-no-files-found: ignore
 
-    - name: Create GitHub Pre-Release
+    - name: Check if release exists
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      id: check_release
+      run: |
+        $tagName = "v${{ steps.get_version.outputs.VERSION }}"
+        Write-Host "🔍 Verificando si existe el release: $tagName"
+        
+        try {
+          $headers = @{
+            'Authorization' = 'token ${{ secrets.GITHUB_TOKEN }}'
+            'Accept' = 'application/vnd.github.v3+json'
+          }
+          
+          $response = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tagName" -Headers $headers -Method Get
+          Write-Host "⚠️ El release $tagName ya existe, se actualizará"
+          echo "EXISTS=true" >> $env:GITHUB_OUTPUT
+          echo "RELEASE_ID=$($response.id)" >> $env:GITHUB_OUTPUT
+          echo "UPLOAD_URL=$($response.upload_url)" >> $env:GITHUB_OUTPUT
+        } catch {
+          if ($_.Exception.Response.StatusCode -eq 404) {
+            Write-Host "✅ El release $tagName no existe, se creará uno nuevo"
+            echo "EXISTS=false" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Host "❌ Error al verificar el release: $($_.Exception.Message)"
+            throw
+          }
+        }
+
+    - name: Create GitHub Pre-Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.check_release.outputs.EXISTS == 'false'
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -166,13 +196,33 @@ jobs:
 
     - name: Upload Release Asset
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: x64/Release/RealViewOn.exe
-        asset_name: RealViewOn.exe
-        asset_content_type: application/octet-stream
+      run: |
+        $uploadUrl = if ("${{ steps.check_release.outputs.EXISTS }}" -eq "true") {
+          "${{ steps.check_release.outputs.UPLOAD_URL }}"
+        } else {
+          "${{ steps.create_release.outputs.upload_url }}"
+        }
+        
+        Write-Host "📤 Subiendo asset a: $uploadUrl"
+        
+        $headers = @{
+          'Authorization' = 'token ${{ secrets.GITHUB_TOKEN }}'
+          'Content-Type' = 'application/octet-stream'
+        }
+        
+        # Remover {?name,label} del upload_url si está presente
+        $uploadUrl = $uploadUrl -replace '\{\?.*\}', ''
+        $uploadUrl = "$uploadUrl?name=RealViewOn.exe"
+        
+        try {
+          $filePath = "x64\Release\RealViewOn.exe"
+          $fileBytes = [System.IO.File]::ReadAllBytes($filePath)
+          
+          $response = Invoke-RestMethod -Uri $uploadUrl -Method Post -Headers $headers -Body $fileBytes
+          Write-Host "✅ Asset subido exitosamente: $($response.name)"
+        } catch {
+          Write-Host "❌ Error al subir asset: $($_.Exception.Message)"
+          throw
+        }
 
 
