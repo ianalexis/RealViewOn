@@ -1,5 +1,4 @@
 # Workflow para compilar el proyecto RealViewOn con MSBuild
-# Este workflow compila el proyecto C++ para arquitecturas x86 y x64
 
 name: Build RealViewOn
 
@@ -167,7 +166,7 @@ jobs:
                     $validCommits += "- $cleanCommit"
                   }
                 }
-                
+
                 if ($validCommits.Length -gt 0) {
                   $changelogText = $validCommits -join "`n"
                   Write-Host "📋 Changelog generado con $($validCommits.Length) commits"
@@ -187,13 +186,13 @@ jobs:
             # Limpiar el changelog text para evitar problemas con caracteres especiales
             $changelogText = $changelogText -replace "`r`n", "`n"
             $changelogText = $changelogText -replace "`r", "`n"
-            
+
             # Escribir el changelog usando un método más seguro
             $changelogPath = "changelog_temp.txt"
             $changelogText | Out-File -FilePath $changelogPath -Encoding utf8 -NoNewline
             $changelogContent = Get-Content -Path $changelogPath -Raw
             Remove-Item -Path $changelogPath -Force
-            
+
             echo "CHANGELOG<<EOF" >> $env:GITHUB_OUTPUT
             echo $changelogContent >> $env:GITHUB_OUTPUT
             echo "EOF" >> $env:GITHUB_OUTPUT
