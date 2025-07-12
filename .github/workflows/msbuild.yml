@@ -67,75 +67,18 @@ jobs:
           exit 1
         }
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: RealViewOn-x64-${{ env.BUILD_CONFIGURATION }}
-        path: |
-          x64/Release/RealViewOn.exe
-          x64/Release/*.pdb
-        if-no-files-found: ignore
-
-  release:
-    needs: build
-    runs-on: windows-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
-    steps:
-    - name: Checkout code (for UPX tool)
-      uses: actions/checkout@v4
-      
-    - name: Download all artifacts
-      uses: actions/download-artifact@v4
-      
-    - name: List downloaded artifacts
+    - name: Compress with UPX
       run: |
-        Write-Host "Contenido del workspace después de descargar artefactos:"
-        Get-ChildItem -Recurse | Select-Object FullName, Length
-      
-    - name: Create release package
-      run: |
-        New-Item -ItemType Directory -Path "release-package" -Force
-        
-        # Buscar el ejecutable en todas las ubicaciones posibles
-        $possiblePaths = @(
-          "RealViewOn-x64-Release\x64\Release\RealViewOn.exe",
-          "RealViewOn-x64-Release\RealViewOn.exe",
-          "x64\Release\RealViewOn.exe",
-          "RealViewOn.exe"
-        )
-        
-        $found = $false
-        $sourceExe = ""
-        foreach ($path in $possiblePaths) {
-          if (Test-Path $path) {
-            Write-Host "✅ Encontrado ejecutable en: $path"
-            $sourceExe = $path
-            $found = $true
-            break
-          }
-        }
-        
-        if (-not $found) {
-          Write-Host "❌ No se encontró el ejecutable en ninguna ubicación"
-          Write-Host "Estructura de directorios actual:"
-          Get-ChildItem -Recurse | Where-Object { $_.Name -like "*.exe" } | Select-Object FullName
-          exit 1
-        }
-        
-        # Copiar ejecutable a release-package
-        Copy-Item $sourceExe "release-package\RealViewOn.exe"
-        
         # Comprimir con UPX si existe
         if (Test-Path "tools\upx.exe") {
           Write-Host "🗜️ Comprimiendo con UPX..."
-          $originalSize = (Get-Item "release-package\RealViewOn.exe").Length
+          $originalSize = (Get-Item "x64\Release\RealViewOn.exe").Length
           Write-Host "Tamaño original: $([math]::Round($originalSize/1MB, 2)) MB"
           
-          & ".\tools\upx.exe" --ultra-brute "release-package\RealViewOn.exe"
+          & ".\tools\upx.exe" --ultra-brute "x64\Release\RealViewOn.exe"
           
           if ($LASTEXITCODE -eq 0) {
-            $compressedSize = (Get-Item "release-package\RealViewOn.exe").Length
+            $compressedSize = (Get-Item "x64\Release\RealViewOn.exe").Length
             $compressionRatio = [math]::Round((($originalSize - $compressedSize) / $originalSize) * 100, 1)
             Write-Host "✅ Compresión UPX completada"
             Write-Host "Tamaño comprimido: $([math]::Round($compressedSize/1MB, 2)) MB"
@@ -146,14 +89,14 @@ jobs:
         } else {
           Write-Host "⚠️ UPX no encontrado, saltando compresión"
         }
-        
-        # Listar contenido del paquete final
-        Write-Host "Contenido del paquete de release:"
-        Get-ChildItem "release-package" -Recurse | Select-Object Name, Length
 
-    - name: Upload release package
+    - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: RealViewOn-Release-Package
-        path: release-package/
-        if-no-files-found: error
+        name: RealViewOn-x64-${{ env.BUILD_CONFIGURATION }}
+        path: |
+          x64/Release/RealViewOn.exe
+          x64/Release/*.pdb
+        if-no-files-found: ignore
+
+
