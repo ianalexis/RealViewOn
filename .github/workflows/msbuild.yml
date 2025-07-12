@@ -142,7 +142,20 @@ jobs:
           }
           
           $response = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tagName" -Headers $headers -Method Get
-          Write-Host "⚠️ El release $tagName ya existe, se actualizará"
+          Write-Host "⚠️ El release $tagName ya existe (ID: $($response.id))"
+          
+          # Buscar si existe un asset con el mismo nombre
+          $existingAsset = $response.assets | Where-Object { $_.name -eq "RealViewOn.exe" }
+          if ($existingAsset) {
+            Write-Host "🗑️ Eliminando asset existente: $($existingAsset.name)"
+            try {
+              Invoke-RestMethod -Uri $existingAsset.url -Headers $headers -Method Delete
+              Write-Host "✅ Asset anterior eliminado"
+            } catch {
+              Write-Host "⚠️ No se pudo eliminar el asset anterior: $($_.Exception.Message)"
+            }
+          }
+          
           echo "EXISTS=true" >> $env:GITHUB_OUTPUT
           echo "RELEASE_ID=$($response.id)" >> $env:GITHUB_OUTPUT
           echo "UPLOAD_URL=$($response.upload_url)" >> $env:GITHUB_OUTPUT
@@ -203,25 +216,35 @@ jobs:
           "${{ steps.create_release.outputs.upload_url }}"
         }
         
-        Write-Host "📤 Subiendo asset a: $uploadUrl"
+        Write-Host "📤 URL base recibida: $uploadUrl"
+        
+        # Remover {?name,label} del upload_url si está presente
+        $uploadUrl = $uploadUrl -replace '\{\?.*\}', ''
+        $uploadUrl = "$uploadUrl" + "?name=RealViewOn.exe"
+        
+        Write-Host "📤 URL final para subir: $uploadUrl"
         
         $headers = @{
           'Authorization' = 'token ${{ secrets.GITHUB_TOKEN }}'
           'Content-Type' = 'application/octet-stream'
         }
         
-        # Remover {?name,label} del upload_url si está presente
-        $uploadUrl = $uploadUrl -replace '\{\?.*\}', ''
-        $uploadUrl = "$uploadUrl?name=RealViewOn.exe"
-        
         try {
           $filePath = "x64\Release\RealViewOn.exe"
+          
+          # Verificar que el archivo existe
+          if (-not (Test-Path $filePath)) {
+            throw "El archivo $filePath no existe"
+          }
+          
           $fileBytes = [System.IO.File]::ReadAllBytes($filePath)
+          Write-Host "📦 Archivo cargado: $([math]::Round($fileBytes.Length/1MB, 2)) MB"
           
           $response = Invoke-RestMethod -Uri $uploadUrl -Method Post -Headers $headers -Body $fileBytes
           Write-Host "✅ Asset subido exitosamente: $($response.name)"
         } catch {
           Write-Host "❌ Error al subir asset: $($_.Exception.Message)"
+          Write-Host "🔍 Detalles del error: $($_.Exception.Response.StatusCode) - $($_.Exception.Response.StatusDescription)"
           throw
         }
 
