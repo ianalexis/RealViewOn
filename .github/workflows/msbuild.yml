@@ -82,6 +82,9 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     steps:
+    - name: Checkout code (for UPX tool)
+      uses: actions/checkout@v4
+      
     - name: Download all artifacts
       uses: actions/download-artifact@v4
       
@@ -103,10 +106,11 @@ jobs:
         )
         
         $found = $false
+        $sourceExe = ""
         foreach ($path in $possiblePaths) {
           if (Test-Path $path) {
             Write-Host "✅ Encontrado ejecutable en: $path"
-            Copy-Item $path "release-package\RealViewOn.exe"
+            $sourceExe = $path
             $found = $true
             break
           }
@@ -119,9 +123,33 @@ jobs:
           exit 1
         }
         
-        # Listar contenido del paquete
+        # Copiar ejecutable a release-package
+        Copy-Item $sourceExe "release-package\RealViewOn.exe"
+        
+        # Comprimir con UPX si existe
+        if (Test-Path "tools\upx.exe") {
+          Write-Host "🗜️ Comprimiendo con UPX..."
+          $originalSize = (Get-Item "release-package\RealViewOn.exe").Length
+          Write-Host "Tamaño original: $([math]::Round($originalSize/1MB, 2)) MB"
+          
+          & ".\tools\upx.exe" --ultra-brute "release-package\RealViewOn.exe"
+          
+          if ($LASTEXITCODE -eq 0) {
+            $compressedSize = (Get-Item "release-package\RealViewOn.exe").Length
+            $compressionRatio = [math]::Round((($originalSize - $compressedSize) / $originalSize) * 100, 1)
+            Write-Host "✅ Compresión UPX completada"
+            Write-Host "Tamaño comprimido: $([math]::Round($compressedSize/1MB, 2)) MB"
+            Write-Host "Reducción: $compressionRatio%"
+          } else {
+            Write-Host "⚠️ Error en compresión UPX, continuando sin comprimir"
+          }
+        } else {
+          Write-Host "⚠️ UPX no encontrado, saltando compresión"
+        }
+        
+        # Listar contenido del paquete final
         Write-Host "Contenido del paquete de release:"
-        Get-ChildItem "release-package" -Recurse
+        Get-ChildItem "release-package" -Recurse | Select-Object Name, Length
 
     - name: Upload release package
       uses: actions/upload-artifact@v4
