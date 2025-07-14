@@ -23,7 +23,7 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{36fd3b22-b095-47e5-9e45-a4050e4cc122}</ProjectGuid>
     <RootNamespace>RealViewOn</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>RealViewOn</ProjectName>
     <WindowsTargetPlatformMinVersion>7.0</WindowsTargetPlatformMinVersion>
   </PropertyGroup>
@@ -44,6 +44,7 @@
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
     <EnableUnitySupport>false</EnableUnitySupport>
     <CLRSupport>false</CLRSupport>
+    <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -61,6 +62,7 @@
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
     <EnableUnitySupport>false</EnableUnitySupport>
     <CLRSupport>false</CLRSupport>
+    <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -113,8 +115,8 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -129,8 +131,9 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <StringPooling>true</StringPooling>
-      <SmallerTypeCheck>true</SmallerTypeCheck>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
       <OmitFramePointers>true</OmitFramePointers>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,6 +144,7 @@
       <AdditionalLibraryDirectories>$(ProjectDir)\rtmidi\lib;$(ProjectDir)\midifile\visual-studio\ReleaseLib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>
  %(AdditionalOptions)</AdditionalOptions>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <ResourceCompile>
       <Culture>0x2c0a</Culture>
@@ -174,8 +178,8 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -187,11 +191,12 @@
       </AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <StringPooling>true</StringPooling>
-      <SmallerTypeCheck>true</SmallerTypeCheck>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
       <OmitFramePointers>true</OmitFramePointers>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -202,6 +207,7 @@
       <AdditionalLibraryDirectories>$(ProjectDir)\rtmidi\lib;$(ProjectDir)\midifile\visual-studio\ReleaseLib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>
  %(AdditionalOptions)</AdditionalOptions>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <ResourceCompile>
       <Culture>0x2c0a</Culture>
