@@ -26,6 +26,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Get compilation timestamp
+        id: compilation_time
+        run: |
+          # Crear el formato similar a getVersionFromDateTime (YYMMDDHHII)
+          $compilationCode = Get-Date -Format "yyMMddHHmm"
+          Write-Host "🔢 Código de compilación: $compilationCode"
+          echo "COMPILATION_CODE=$compilationCode" >> $env:GITHUB_OUTPUT
+
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
@@ -89,7 +97,7 @@ jobs:
             Write-Host "⚠️ UPX no encontrado, saltando compresión"
           }
 
-      - name: Get file version
+      - name: Get file version and release info
         id: get_version
         run: |
           $exePath = "x64\Release\RealViewOn.exe"
@@ -106,6 +114,10 @@ jobs:
             }
           }
 
+          # Determinar emoji y tipo de release
+          $emoji = if ($isStable) { "🚀" } else { "🛑" }
+          $releaseType = if ($isStable) { "release" } else { "pre-release" }
+
           try {
             $versionInfo = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($exePath)
             $fileVersion = $versionInfo.FileVersion
@@ -121,14 +133,23 @@ jobs:
             }
 
             Write-Host "📋 Versión detectada: $version"
+            Write-Host "📋 Tipo de release: $releaseType ($emoji)"
+
             echo "VERSION=$version" >> $env:GITHUB_OUTPUT
             echo "IS_STABLE=$isStable" >> $env:GITHUB_OUTPUT
+            echo "EMOJI=$emoji" >> $env:GITHUB_OUTPUT
+            echo "RELEASE_TYPE=$releaseType" >> $env:GITHUB_OUTPUT
+            echo "RELEASE_NAME=$emoji RealViewOn v$version" >> $env:GITHUB_OUTPUT
           } catch {
             Write-Host "⚠️ No se pudo obtener la versión del archivo, usando timestamp y commit"
             $shortSha = "${{ github.sha }}".Substring(0, 7)
             $version = "$(Get-Date -Format 'yyyy.MM.dd.HHmm')-$shortSha"
+
             echo "VERSION=$version" >> $env:GITHUB_OUTPUT
             echo "IS_STABLE=$isStable" >> $env:GITHUB_OUTPUT
+            echo "EMOJI=$emoji" >> $env:GITHUB_OUTPUT
+            echo "RELEASE_TYPE=$releaseType" >> $env:GITHUB_OUTPUT
+            echo "RELEASE_NAME=$emoji RealViewOn v$version" >> $env:GITHUB_OUTPUT
           }
 
       - name: Get changelog since last release
@@ -215,23 +236,33 @@ jobs:
             x64/Release/*.pdb
           if-no-files-found: ignore
 
-      - name: Check if release exists
+      - name: Prepare release assets
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          # Mover el ejecutable a un directorio de staging para assets
+          New-Item -ItemType Directory -Force -Path "release-assets"
+          Copy-Item "x64\Release\RealViewOn.exe" "release-assets\RealViewOn.exe"
+
+          Write-Host "📦 Asset preparado para release: release-assets\RealViewOn.exe"
+          Get-Item "release-assets\RealViewOn.exe" | Select-Object Name, Length, LastWriteTime
+
+      - name: Check and manage existing release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: check_release
         run: |
           $tagName = "v${{ steps.get_version.outputs.VERSION }}"
           Write-Host "🔍 Verificando si existe el release: $tagName"
 
-          try {
-            $headers = @{
-              'Authorization' = 'token ${{ secrets.GITHUB_TOKEN }}'
-              'Accept' = 'application/vnd.github.v3+json'
-            }
+          $headers = @{
+            'Authorization' = 'token ${{ secrets.GITHUB_TOKEN }}'
+            'Accept' = 'application/vnd.github.v3+json'
+          }
 
+          try {
             $response = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tagName" -Headers $headers -Method Get
             Write-Host "⚠️ El release $tagName ya existe (ID: $($response.id))"
 
-            # Buscar si existe un asset con el mismo nombre
+            # Eliminar asset existente si existe
             $existingAsset = $response.assets | Where-Object { $_.name -eq "RealViewOn.exe" }
             if ($existingAsset) {
               Write-Host "🗑️ Eliminando asset existente: $($existingAsset.name)"
@@ -245,7 +276,7 @@ jobs:
 
             echo "EXISTS=true" >> $env:GITHUB_OUTPUT
             echo "RELEASE_ID=$($response.id)" >> $env:GITHUB_OUTPUT
-            echo "UPLOAD_URL=$($response.upload_url)" >> $env:GITHUB_OUTPUT
+            echo "UPLOAD_URL=$($response.upload_url -replace '\{\?.*\}', '')" >> $env:GITHUB_OUTPUT
           } catch {
             if ($_.Exception.Response.StatusCode -eq 404) {
               Write-Host "✅ El release $tagName no existe, se creará uno nuevo"
@@ -256,51 +287,15 @@ jobs:
             }
           }
 
-      - name: Create GitHub Release / Pre-Release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.check_release.outputs.EXISTS == 'false'
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ steps.get_version.outputs.VERSION }}
-          release_name: "RealViewOn v${{ steps.get_version.outputs.VERSION }}"
-          body: |
-            # 🚀 RealViewOn Release v${{ steps.get_version.outputs.VERSION }}
-
-            ## What's Changed
-            ${{ steps.get_changelog.outputs.CHANGELOG }}
-
-            ---
-            *This is an automated $releaseType generated from the latest commit.*
-            "@
-              }
-              draft = $false
-              prerelease = -not $isStable
-            } | ConvertTo-Json -Depth 3
-
-            try {
-              $response = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId" -Headers $headers -Method Patch -Body $body
-              Write-Host "✅ Release actualizado exitosamente como $releaseType"
-            } catch {
-              Write-Host "❌ Error al actualizar release: $($_.Exception.Message)"
-              throw
-            }
-
-            ---
-            *This is an automated ${{ steps.get_version.outputs.IS_STABLE == 'True' && 'release' || 'pre-release' }} generated from the latest commit.*
-          draft: false
-          prerelease: ${{ steps.get_version.outputs.IS_STABLE != 'True' }}
-        id: create_release
-
-      - name: Update existing release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.check_release.outputs.EXISTS == 'true'
+      - name: Create or update GitHub Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: release
         run: |
-          $releaseId = "${{ steps.check_release.outputs.RELEASE_ID }}"
           $tagName = "v${{ steps.get_version.outputs.VERSION }}"
+          $releaseName = "${{ steps.get_version.outputs.RELEASE_NAME }}"
           $isStable = "${{ steps.get_version.outputs.IS_STABLE }}" -eq "True"
-          $releaseType = if ($isStable) { "release" } else { "pre-release" }
-
-          Write-Host "🔄 Actualizando release existente: $tagName (ID: $releaseId) como $releaseType"
+          $emoji = "${{ steps.get_version.outputs.EMOJI }}"
+          $releaseType = "${{ steps.get_version.outputs.RELEASE_TYPE }}"
 
           $headers = @{
             'Authorization' = 'token ${{ secrets.GITHUB_TOKEN }}'
@@ -308,58 +303,66 @@ jobs:
             'Content-Type' = 'application/json'
           }
 
+          # Crear cuerpo del release
+          $releaseBody = if ($isStable) {
+            @"
+          # RealViewOn Release v${{ steps.get_version.outputs.VERSION }} (c${{ steps.compilation_time.outputs.COMPILATION_CODE }}) $emoji
+
+          ## What's Changed
+          ${{ steps.get_changelog.outputs.CHANGELOG }}
+
+          ---
+          *This is an automated $releaseType generated from the latest commit.*
+          "@
+          } else {
+            @"
+          # $emoji RealViewOn Pre-Release v${{ steps.get_version.outputs.VERSION }} (c${{ steps.compilation_time.outputs.COMPILATION_CODE }}) $emoji
+
+          ## What's Changed
+          ${{ steps.get_changelog.outputs.CHANGELOG }}
+
+          ---
+          *This is an automated $releaseType generated from the latest commit.*
+          "@
+          }
+
           $body = @{
             tag_name = $tagName
-            name = "${{ steps.get_version.outputs.VERSION }}🛠️"
-            body = if ($isStable) {
-              @"
-          # Release v${{ steps.get_version.outputs.VERSION }} 🚀
-
-          ## What's Changed
-          ${{ steps.get_changelog.outputs.CHANGELOG }}
-
-          ---
-          *This is an automated $releaseType generated from the latest commit.*
-          "@
-            } else {
-              @"
-          # 🛑 Pre-Release v${{ steps.get_version.outputs.VERSION }} 🛑
-
-          ## What's Changed
-          ${{ steps.get_changelog.outputs.CHANGELOG }}
-
-          ---
-          *This is an automated $releaseType generated from the latest commit.*
-          "@
-            }
+            name = $releaseName
+            body = $releaseBody
             draft = $false
             prerelease = -not $isStable
           } | ConvertTo-Json -Depth 3
 
           try {
-            $response = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId" -Headers $headers -Method Patch -Body $body
-            Write-Host "✅ Release actualizado exitosamente como $releaseType"
+            if ("${{ steps.check_release.outputs.EXISTS }}" -eq "true") {
+              # Actualizar release existente
+              $releaseId = "${{ steps.check_release.outputs.RELEASE_ID }}"
+              Write-Host "🔄 Actualizando release existente: $tagName (ID: $releaseId) como $releaseType"
+
+              $response = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId" -Headers $headers -Method Patch -Body $body
+              echo "UPLOAD_URL=${{ steps.check_release.outputs.UPLOAD_URL }}" >> $env:GITHUB_OUTPUT
+            } else {
+              # Crear nuevo release
+              Write-Host "🆕 Creando nuevo release: $tagName como $releaseType"
+
+              $response = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases" -Headers $headers -Method Post -Body $body
+              $uploadUrl = $response.upload_url -replace '\{\?.*\}', ''
+              echo "UPLOAD_URL=$uploadUrl" >> $env:GITHUB_OUTPUT
+            }
+
+            Write-Host "✅ Release procesado exitosamente como $releaseType"
+            echo "RELEASE_ID=$($response.id)" >> $env:GITHUB_OUTPUT
           } catch {
-            Write-Host "❌ Error al actualizar release: $($_.Exception.Message)"
+            Write-Host "❌ Error al procesar release: $($_.Exception.Message)"
             throw
           }
 
       - name: Upload Release Asset
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          $uploadUrl = if ("${{ steps.check_release.outputs.EXISTS }}" -eq "true") {
-            "${{ steps.check_release.outputs.UPLOAD_URL }}"
-          } else {
-            "${{ steps.create_release.outputs.upload_url }}"
-          }
-
-          Write-Host "📤 URL base recibida: $uploadUrl"
-
-          # Remover {?name,label} del upload_url si está presente
-          $uploadUrl = $uploadUrl -replace '\{\?.*\}', ''
-          $uploadUrl = "$uploadUrl" + "?name=RealViewOn.exe"
-
-          Write-Host "📤 URL final para subir: $uploadUrl"
+          $uploadUrl = "${{ steps.release.outputs.UPLOAD_URL }}?name=RealViewOn.exe"
+          Write-Host "📤 Subiendo asset a: $uploadUrl"
 
           $headers = @{
             'Authorization' = 'token ${{ secrets.GITHUB_TOKEN }}'
@@ -367,20 +370,22 @@ jobs:
           }
 
           try {
-            $filePath = "x64\Release\RealViewOn.exe"
+            $filePath = "release-assets\RealViewOn.exe"
 
-            # Verificar que el archivo existe
             if (-not (Test-Path $filePath)) {
               throw "El archivo $filePath no existe"
             }
 
             $fileBytes = [System.IO.File]::ReadAllBytes($filePath)
-            Write-Host "📦 Archivo cargado: $([math]::Round($fileBytes.Length/1MB, 2)) MB"
+            Write-Host "📦 Subiendo archivo: $([math]::Round($fileBytes.Length/1MB, 2)) MB"
 
             $response = Invoke-RestMethod -Uri $uploadUrl -Method Post -Headers $headers -Body $fileBytes
             Write-Host "✅ Asset subido exitosamente: $($response.name)"
+            Write-Host "🔗 Download URL: $($response.browser_download_url)"
           } catch {
             Write-Host "❌ Error al subir asset: $($_.Exception.Message)"
-            Write-Host "🔍 Detalles del error: $($_.Exception.Response.StatusCode) - $($_.Exception.Response.StatusDescription)"
+            if ($_.Exception.Response) {
+              Write-Host "🔍 Status: $($_.Exception.Response.StatusCode) - $($_.Exception.Response.StatusDescription)"
+            }
             throw
           }
