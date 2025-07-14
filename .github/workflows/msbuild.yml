@@ -139,7 +139,7 @@ jobs:
             echo "IS_STABLE=$isStable" >> $env:GITHUB_OUTPUT
             echo "EMOJI=$emoji" >> $env:GITHUB_OUTPUT
             echo "RELEASE_TYPE=$releaseType" >> $env:GITHUB_OUTPUT
-            echo "RELEASE_NAME=$emoji RealViewOn v$version" >> $env:GITHUB_OUTPUT
+            echo "RELEASE_NAME=$emoji v$version" >> $env:GITHUB_OUTPUT
           } catch {
             Write-Host "⚠️ No se pudo obtener la versión del archivo, usando timestamp y commit"
             $shortSha = "${{ github.sha }}".Substring(0, 7)
