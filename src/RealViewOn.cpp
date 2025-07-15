@@ -49,15 +49,6 @@ void configurarConsola() {
     try {
         SetConsoleOutputCP(CP_UTF8); // Soporte para UTF-8
         terminalColorAuto(false);
-        // Predefinir tamaño de consola
-        HWND console = GetConsoleWindow();
-        RECT r;
-        GetWindowRect(console, &r); // Obtener el tamaño actual de la consola
-        MoveWindow(console, r.left, r.top, 825, 700, TRUE); // Cambiar el tamaño de la consola a 825x700 (Tamaño perfecto para todos los easteregg)
-        // Bloquear el redimensionamiento de la ventana
-        LONG style = GetWindowLong(console, GWL_STYLE);
-        style &= ~(WS_SIZEBOX | WS_MAXIMIZEBOX); // Quitar estilos de redimensionamiento
-        SetWindowLong(console, GWL_STYLE, style);
         playMidiAsync();
     } catch (const std::exception& ex) {
         std::cerr << "Error: " << ex.what() << std::endl;
