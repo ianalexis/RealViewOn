@@ -234,17 +234,55 @@ jobs:
           path: |
             x64/Release/RealViewOn.exe
             x64/Release/*.pdb
+            release-assets/RealViewOn.7z
+            release-assets/RealViewOn.zip
           if-no-files-found: ignore
 
       - name: Prepare release assets
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          # Mover el ejecutable a un directorio de staging para assets
+          # Crear directorio de staging para assets
           New-Item -ItemType Directory -Force -Path "release-assets"
           Copy-Item "x64\Release\RealViewOn.exe" "release-assets\RealViewOn.exe"
 
           Write-Host "📦 Asset preparado para release: release-assets\RealViewOn.exe"
           Get-Item "release-assets\RealViewOn.exe" | Select-Object Name, Length, LastWriteTime
+
+          # Comprimir con 7zip si está disponible
+          if (Test-Path "tools\7zr.exe") {
+            Write-Host "📦 Comprimiendo con 7zip..."
+            $originalSize = (Get-Item "release-assets\RealViewOn.exe").Length
+            Write-Host "Tamaño del ejecutable: $([math]::Round($originalSize/1MB, 2)) MB"
+
+            # Crear archivo 7z con máxima compresión
+            & ".\tools\7zr.exe" a -t7z -mx=9 -mfb=273 -ms=on "release-assets\RealViewOn.7z" "release-assets\RealViewOn.exe"
+
+            if ($LASTEXITCODE -eq 0) {
+              $compressedSize = (Get-Item "release-assets\RealViewOn.7z").Length
+              $compressionRatio = [math]::Round((($originalSize - $compressedSize) / $originalSize) * 100, 1)
+              Write-Host "✅ Compresión 7zip completada"
+              Write-Host "Tamaño comprimido: $([math]::Round($compressedSize/1MB, 2)) MB"
+              Write-Host "Reducción: $compressionRatio%"
+            } else {
+              Write-Host "⚠️ Error en compresión 7zip, continuando..."
+            }
+
+            # Crear archivo ZIP con máxima compresión
+            Write-Host "📦 Comprimiendo con ZIP..."
+            & ".\tools\7zr.exe" a -tzip -mx=9 "release-assets\RealViewOn.zip" "release-assets\RealViewOn.exe"
+
+            if ($LASTEXITCODE -eq 0) {
+              $zipSize = (Get-Item "release-assets\RealViewOn.zip").Length
+              $zipRatio = [math]::Round((($originalSize - $zipSize) / $originalSize) * 100, 1)
+              Write-Host "✅ Compresión ZIP completada"
+              Write-Host "Tamaño ZIP: $([math]::Round($zipSize/1MB, 2)) MB"
+              Write-Host "Reducción ZIP: $zipRatio%"
+            } else {
+              Write-Host "⚠️ Error en compresión ZIP, continuando..."
+            }
+          } else {
+            Write-Host "⚠️ 7zip no encontrado, solo se subirá el ejecutable"
+          }
 
       - name: Check and manage existing release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -262,15 +300,18 @@ jobs:
             $response = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tagName" -Headers $headers -Method Get
             Write-Host "⚠️ El release $tagName ya existe (ID: $($response.id))"
 
-            # Eliminar asset existente si existe
-            $existingAsset = $response.assets | Where-Object { $_.name -eq "RealViewOn.exe" }
-            if ($existingAsset) {
-              Write-Host "🗑️ Eliminando asset existente: $($existingAsset.name)"
-              try {
-                Invoke-RestMethod -Uri $existingAsset.url -Headers $headers -Method Delete
-                Write-Host "✅ Asset anterior eliminado"
-              } catch {
-                Write-Host "⚠️ No se pudo eliminar el asset anterior: $($_.Exception.Message)"
+            # Eliminar assets existentes si existen
+            $assetsToDelete = @("RealViewOn.exe", "RealViewOn.7z", "RealViewOn.zip")
+            foreach ($assetName in $assetsToDelete) {
+              $existingAsset = $response.assets | Where-Object { $_.name -eq $assetName }
+              if ($existingAsset) {
+                Write-Host "🗑️ Eliminando asset existente: $($existingAsset.name)"
+                try {
+                  Invoke-RestMethod -Uri $existingAsset.url -Headers $headers -Method Delete
+                  Write-Host "✅ Asset $assetName eliminado"
+                } catch {
+                  Write-Host "⚠️ No se pudo eliminar el asset $assetName : $($_.Exception.Message)"
+                }
               }
             }
 
@@ -304,9 +345,16 @@ jobs:
           }
 
           # Crear cuerpo del release
-          $releaseBody = if ($isStable) {
-            @"
-          # RealViewOn Release v${{ steps.get_version.outputs.VERSION }} (c${{ steps.compilation_time.outputs.COMPILATION_CODE }}) $emoji
+          $titlePrefix = if ($isStable) { "RealViewOn Release" } else { "$emoji RealViewOn Pre-Release" }
+          $titleSuffix = if ($isStable) { " $emoji" } else { " $emoji" }
+
+          $releaseBody = @"
+          # $titlePrefix v${{ steps.get_version.outputs.VERSION }} (c${{ steps.compilation_time.outputs.COMPILATION_CODE }})$titleSuffix
+
+          ## Downloads 📥
+          - **RealViewOn.exe** - Main executable (UPX compressed)
+          - **RealViewOn.7z** - 7-zip compressed archive (UPX + 7Z compression)
+          - **RealViewOn.zip** - Zip compressed archive (UPX + Standard Zip)
 
           ## What's Changed
           ${{ steps.get_changelog.outputs.CHANGELOG }}
@@ -314,17 +362,6 @@ jobs:
           ---
           *This is an automated $releaseType generated from the latest commit.*
           "@
-          } else {
-            @"
-          # $emoji RealViewOn Pre-Release v${{ steps.get_version.outputs.VERSION }} (c${{ steps.compilation_time.outputs.COMPILATION_CODE }}) $emoji
-
-          ## What's Changed
-          ${{ steps.get_changelog.outputs.CHANGELOG }}
-
-          ---
-          *This is an automated $releaseType generated from the latest commit.*
-          "@
-          }
 
           $body = @{
             tag_name = $tagName
@@ -358,34 +395,59 @@ jobs:
             throw
           }
 
-      - name: Upload Release Asset
+      - name: Upload Release Assets
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          $uploadUrl = "${{ steps.release.outputs.UPLOAD_URL }}?name=RealViewOn.exe"
-          Write-Host "📤 Subiendo asset a: $uploadUrl"
+          $uploadUrl = "${{ steps.release.outputs.UPLOAD_URL }}"
+          Write-Host "📤 Subiendo assets al release"
 
           $headers = @{
             'Authorization' = 'token ${{ secrets.GITHUB_TOKEN }}'
             'Content-Type' = 'application/octet-stream'
           }
 
-          try {
-            $filePath = "release-assets\RealViewOn.exe"
+          # Lista de assets a subir
+          $assets = @(
+            @{ Name = "RealViewOn.exe"; Path = "release-assets\RealViewOn.exe"; Required = $true }
+            @{ Name = "RealViewOn.7z"; Path = "release-assets\RealViewOn.7z"; Required = $false }
+            @{ Name = "RealViewOn.zip"; Path = "release-assets\RealViewOn.zip"; Required = $false }
+          )
 
-            if (-not (Test-Path $filePath)) {
-              throw "El archivo $filePath no existe"
+          foreach ($asset in $assets) {
+            $assetName = $asset.Name
+            $filePath = $asset.Path
+            $isRequired = $asset.Required
+
+            if (Test-Path $filePath) {
+              try {
+                $uploadAssetUrl = "$uploadUrl" + "?name=$assetName"
+                Write-Host "📦 Subiendo $assetName..."
+
+                $fileBytes = [System.IO.File]::ReadAllBytes($filePath)
+                $fileSizeMB = [math]::Round($fileBytes.Length/1MB, 2)
+                Write-Host "   📊 Tamaño: $fileSizeMB MB"
+
+                $response = Invoke-RestMethod -Uri $uploadAssetUrl -Method Post -Headers $headers -Body $fileBytes
+                Write-Host "   ✅ $assetName subido exitosamente"
+                Write-Host "   🔗 Download URL: $($response.browser_download_url)"
+              } catch {
+                Write-Host "   ❌ Error al subir $assetName : $($_.Exception.Message)"
+                if ($_.Exception.Response) {
+                  Write-Host "   🔍 Status: $($_.Exception.Response.StatusCode) - $($_.Exception.Response.StatusDescription)"
+                }
+                if ($isRequired) {
+                  throw "Error al subir asset requerido: $assetName"
+                } else {
+                  Write-Host "   ⚠️ Asset opcional $assetName no se pudo subir, continuando..."
+                }
+              }
+            } else {
+              if ($isRequired) {
+                throw "Asset requerido no encontrado: $filePath"
+              } else {
+                Write-Host "   ⚠️ Asset opcional no encontrado: $filePath (se omite)"
+              }
             }
-
-            $fileBytes = [System.IO.File]::ReadAllBytes($filePath)
-            Write-Host "📦 Subiendo archivo: $([math]::Round($fileBytes.Length/1MB, 2)) MB"
-
-            $response = Invoke-RestMethod -Uri $uploadUrl -Method Post -Headers $headers -Body $fileBytes
-            Write-Host "✅ Asset subido exitosamente: $($response.name)"
-            Write-Host "🔗 Download URL: $($response.browser_download_url)"
-          } catch {
-            Write-Host "❌ Error al subir asset: $($_.Exception.Message)"
-            if ($_.Exception.Response) {
-              Write-Host "🔍 Status: $($_.Exception.Response.StatusCode) - $($_.Exception.Response.StatusDescription)"
-            }
-            throw
           }
+
+          Write-Host "🎉 Proceso de subida de assets completado"
