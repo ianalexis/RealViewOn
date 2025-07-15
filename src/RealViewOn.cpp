@@ -75,7 +75,7 @@ void encabezado() {
             << " ||                                                                                             ||\n"
             << " >>=============================================================================================<<\n";
     lineaEncabezado("v" + string(RVO_VERSION) + " c" + string(RVO_COMPILATION) + " - " + releaseType() + " - by [RF47] && [IanAlexis]");
-    lineaEncabezado("Oficial Repository: https://github.com/ianalexis");
+    lineaEncabezado("Official Repository: https://github.com/ianalexis");
     cout << " >>=============================================================================================<<" << std::endl;
 }
 
