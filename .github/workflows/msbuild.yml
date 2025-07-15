@@ -267,18 +267,18 @@ jobs:
               Write-Host "⚠️ Error en compresión 7zip, continuando..."
             }
 
-            # Crear archivo ZIP con máxima compresión
-            Write-Host "📦 Comprimiendo con ZIP..."
-            & ".\tools\7zr.exe" a -tzip -mx=9 "release-assets\RealViewOn.zip" "release-assets\RealViewOn.exe"
+            # Crear archivo ZIP usando PowerShell (7zr.exe no soporta ZIP)
+            Write-Host "📦 Comprimiendo con ZIP usando PowerShell..."
+            try {
+              Compress-Archive -Path "release-assets\RealViewOn.exe" -DestinationPath "release-assets\RealViewOn.zip" -CompressionLevel Optimal -Force
 
-            if ($LASTEXITCODE -eq 0) {
               $zipSize = (Get-Item "release-assets\RealViewOn.zip").Length
               $zipRatio = [math]::Round((($originalSize - $zipSize) / $originalSize) * 100, 1)
               Write-Host "✅ Compresión ZIP completada"
               Write-Host "Tamaño ZIP: $([math]::Round($zipSize/1MB, 2)) MB"
               Write-Host "Reducción ZIP: $zipRatio%"
-            } else {
-              Write-Host "⚠️ Error en compresión ZIP, continuando..."
+            } catch {
+              Write-Host "⚠️ Error en compresión ZIP: $($_.Exception.Message)"
             }
           } else {
             Write-Host "⚠️ 7zip no encontrado, solo se subirá el ejecutable"
