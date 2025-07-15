@@ -33,7 +33,7 @@ string AdvanceMode::askAdvanceOptions(){
 }
 
 void AdvanceMode::askToEnable(string optionName){
-    std::cout << "(" + std::to_string(optionNumber++) + "/" + std::to_string(optionsQty) + ") Enable " + optionName + "? (Y/N): ";
+    std::cout << "(" + std::to_string(optionNumber++) + "/" + std::to_string(optionsQty) + ") Enable " + optionName + "? ";
 }
 
 string AdvanceMode::qolCommands(){

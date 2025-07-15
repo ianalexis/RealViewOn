@@ -93,7 +93,7 @@ SolidWorks sw;
 AdvanceMode advMode;
 
 void modoAvanzado(int swVersion, bool generico) {
-    cout << "Advanced Mode? (Recommended) (Y/N): ";
+    cout << "Advanced Mode? (Recommended): ";
     if (yesOrNo()) {
         terminalColorAuto(true);
         try {
