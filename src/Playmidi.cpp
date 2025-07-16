@@ -1,33 +1,34 @@
 #include <iostream>
 #include <sstream>
 #include <thread>
+#include <chrono>
 #include <Windows.h>
 #include <RtMidi.h>
-#include "MidiFile.h" 
+#include "MidiFile.h"
 #include "resource.h"
 
 // Función para cargar el archivo MIDI incrustado como recurso
 std::vector<unsigned char> loadEmbeddedMidi() {
     HMODULE hModule = GetModuleHandle(nullptr);
     if (!hModule) {
-        throw std::runtime_error("Error al obtener el módulo del ejecutable.");
+        throw std::runtime_error("Error obtaining executable module.");
     }
 
     // Cargar el recurso
     HRSRC hResource = FindResource(hModule, MAKEINTRESOURCE(IDR_MIDI_FILE), RT_RCDATA);
     if (!hResource) {
-        throw std::runtime_error("Recurso MIDI no encontrado.");
+        throw std::runtime_error("MIDI resource not found.");
     }
 
     HGLOBAL hLoadedResource = LoadResource(hModule, hResource);
     if (!hLoadedResource) {
-        throw std::runtime_error("Error al cargar el recurso MIDI.");
+        throw std::runtime_error("Error loading MIDI resource.");
     }
 
     DWORD resourceSize = SizeofResource(hModule, hResource);
     void* resourceData = LockResource(hLoadedResource);
     if (!resourceData) {
-        throw std::runtime_error("Error al bloquear el recurso MIDI.");
+        throw std::runtime_error("Error locking MIDI resource.");
     }
 
     // Copiar los datos del recurso a un vector
@@ -47,14 +48,25 @@ void sendMidiMessage(RtMidiOut& midiOut, const std::vector<unsigned char>& messa
 // Función para reproducir datos MIDI directamente desde memoria
 void playMidi(const std::vector<unsigned char>& midiData) {
     try {
+        // Crear RtMidiOut con manejo de errores silencioso
         RtMidiOut midiOut;
+
+        // Configurar callback de error personalizado para suprimir mensajes automáticos
+        midiOut.setErrorCallback([](RtMidiError::Type type, const std::string &errorText, void *userData) {
+            // No hacer nada - suprimir salida de error automática
+        });
+
         if (midiOut.getPortCount() == 0) {
-            std::cerr << "No hay puertos MIDI disponibles." << std::endl;
-            return;
+            throw std::runtime_error("No MIDI ports available.");
         }
 
         // Abrir el primer puerto MIDI disponible
-        midiOut.openPort(0);
+        try {
+            midiOut.openPort(0);
+        } catch (const RtMidiError& error) {
+            // Convertir cualquier error de RtMidi en una excepción estándar
+            throw std::runtime_error("RtMidi: " + error.getMessage());
+        }
 
         // Usar un flujo de memoria para cargar el archivo MIDI
         std::stringstream midiStream(std::string(midiData.begin(), midiData.end()));
@@ -106,7 +118,16 @@ void playMidi(const std::vector<unsigned char>& midiData) {
        // std::cout << "Reproducción completada correctamente." << std::endl;
 
     }
-    catch (RtMidiError& error) {
-        error.printMessage();
+    catch (const RtMidiError& error) {
+        // Convertir cualquier otro error de RtMidi en una excepción estándar
+        throw std::runtime_error("RtMidi: " + error.getMessage());
+    }
+    catch (const std::exception& e) {
+        // Re-lanzar excepciones estándar
+        throw std::runtime_error(std::string(e.what()));
+    }
+    catch (...) {
+        // Capturar cualquier otro tipo de excepción
+        throw std::runtime_error("Unknown error during MIDI playback.");
     }
 }

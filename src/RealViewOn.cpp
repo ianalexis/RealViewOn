@@ -20,12 +20,14 @@ using std::string;
 
 void playMidiAsync() {
     // Esta función se ejecutará en un hilo separado
-    try{
-        std::thread midiThread(playMidi, loadEmbeddedMidi());
-        midiThread.detach();
-    } catch (const std::exception& ex) {
-        std::cerr << "Music error: " << ex.what() << std::endl;
-    }
+    std::thread midiThread([]() {
+        try {
+            playMidi(loadEmbeddedMidi());
+        } catch (const std::exception& ex) {
+            std::cerr << "Music error: " << ex.what() << std::endl;
+        }
+    });
+    midiThread.detach();
 }
 
 void terminalColorAuto(bool advMode){
