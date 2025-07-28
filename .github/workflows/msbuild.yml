@@ -8,6 +8,12 @@ on:
   pull_request:
     branches: ["main"]
   workflow_dispatch:
+    inputs:
+      wait_for_vt_results:
+        description: 'Wait and check VirusTotal analysis results'
+        required: false
+        default: false
+        type: boolean
 
 env:
   SOLUTION_FILE_PATH: RealViewOn.sln
@@ -452,9 +458,7 @@ jobs:
           # $titlePrefix v${{ steps.get_version.outputs.VERSION }} (c${{ steps.compilation_time.outputs.COMPILATION_CODE }})$titleSuffix
 
           ## Downloads 📥
-          - **RealViewOn.exe** - Main executable (UPX compressed)
-          - **RealViewOn.7z** - 7-zip compressed archive (UPX + 7Z compression)
-          - **RealViewOn.zip** - Zip compressed archive (UPX + Standard Zip)
+          ⏳ _Download links are being prepared..._
 
           ## What's Changed
           ${{ steps.get_changelog.outputs.CHANGELOG }}
@@ -497,6 +501,7 @@ jobs:
 
       - name: Upload Release Assets
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: upload_assets
         run: |
           $uploadUrl = "${{ steps.release.outputs.UPLOAD_URL }}"
           Write-Host "📤 Subiendo assets al release"
@@ -508,15 +513,18 @@ jobs:
 
           # Lista de assets a subir
           $assets = @(
-            @{ Name = "RealViewOn.exe"; Path = "release-assets\RealViewOn.exe"; Required = $true }
-            @{ Name = "RealViewOn.7z"; Path = "release-assets\RealViewOn.7z"; Required = $false }
-            @{ Name = "RealViewOn.zip"; Path = "release-assets\RealViewOn.zip"; Required = $false }
+            @{ Name = "RealViewOn.exe"; Path = "release-assets\RealViewOn.exe"; Required = $true; Description = "🚀 Executable" }
+            @{ Name = "RealViewOn.7z"; Path = "release-assets\RealViewOn.7z"; Required = $false; Description = "🗜️ 7-zip archive" }
+            @{ Name = "RealViewOn.zip"; Path = "release-assets\RealViewOn.zip"; Required = $false; Description = "📦 Zip archive" }
           )
+
+          $downloadLinks = @()
 
           foreach ($asset in $assets) {
             $assetName = $asset.Name
             $filePath = $asset.Path
             $isRequired = $asset.Required
+            $description = $asset.Description
 
             if (Test-Path $filePath) {
               try {
@@ -524,12 +532,16 @@ jobs:
                 Write-Host "📦 Subiendo $assetName..."
 
                 $fileBytes = [System.IO.File]::ReadAllBytes($filePath)
-                $fileSizeMB = [math]::Round($fileBytes.Length/1MB, 2)
-                Write-Host "   📊 Tamaño: $fileSizeMB MB"
+                $fileSizeKB = [math]::Round($fileBytes.Length/1KB, 1)
+                Write-Host "   📊 Tamaño: $fileSizeKB KB"
 
                 $response = Invoke-RestMethod -Uri $uploadAssetUrl -Method Post -Headers $headers -Body $fileBytes
                 Write-Host "   ✅ $assetName subido exitosamente"
                 Write-Host "   🔗 Download URL: $($response.browser_download_url)"
+                
+                # Agregar link de descarga a la lista
+                $downloadLinks += "- **[$assetName]($($response.browser_download_url))** - $description ($fileSizeKB KB)"
+                
               } catch {
                 Write-Host "   ❌ Error al subir $assetName : $($_.Exception.Message)"
                 if ($_.Exception.Response) {
@@ -551,3 +563,292 @@ jobs:
           }
 
           Write-Host "🎉 Proceso de subida de assets completado"
+          
+          # Guardar los enlaces de descarga para el siguiente step
+          if ($downloadLinks.Count -gt 0) {
+            $downloadsSection = $downloadLinks -join "`n"
+            Write-Host "📋 Enlaces de descarga generados:"
+            Write-Host $downloadsSection
+            
+            echo "DOWNLOAD_LINKS<<EOF" >> $env:GITHUB_OUTPUT
+            echo $downloadsSection >> $env:GITHUB_OUTPUT
+            echo "EOF" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Host "⚠️ No se generaron enlaces de descarga"
+            echo "DOWNLOAD_LINKS=" >> $env:GITHUB_OUTPUT
+          }
+          
+          # Guardar información de archivos para análisis de VirusTotal
+          $assetPaths = @()
+          foreach ($asset in $assets) {
+            if (Test-Path $asset.Path) {
+              $assetPaths += "$($asset.Name)|$($asset.Path)"
+            }
+          }
+          if ($assetPaths.Count -gt 0) {
+            $assetPathsString = $assetPaths -join ";"
+            echo "ASSET_PATHS=$assetPathsString" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "ASSET_PATHS=" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Analyze files with VirusTotal
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: analyze_virustotal
+        run: |
+          Write-Host "🛡️ Enviando archivos a VirusTotal para análisis"
+          
+          # Verificar si tenemos API key de VirusTotal
+          $vtApiKey = "${{ secrets.VIRUSTOTAL_API_KEY }}"
+          if (-not $vtApiKey -or $vtApiKey -eq "") {
+            Write-Host "⚠️ VIRUSTOTAL_API_KEY no está configurado en los secretos del repositorio"
+            Write-Host "📝 Para habilitar el análisis de VirusTotal:"
+            Write-Host "   1. Obtén una API key gratuita en https://www.virustotal.com/gui/join-us"
+            Write-Host "   2. Ve a Settings > Secrets and variables > Actions en tu repositorio"
+            Write-Host "   3. Agrega un nuevo secreto llamado VIRUSTOTAL_API_KEY con tu clave"
+            Write-Host "🚫 Saltando análisis de VirusTotal"
+            echo "VT_LINKS=" >> $env:GITHUB_OUTPUT
+            exit 0
+          }
+
+          $headers = @{
+            'x-apikey' = $vtApiKey
+          }
+
+          # Obtener rutas de archivos del step anterior
+          $assetPathsString = "${{ steps.upload_assets.outputs.ASSET_PATHS }}"
+          $vtLinks = @{}
+
+          if ($assetPathsString -and $assetPathsString.Trim() -ne "") {
+            $assetPairs = $assetPathsString -split ';'
+            
+            foreach ($pair in $assetPairs) {
+              $parts = $pair -split '\|', 2
+              if ($parts.Length -eq 2) {
+                $fileName = $parts[0]
+                $filePath = $parts[1]
+
+                if (Test-Path $filePath) {
+                  try {
+                    Write-Host "🔍 Analizando $fileName..."
+                    
+                    # Preparar el archivo para subida
+                    $fileBytes = [System.IO.File]::ReadAllBytes($filePath)
+                    $fileSizeKB = [math]::Round($fileBytes.Length/1KB, 1)
+                    Write-Host "   📊 Tamaño: $fileSizeKB KB"
+
+                    # Verificar límite de tamaño (VirusTotal tiene límite de 650MB para API gratuita)
+                    if ($fileBytes.Length -gt 650MB) {
+                      Write-Host "   ⚠️ Archivo $fileName es demasiado grande para VirusTotal API gratuita (>650MB)"
+                      continue
+                    }
+
+                    # Crear boundary para multipart/form-data
+                    $boundary = [System.Guid]::NewGuid().ToString()
+                    $LF = "`r`n"
+
+                    $bodyLines = @(
+                      "--$boundary",
+                      "Content-Disposition: form-data; name=`"file`"; filename=`"$fileName`"",
+                      "Content-Type: application/octet-stream",
+                      "",
+                      [System.Text.Encoding]::GetEncoding("iso-8859-1").GetString($fileBytes),
+                      "--$boundary--",
+                      ""
+                    )
+
+                    $body = $bodyLines -join $LF
+                    $bodyBytes = [System.Text.Encoding]::GetEncoding("iso-8859-1").GetBytes($body)
+
+                    $uploadHeaders = $headers.Clone()
+                    $uploadHeaders['Content-Type'] = "multipart/form-data; boundary=$boundary"
+
+                    # Subir archivo a VirusTotal
+                    Write-Host "   📤 Subiendo a VirusTotal..."
+                    $uploadResponse = Invoke-RestMethod -Uri "https://www.virustotal.com/api/v3/files" -Method Post -Headers $uploadHeaders -Body $bodyBytes
+
+                    if ($uploadResponse.data.id) {
+                      $analysisId = $uploadResponse.data.id
+                      $vtUrl = "https://www.virustotal.com/gui/file-analysis/$analysisId"
+                      Write-Host "   ✅ $fileName subido exitosamente"
+                      Write-Host "   🆔 Analysis ID: $analysisId"
+                      Write-Host "   🔗 VirusTotal URL: $vtUrl"
+                      
+                      # Guardar el enlace de VirusTotal para este archivo
+                      $vtLinks[$fileName] = $vtUrl
+                    } else {
+                      Write-Host "   ❌ Error: Respuesta inesperada de VirusTotal"
+                      Write-Host "   📄 Response: $($uploadResponse | ConvertTo-Json -Depth 3)"
+                    }
+
+                    # Pequeña pausa entre subidas para no saturar la API
+                    Start-Sleep -Seconds 2
+
+                  } catch {
+                    Write-Host "   ❌ Error al subir $fileName a VirusTotal: $($_.Exception.Message)"
+                    if ($_.Exception.Response) {
+                      $responseStream = $_.Exception.Response.GetResponseStream()
+                      $reader = New-Object System.IO.StreamReader($responseStream)
+                      $responseBody = $reader.ReadToEnd()
+                      Write-Host "   📄 Response body: $responseBody"
+                    }
+                  }
+                } else {
+                  Write-Host "   ⚠️ Archivo no encontrado: $filePath"
+                }
+              }
+            }
+          }
+
+          # Convertir los enlaces de VirusTotal a formato de salida
+          if ($vtLinks.Count -gt 0) {
+            $vtLinksArray = @()
+            foreach ($kvp in $vtLinks.GetEnumerator()) {
+              $vtLinksArray += "$($kvp.Key)|$($kvp.Value)"
+            }
+            $vtLinksString = $vtLinksArray -join ";"
+            Write-Host "📝 Enlaces de VirusTotal generados para $($vtLinks.Count) archivos"
+            echo "VT_LINKS=$vtLinksString" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Host "⚠️ No se generaron enlaces de VirusTotal"
+            echo "VT_LINKS=" >> $env:GITHUB_OUTPUT
+          }
+
+          Write-Host "🎉 Análisis de VirusTotal completado"
+
+      - name: Update release with download links
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          $downloadLinks = "${{ steps.upload_assets.outputs.DOWNLOAD_LINKS }}"
+          $vtLinksString = "${{ steps.analyze_virustotal.outputs.VT_LINKS }}"
+          
+          if ($downloadLinks -and $downloadLinks.Trim() -ne "") {
+            Write-Host "🔗 Actualizando release con enlaces de descarga clicables..."
+            
+            # Procesar enlaces de VirusTotal si existen
+            $vtLinks = @{}
+            if ($vtLinksString -and $vtLinksString.Trim() -ne "") {
+              Write-Host "📋 String de enlaces VT recibido: '$vtLinksString'"
+              $vtPairs = $vtLinksString -split ';'
+              Write-Host "📋 Pares divididos: $($vtPairs.Count) elementos"
+              foreach ($pair in $vtPairs) {
+                Write-Host "📋 Procesando par: '$pair'"
+                $parts = $pair -split '\|', 2
+                if ($parts.Length -eq 2) {
+                  $fileName = $parts[0].Trim()
+                  $vtUrl = $parts[1].Trim()
+                  $vtLinks[$fileName] = $vtUrl
+                  Write-Host "   ✅ Agregado: $fileName -> $vtUrl"
+                } else {
+                  Write-Host "   ⚠️ Par mal formateado: '$pair' (partes: $($parts.Length))"
+                }
+              }
+              Write-Host "📋 Enlaces de VirusTotal encontrados para $($vtLinks.Count) archivos"
+              foreach ($kvp in $vtLinks.GetEnumerator()) {
+                Write-Host "   - $($kvp.Key): $($kvp.Value)"
+              }
+            } else {
+              Write-Host "📋 No hay enlaces de VirusTotal disponibles"
+            }
+            
+            # Agregar enlaces de VirusTotal a cada línea de descarga
+            $updatedDownloadLinks = @()
+            $downloadLinesArray = $downloadLinks -split "`n" | Where-Object { $_.Trim() -ne "" }
+            
+            Write-Host "📋 Procesando $($downloadLinesArray.Count) líneas de descarga..."
+            
+            foreach ($line in $downloadLinesArray) {
+              $updatedLine = $line.Trim()  # Eliminar espacios y saltos de línea adicionales
+              Write-Host "📋 Procesando línea: $updatedLine"
+              
+              # Buscar el nombre del archivo en la línea para agregar el enlace de VirusTotal
+              $vtLinkAdded = $false
+              foreach ($fileName in $vtLinks.Keys) {
+                Write-Host "   🔍 Buscando '$fileName' en la línea..."
+                # Usar una búsqueda más simple - buscar si el nombre del archivo está en la línea
+                if ($updatedLine.Contains("[$fileName]")) {
+                  $vtUrl = $vtLinks[$fileName]
+                  $updatedLine = "$updatedLine | [🛡️ VirusTotal]($vtUrl)"
+                  Write-Host "   ✅ Agregado enlace VirusTotal para $fileName"
+                  $vtLinkAdded = $true
+                  break
+                }
+              }
+              
+              if (-not $vtLinkAdded -and $vtLinks.Count -gt 0) {
+                Write-Host "   ⚠️ No se encontró coincidencia para esta línea"
+              }
+              
+              $updatedDownloadLinks += $updatedLine
+            }
+            
+            $finalDownloadLinks = $updatedDownloadLinks -join "`n"
+            
+            $tagName = "v${{ steps.get_version.outputs.VERSION }}"
+            $releaseId = "${{ steps.release.outputs.RELEASE_ID }}"
+            $isStable = "${{ steps.get_version.outputs.IS_STABLE }}" -eq "True"
+            $emoji = "${{ steps.get_version.outputs.EMOJI }}"
+            $releaseType = "${{ steps.get_version.outputs.RELEASE_TYPE }}"
+            
+            $headers = @{
+              'Authorization' = 'token ${{ secrets.GITHUB_TOKEN }}'
+              'Accept' = 'application/vnd.github.v3+json'
+              'Content-Type' = 'application/json'
+            }
+
+            try {
+              # Obtener el release actual
+              $currentRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId" -Headers $headers -Method Get
+              
+              # Recrear el cuerpo del release con los enlaces de descarga
+              $titlePrefix = if ($isStable) { "RealViewOn Release" } else { "$emoji RealViewOn Pre-Release" }
+              $titleSuffix = if ($isStable) { " $emoji" } else { " $emoji" }
+              
+              $updatedBody = "# $titlePrefix v${{ steps.get_version.outputs.VERSION }} (c${{ steps.compilation_time.outputs.COMPILATION_CODE }})$titleSuffix`n`n## Downloads 📥`n$finalDownloadLinks`n`n## What's Changed`n${{ steps.get_changelog.outputs.CHANGELOG }}`n`n---`n*This is an automated $releaseType generated from the latest commit.*"
+              
+              $updateData = @{
+                body = $updatedBody
+              } | ConvertTo-Json -Depth 3
+
+              # Actualizar el release
+              $response = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/$releaseId" -Headers $headers -Method Patch -Body $updateData
+              
+              Write-Host "✅ Release actualizado con enlaces de descarga clicables y VirusTotal"
+              Write-Host "🔗 Release URL: $($response.html_url)"
+            } catch {
+              Write-Host "❌ Error al actualizar release con enlaces de descarga: $($_.Exception.Message)"
+              # No fallar el workflow por esto, pero es importante registrar el error
+              Write-Host "⚠️ El release se creó pero sin enlaces clicables en la descripción"
+            }
+          } else {
+            Write-Host "⚠️ No hay enlaces de descarga para agregar al release"
+          }
+
+      - name: Wait and check VirusTotal analysis results (optional)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.inputs.wait_for_vt_results == 'true'
+        run: |
+          Write-Host "⏳ Esperando resultados de análisis de VirusTotal..."
+          
+          $vtApiKey = "${{ secrets.VIRUSTOTAL_API_KEY }}"
+          if (-not $vtApiKey -or $vtApiKey -eq "") {
+            Write-Host "⚠️ VIRUSTOTAL_API_KEY no configurado, saltando verificación de resultados"
+            exit 0
+          }
+
+          $headers = @{
+            'x-apikey' = $vtApiKey
+          }
+
+          # Esperar 60 segundos para que VirusTotal procese los archivos
+          Write-Host "⏱️ Esperando 60 segundos para el procesamiento inicial..."
+          Start-Sleep -Seconds 60
+
+          # Lista de análisis a verificar (necesitarías guardar los IDs del step anterior)
+          # Por ahora, solo mostramos cómo sería la verificación
+          Write-Host "🔍 Para verificar resultados manualmente:"
+          Write-Host "   • Ve a los enlaces de VirusTotal en el release"
+          Write-Host "   • Los análisis pueden tardar varios minutos en completarse"
+          Write-Host "   • VirusTotal analizará con ~70 antivirus diferentes"
+          Write-Host ""
+          Write-Host "💡 Tip: Puedes agregar este step como un workflow separado"
+          Write-Host "    que se ejecute con retraso usando workflow_dispatch"
