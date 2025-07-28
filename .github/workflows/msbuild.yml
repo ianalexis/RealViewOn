@@ -86,7 +86,7 @@ jobs:
           if (Test-Path "tools\upx.exe") {
             Write-Host "🗜️ Comprimiendo con UPX..."
             $originalSize = (Get-Item "x64\Release\RealViewOn.exe").Length
-            Write-Host "Tamaño original: $([math]::Round($originalSize/1MB, 2)) MB"
+            Write-Host "Tamaño original: $([math]::Round($originalSize/1KB, 2)) KB"
 
             & ".\tools\upx.exe" --ultra-brute "x64\Release\RealViewOn.exe"
 
@@ -94,7 +94,7 @@ jobs:
               $compressedSize = (Get-Item "x64\Release\RealViewOn.exe").Length
               $compressionRatio = [math]::Round((($originalSize - $compressedSize) / $originalSize) * 100, 1)
               Write-Host "✅ Compresión UPX completada"
-              Write-Host "Tamaño comprimido: $([math]::Round($compressedSize/1MB, 2)) MB"
+              Write-Host "Tamaño comprimido: $([math]::Round($compressedSize/1KB, 2)) KB"
               Write-Host "Reducción: $compressionRatio%"
             } else {
               Write-Host "⚠️ Error en compresión UPX, continuando sin comprimir"
@@ -358,16 +358,21 @@ jobs:
           if (Test-Path "tools\7zr.exe") {
             Write-Host "📦 Comprimiendo con 7zip..."
             $originalSize = (Get-Item "release-assets\RealViewOn.exe").Length
-            Write-Host "Tamaño del ejecutable: $([math]::Round($originalSize/1MB, 2)) MB"
+            Write-Host "Tamaño del ejecutable: $([math]::Round($originalSize/1KB, 2)) KB"
 
-            # Crear archivo 7z con máxima compresión
-            & ".\tools\7zr.exe" a -t7z -mx=9 -mfb=273 -ms=on "release-assets\RealViewOn.7z" "release-assets\RealViewOn.exe"
+            # Crear archivo 7z con compresión máxima compatible con 7zr.exe
+            # Usando solo parámetros básicos garantizados para 7zr.exe:
+            # -mx=9: Nivel máximo de compresión
+            # -md=1m: Diccionario de 1MB (óptimo para archivos de ~200KB)
+            # -ms=on: Solid archive activado
+            Write-Host "🗜️ Aplicando compresión 7z máxima compatible con 7zr.exe..."
+            & ".\tools\7zr.exe" a -t7z -mx=9 -md=1m -ms=on "release-assets\RealViewOn.7z" "release-assets\RealViewOn.exe"
 
             if ($LASTEXITCODE -eq 0) {
               $compressedSize = (Get-Item "release-assets\RealViewOn.7z").Length
               $compressionRatio = [math]::Round((($originalSize - $compressedSize) / $originalSize) * 100, 1)
               Write-Host "✅ Compresión 7zip completada"
-              Write-Host "Tamaño comprimido: $([math]::Round($compressedSize/1MB, 2)) MB"
+              Write-Host "Tamaño comprimido: $([math]::Round($compressedSize/1KB, 2)) KB"
               Write-Host "Reducción: $compressionRatio%"
             } else {
               Write-Host "⚠️ Error en compresión 7zip, continuando..."
@@ -381,7 +386,7 @@ jobs:
               $zipSize = (Get-Item "release-assets\RealViewOn.zip").Length
               $zipRatio = [math]::Round((($originalSize - $zipSize) / $originalSize) * 100, 1)
               Write-Host "✅ Compresión ZIP completada"
-              Write-Host "Tamaño ZIP: $([math]::Round($zipSize/1MB, 2)) MB"
+              Write-Host "Tamaño ZIP: $([math]::Round($zipSize/1KB, 2)) KB"
               Write-Host "Reducción ZIP: $zipRatio%"
             } catch {
               Write-Host "⚠️ Error en compresión ZIP: $($_.Exception.Message)"
@@ -532,7 +537,7 @@ jobs:
                 Write-Host "📦 Subiendo $assetName..."
 
                 $fileBytes = [System.IO.File]::ReadAllBytes($filePath)
-                $fileSizeKB = [math]::Round($fileBytes.Length/1KB, 1)
+                $fileSizeKB = [math]::Round($fileBytes.Length/1KB, 2)
                 Write-Host "   📊 Tamaño: $fileSizeKB KB"
 
                 $response = Invoke-RestMethod -Uri $uploadAssetUrl -Method Post -Headers $headers -Body $fileBytes
@@ -634,7 +639,7 @@ jobs:
                     
                     # Preparar el archivo para subida
                     $fileBytes = [System.IO.File]::ReadAllBytes($filePath)
-                    $fileSizeKB = [math]::Round($fileBytes.Length/1KB, 1)
+                    $fileSizeKB = [math]::Round($fileBytes.Length/1KB, 2)
                     Write-Host "   📊 Tamaño: $fileSizeKB KB"
 
                     # Verificar límite de tamaño (VirusTotal tiene límite de 650MB para API gratuita)
