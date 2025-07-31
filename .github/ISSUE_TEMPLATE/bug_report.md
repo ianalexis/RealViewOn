@@ -28,8 +28,7 @@ If applicable, add screenshots to help explain your problem.
 **Desktop (please complete the following information):**
  - GPU: [NVIDIA GeForce RTX 3070]
  - SW Version [e.g. 2020, 2024]
- - Version [e.g. 22]
- - OS: [e.g. iOS]
+ - Version [e.g. 2.0.9.6 Stable]
 
 **Additional context**
 Add any other context about the problem here.
