@@ -5,8 +5,12 @@ name: Build RealViewOn
 on:
   push:
     branches: ["main"]
+    paths:
+      - 'include/Version.h'
   pull_request:
     branches: ["main"]
+    paths:
+      - 'include/Version.h'
   workflow_dispatch:
     inputs:
       wait_for_vt_results:
