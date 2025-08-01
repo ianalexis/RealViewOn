@@ -5,6 +5,7 @@
 [![C++](https://img.shields.io/badge/C++-%2300599C.svg?logo=c%2B%2B&logoColor=white&style=flat-square)](https://isocpp.org/)
 [![Windows](https://custom-icon-badges.demolab.com/badge/Windows-0078D6?logo=windows11&logoColor=white&style=flat-square)](https://www.microsoft.com/windows/)
 [![VirusTotal](https://img.shields.io/badge/VirusTotal-Scan%20Report-blue?style=flat-square&logo=virustotal)](https://www.virustotal.com/gui/file/9e9d8a08569a0a1b5ab8943f63c5f4de13b1d25b484ae001a9d0df9e9efeae18)
+[![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ianalexis/RealViewOn)
 
 [![Build RealViewOn](https://github.com/ianalexis/RealViewOn/actions/workflows/msbuild.yml/badge.svg)](https://github.com/ianalexis/RealViewOn/actions/workflows/msbuild.yml)
 [![Version](https://img.shields.io/github/v/release/ianalexis/Real-View-On-Releases?color=darkgreen&label=Download%20Stable&style=flat)](https://github.com/ianalexis/Real-View-On-Releases/releases/latest/download/RealViewOn.7z)
