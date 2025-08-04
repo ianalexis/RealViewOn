@@ -84,7 +84,7 @@ jobs:
           $currentUpx = Get-CurrentVersion "${{ env.TOOLS_DIR }}\upx.exe" "upx\s+(\d+\.\d+\.\d+)" "upx"
           
           # Obtener últimas versiones
-          $latest7zr = Get-LatestRelease "ip7z/7zip" "(7zr.*\.exe|7z.*-x64.*\.exe)$" "7-Zip"
+          $latest7zr = Get-LatestRelease "ip7z/7zip" "(7zr.*\.exe)$" "7-Zip"
           $latestUpx = Get-LatestRelease "upx/upx" "upx-.*-win64\.zip$" "UPX"
           
           Write-Host "📋 Versiones actuales vs disponibles:"
