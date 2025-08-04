@@ -1,15 +1,16 @@
-# Workflow para actualizar herramientas de compresión y empaquetado
-
-name: Update Compression Tools
+name: Update Tools
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 11 * * 3'  # Todos los miercoles a las 11:00 AM UTC
 
 env:
   TOOLS_DIR: tools
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   update-tools:
@@ -211,11 +212,16 @@ jobs:
             Update-Tool "upx" "${{ steps.versions.outputs.DOWNLOAD_URL_UPX }}" "${{ env.TOOLS_DIR }}\upx.exe" $true
           }
 
-      - name: Commit changes
+      - name: Create Pull Request
         if: steps.versions.outputs.NEED_ANY_UPDATE == 'True'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          # Crear rama para las actualizaciones
+          $branchName = "update-tools-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+          git checkout -b $branchName
+          
           git add "${{ env.TOOLS_DIR }}/"
           
           $changes = @()
@@ -226,12 +232,48 @@ jobs:
             $changes += "upx.exe: ${{ steps.versions.outputs.CURRENT_UPX_VERSION }} → ${{ steps.versions.outputs.LATEST_UPX_VERSION }}"
           }
           
-          $message = "🔧 Actualizar herramientas de compresión`n`n- " + ($changes -join "`n- ") + "`n`nActualización automática desde GitHub Actions"
+          $commitMessage = "🔧 Actualizar herramientas de compresión`n`n- " + ($changes -join "`n- ") + "`n`nActualización automática desde GitHub Actions"
           
           if (git status --porcelain) {
-            git commit -m $message
-            git push origin main
-            Write-Host "✅ Cambios enviados al repositorio"
+            git commit -m $commitMessage
+            git push origin $branchName
+            Write-Host "✅ Cambios enviados a la rama $branchName"
+            
+            # Crear Pull Request usando GitHub CLI
+            $prTitle = "🔧 Actualizar herramientas de compresión"
+            $prBody = "## 📋 Resumen de actualizaciones`n`n"
+            $prBody += "Este PR actualiza automáticamente las herramientas de compresión:`n`n"
+            $prBody += "### 🔄 Cambios realizados:`n"
+            $changes | ForEach-Object { $prBody += "- $_`n" }
+            $prBody += "`n### 🤖 Proceso automático`n"
+            $prBody += "- ✅ Verificación de versiones actuales vs. disponibles`n"
+            $prBody += "- ✅ Descarga y validación de nuevas versiones`n"
+            $prBody += "- ✅ Actualización de herramientas en el directorio \``tools/\```n"
+            $prBody += "`n**Este PR ha sido generado automáticamente por GitHub Actions.**"
+            
+            # Usar GitHub API para crear el PR
+            $headers = @{
+              'Accept' = 'application/vnd.github.v3+json'
+              'Authorization' = "token ${{ secrets.GITHUB_TOKEN }}"
+              'User-Agent' = 'RealViewOn-UpdateBot'
+            }
+            
+            $prData = @{
+              title = $prTitle
+              body = $prBody
+              head = $branchName
+              base = "main"
+            } | ConvertTo-Json -Depth 10
+            
+            try {
+              $pr = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/pulls" -Method POST -Headers $headers -Body $prData
+              Write-Host "🎉 Pull Request creado: $($pr.html_url)"
+              Write-Host "📋 PR #$($pr.number): $($pr.title)"
+            } catch {
+              Write-Host "❌ Error al crear Pull Request: $($_.Exception.Message)"
+              Write-Host "🔍 Rama creada: $branchName"
+              Write-Host "💡 Puedes crear el PR manualmente desde esta rama"
+            }
           } else {
             Write-Host "ℹ️ No hay cambios para hacer commit"
           }
@@ -243,13 +285,14 @@ jobs:
           Write-Host "=" * 40
           
           if ("${{ steps.versions.outputs.NEED_ANY_UPDATE }}" -eq "True") {
-            Write-Host "🎉 Actualizaciones realizadas:"
+            Write-Host "🎉 Actualizaciones procesadas:"
             if ("${{ steps.versions.outputs.NEED_7ZR_UPDATE }}" -eq "True") {
               Write-Host "   ✅ 7zr.exe: ${{ steps.versions.outputs.CURRENT_7ZR_VERSION }} → ${{ steps.versions.outputs.LATEST_7ZR_VERSION }}"
             }
             if ("${{ steps.versions.outputs.NEED_UPX_UPDATE }}" -eq "True") {
               Write-Host "   ✅ upx.exe: ${{ steps.versions.outputs.CURRENT_UPX_VERSION }} → ${{ steps.versions.outputs.LATEST_UPX_VERSION }}"
             }
+            Write-Host "   📝 Pull Request creado para revisión y merge"
           } else {
             Write-Host "ℹ️ Herramientas ya actualizadas:"
             Write-Host "   📋 7zr.exe: ${{ steps.versions.outputs.CURRENT_7ZR_VERSION }}"
