@@ -127,11 +127,34 @@ jobs:
             $tempFile = "temp_$Name" + $(if($IsZip) { ".zip" } else { ".exe" })
             
             try {
-              Write-Host "📥 Descargando $Name..."
-              Invoke-WebRequest -Uri $DownloadUrl -OutFile $tempFile -UserAgent "RealViewOn-UpdateBot"
+              Write-Host "📥 Descargando $Name desde: $DownloadUrl"
+              
+              # Configurar timeout y parámetros de descarga
+              $progressPreference = 'SilentlyContinue'  # Desactivar barra de progreso que puede causar problemas
+              
+              # Usar Invoke-WebRequest con timeout configurado correctamente
+              Write-Host "   ⏳ Iniciando descarga..."
+              $downloadParams = @{
+                Uri = $DownloadUrl
+                OutFile = $tempFile
+                UserAgent = "RealViewOn-UpdateBot"
+                TimeoutSec = 300  # 5 minutos timeout
+                UseBasicParsing = $true  # Evita problemas con IE parser
+              }
+              
+              Invoke-WebRequest @downloadParams
+              
+              # Verificar que el archivo se descargó correctamente
+              if (-not (Test-Path $tempFile) -or (Get-Item $tempFile).Length -eq 0) {
+                throw "El archivo descargado está vacío o no existe"
+              }
+              
+              $fileSize = (Get-Item $tempFile).Length / 1MB
+              Write-Host "   ✅ Descarga completada ($([math]::Round($fileSize, 2)) MB)"
               
               if ($IsZip) {
                 # Extraer ZIP y buscar específicamente upx.exe
+                Write-Host "   📦 Extrayendo archivo ZIP..."
                 $extractDir = "temp_${Name}_extract"
                 Expand-Archive -Path $tempFile -DestinationPath $extractDir -Force
                 
@@ -140,17 +163,24 @@ jobs:
                 
                 if ($exePath) {
                   $fullPath = Join-Path $extractDir $exePath
+                  Write-Host "   📋 Copiando $fullPath a $TargetPath"
                   Copy-Item $fullPath $TargetPath -Force
                   Remove-Item -Recurse -Force $extractDir -ErrorAction SilentlyContinue
                 } else {
+                  # Listar contenido del ZIP para debug
+                  $content = Get-ChildItem -Path $extractDir -Recurse | Select-Object Name, FullName
+                  Write-Host "   ⚠️ Contenido del ZIP:"
+                  $content | ForEach-Object { Write-Host "      $($_.Name) - $($_.FullName)" }
                   throw "upx.exe no encontrado en el ZIP $tempFile"
                 }
               } else {
                 # Ejecutable directo (para 7zr.exe)
+                Write-Host "   📋 Copiando ejecutable a $TargetPath"
                 Copy-Item $tempFile $TargetPath -Force
               }
               
               # Verificar funcionamiento
+              Write-Host "   🔍 Verificando funcionamiento..."
               $version = if ($Name -eq "7zr") {
                 & $TargetPath 2>&1 | Select-String "7-Zip" | Select-Object -First 1
               } else {
@@ -161,8 +191,14 @@ jobs:
               Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
             } catch {
               Write-Host "❌ Error al actualizar $Name : $($_.Exception.Message)"
+              Write-Host "   🔍 Detalles del error: $($_.Exception.GetType().Name)"
+              
+              # Limpiar archivos temporales
               Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
-              throw
+              Remove-Item "temp_${Name}_extract" -Recurse -Force -ErrorAction SilentlyContinue
+              
+              # Re-lanzar el error para que el workflow falle
+              throw "Fallo al actualizar $Name"
             }
           }
           
