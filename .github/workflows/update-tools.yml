@@ -158,11 +158,11 @@ jobs:
                 $extractDir = "temp_${Name}_extract"
                 Expand-Archive -Path $tempFile -DestinationPath $extractDir -Force
                 
-                # Buscar upx.exe específicamente (no recursivo, debe estar en el directorio principal)
-                $exePath = Get-ChildItem -Path $extractDir -Name "upx.exe" | Select-Object -First 1
+                # Buscar upx.exe recursivamente en todos los subdirectorios
+                $exeFile = Get-ChildItem -Path $extractDir -Name "upx.exe" -Recurse | Select-Object -First 1
                 
-                if ($exePath) {
-                  $fullPath = Join-Path $extractDir $exePath
+                if ($exeFile) {
+                  $fullPath = Get-ChildItem -Path $extractDir -Filter "upx.exe" -Recurse | Select-Object -First 1 | Select-Object -ExpandProperty FullName
                   Write-Host "   📋 Copiando $fullPath a $TargetPath"
                   Copy-Item $fullPath $TargetPath -Force
                   Remove-Item -Recurse -Force $extractDir -ErrorAction SilentlyContinue
