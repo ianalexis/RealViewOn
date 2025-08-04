@@ -27,6 +27,7 @@
 
 # Executables
 *.exe
+!7z*.exe
 *.out
 *.app
 *.iobj
