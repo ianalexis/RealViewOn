@@ -211,6 +211,56 @@ jobs:
 
                       Write-Host "🔍 Procesando commit $shortHash : $subject"
 
+                      # Lista de extensiones de archivos a ignorar en el changelog
+                      # Estos archivos generalmente no representan cambios funcionales del código
+                      $ignoredExtensions = @(
+                        '\.md$',      # Documentación (README.md, etc.)
+                        '\.txt$',     # Archivos de texto
+                        '\.json$',    # JSON (configuración)
+                        '\.png$',     # Imágenes PNG
+                        '\.jpg$',     # Imágenes JPEG
+                        '\.jpeg$',    # Imágenes JPEG alternativo
+                        '\.gif$',     # Imágenes GIF
+                        '\.svg$',     # Imágenes SVG
+                        '\.webp$',    # Imágenes WebP
+                        '\.gitignore$', # Archivos Git
+                        '\.gitattributes$', # Archivos Git
+                        'LICENSE$',   # Archivos de licencia
+                        'CODE_OF_CONDUCT\.md$', # Código de conducta
+                        'CONTRIBUTING\.md$', # Guía de contribución
+                        'SECURITY\.md$' # Política de seguridad
+                      )
+
+                      # Verificar si el commit modificó solo archivos ignorados
+                      # Si es así, omitirlo del changelog para mantener limpio el "What's Changed"
+                      $modifiedFiles = @(git show --name-only --pretty=format: $fullHash)
+                      $ignoredFiles = @()
+                      $relevantFiles = @()
+
+                      foreach ($file in $modifiedFiles) {
+                        if ($file -and $file.Trim() -ne "") {
+                          $isIgnored = $false
+                          foreach ($pattern in $ignoredExtensions) {
+                            if ($file -match $pattern) {
+                              $ignoredFiles += $file
+                              $isIgnored = $true
+                              break
+                            }
+                          }
+                          if (-not $isIgnored) {
+                            $relevantFiles += $file
+                          }
+                        }
+                      }
+
+                      Write-Host "  📁 Archivos modificados: $($modifiedFiles.Count) total, $($ignoredFiles.Count) ignorados, $($relevantFiles.Count) relevantes"
+
+                      # Si el commit modificó solo archivos ignorados, omitirlo del changelog
+                      if ($relevantFiles.Count -eq 0 -and $ignoredFiles.Count -gt 0) {
+                        Write-Host "  🚫 Commit $shortHash omitido (solo modificó archivos ignorados: $($ignoredFiles -join ', '))"
+                        continue
+                      }
+
                       # Obtener el cuerpo completo del commit específico
                       $commitBody = git log -1 --pretty=format:"%b" $fullHash
                       
