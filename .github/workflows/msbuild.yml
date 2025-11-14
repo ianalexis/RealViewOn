@@ -52,6 +52,9 @@ jobs:
         with:
           msbuild-architecture: x64
 
+      - name: Print clang-cl version
+        run: clang-cl --version
+
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
