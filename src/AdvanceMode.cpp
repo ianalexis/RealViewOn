@@ -1,5 +1,5 @@
 #include "AdvanceMode.h"
-#include "teclado.h"
+#include "Teclado.h"
 #include <iostream>
 #include <sstream>
 #include <Windows.h>

@@ -2,7 +2,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include "teclado.h"
+#include "Teclado.h"
 
 using std::string;
 class AdvanceMode {
@@ -28,7 +28,7 @@ private:
     string enableTab(string value);
     string getOriginalValue(string tabPath, string valueName);
     string enableBtn();
-    void AdvanceMode::askToEnable(string optionName);
+    void askToEnable(string optionName);
 
     struct multiRegSetting {
         string path;
