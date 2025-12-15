@@ -390,7 +390,7 @@ jobs:
           }
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: RealViewOn-x64-${{ env.BUILD_CONFIGURATION }}
           path: |
