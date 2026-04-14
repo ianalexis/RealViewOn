@@ -61,6 +61,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Setup MSBuild
+      if: matrix.language == 'c-cpp'
+      uses: microsoft/setup-msbuild@v2
+
     # Add any setup steps before running the `github/codeql-action/init` action.
     # This includes steps like installing compilers or runtimes (`actions/setup-node`
     # or others). This is typically only required for manual builds.
