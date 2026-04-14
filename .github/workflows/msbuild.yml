@@ -230,6 +230,19 @@ jobs:
                       $shortHash = $parts[1].Trim()
                       $subject = $parts[2].Trim()
 
+                      # Omitir commits automáticos de Dependabot para no incluirlos en What's Changed
+                      $authorName = "$(git show -s --format:\"%an\" $fullHash)".Trim()
+                      $authorEmail = "$(git show -s --format:\"%ae\" $fullHash)".Trim()
+                      $isDependabotCommit = $subject -match '(?i)^Merge pull request #\d+ from dependabot/' -or
+                                             $subject -match '(?i)^Bump .+ from .+ to .+' -or
+                                             $authorName -match '(?i)^dependabot(\[bot\])?$' -or
+                                             $authorEmail -match '(?i)dependabot'
+
+                      if ($isDependabotCommit) {
+                        Write-Host "  🤖 Commit $shortHash omitido (Dependabot): $subject"
+                        continue
+                      }
+
                       Write-Host "🔍 Procesando commit $shortHash : $subject"
 
                       # Verificar si el commit modificó solo archivos que no interesan para el changelog
