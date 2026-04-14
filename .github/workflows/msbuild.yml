@@ -20,7 +20,7 @@ on:
         type: boolean
 
 env:
-  SOLUTION_FILE_PATH: RealViewOn.sln
+  SOLUTION_FILE_PATH: RealViewOn.slnx
   BUILD_CONFIGURATION: Release
 
 permissions:

@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Release" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="RealViewOn.vcxproj" Id="36fd3b22-b095-47e5-9e45-a4050e4cc122" />
+</Solution>
