@@ -50,9 +50,13 @@ jobs:
         run: |
           $baseSha = "${{ github.event.pull_request.base.sha }}"
           $headSha = "${{ github.event.pull_request.head.sha }}"
-          Write-Host "🔍 Comparando cambios del PR: $baseSha..$headSha"
+          Write-Host "🔍 Comparando cambios del PR: $baseSha...$headSha"
 
-          $changedFiles = @(git diff --name-only $baseSha $headSha)
+          $changedFiles = @(git diff --name-only "$baseSha...$headSha")
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "❌ Error al obtener la lista de archivos cambiados del PR"
+            exit 1
+          }
 
           if (-not $changedFiles -or $changedFiles.Count -eq 0) {
             Write-Host "ℹ️ No se detectaron archivos cambiados en el rango del PR"
