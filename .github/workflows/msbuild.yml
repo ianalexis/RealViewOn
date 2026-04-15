@@ -11,6 +11,15 @@ on:
     branches: ["main"]
     paths:
       - 'include/Version.h'
+      - 'src/**'
+      - 'include/**'
+      - 'midifile/src/**'
+      - 'midifile/include/**'
+      - 'rtmidi/include/**'
+      - 'RealViewOn.vcxproj'
+      - 'RealViewOn.sln'
+      - 'RealViewOn.slnx'
+      - '.github/workflows/msbuild.yml'
   workflow_dispatch:
     inputs:
       wait_for_vt_results:
@@ -35,6 +44,54 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
+      - name: Enforce version update on code changes (PR)
+        if: github.event_name == 'pull_request'
+        run: |
+          $baseSha = "${{ github.event.pull_request.base.sha }}"
+          $headSha = "${{ github.event.pull_request.head.sha }}"
+          Write-Host "🔍 Comparando cambios del PR: $baseSha..$headSha"
+
+          $changedFiles = @(git diff --name-only $baseSha $headSha)
+
+          if (-not $changedFiles -or $changedFiles.Count -eq 0) {
+            Write-Host "ℹ️ No se detectaron archivos cambiados en el rango del PR"
+            exit 0
+          }
+
+          Write-Host "📋 Archivos cambiados:"
+          $changedFiles | ForEach-Object { Write-Host "  - $_" }
+
+          $versionChanged = $changedFiles -contains 'include/Version.h'
+          $codeChanged = $false
+
+          foreach ($file in $changedFiles) {
+            if ($file -eq 'include/Version.h') {
+              continue
+            }
+
+            if (
+              $file -like 'src/*' -or
+              $file -like 'include/*' -or
+              $file -like 'midifile/src/*' -or
+              $file -like 'midifile/include/*' -or
+              $file -like 'rtmidi/include/*' -or
+              $file -eq 'RealViewOn.vcxproj' -or
+              $file -eq 'RealViewOn.sln' -or
+              $file -eq 'RealViewOn.slnx'
+            ) {
+              $codeChanged = $true
+              break
+            }
+          }
+
+          if ($codeChanged -and -not $versionChanged) {
+            Write-Host "❌ Se detectaron cambios de código sin actualizar include/Version.h"
+            Write-Host "💡 Agrega una actualización en include/Version.h para reflejar el cambio de versión"
+            exit 1
+          }
+
+          Write-Host "✅ Validación de versión completada"
 
       - name: Get compilation timestamp
         id: compilation_time
