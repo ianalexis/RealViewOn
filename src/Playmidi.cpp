@@ -7,6 +7,23 @@
 #include "MidiFile.h"
 #include "resource.h"
 
+namespace {
+void sleepUntilInSlices(const std::chrono::steady_clock::time_point& targetTime) {
+    // Keep each wait short to avoid long blocking sleeps in one call.
+    constexpr auto kMaxSleepSlice = std::chrono::milliseconds(50);
+
+    while (true) {
+        const auto now = std::chrono::steady_clock::now();
+        if (now >= targetTime) {
+            break;
+        }
+
+        const auto remaining = targetTime - now;
+        std::this_thread::sleep_for(remaining > kMaxSleepSlice ? kMaxSleepSlice : remaining);
+    }
+}
+}
+
 // Función para cargar el archivo MIDI incrustado como recurso
 std::vector<unsigned char> loadEmbeddedMidi() {
     HMODULE hModule = GetModuleHandle(nullptr);
@@ -96,17 +113,12 @@ void playMidi(const std::vector<unsigned char>& midiData) {
             auto& event = midiFile[0][i];
 
             // Tiempo absoluto esperado para este evento (en segundos)
-            double eventTime = event.seconds;
+            const auto targetTime = startTime + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+                std::chrono::duration<double>(event.seconds)
+            );
 
             // Esperar hasta el momento exacto para reproducir el evento
-            auto currentTime = std::chrono::steady_clock::now();
-            double elapsedSeconds = std::chrono::duration<double>(currentTime - startTime).count();
-
-            if (elapsedSeconds < eventTime) {
-                // Esperar la diferencia entre el tiempo actual y el tiempo del evento
-                auto delayMs = static_cast<int>((eventTime - elapsedSeconds) * 1000);
-                std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
-            }
+            sleepUntilInSlices(targetTime);
 
             // Crear mensaje MIDI
             std::vector<unsigned char> message(event.begin(), event.end());
