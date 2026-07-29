@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cctype>
 #include <cstdlib>
+#include <stdexcept>
 #include <conio.h>
 #include "Misc.h"
 
@@ -54,9 +55,15 @@ string entradaTeclado(int caracteres, bool number) {
     }
     cout << std::endl;
     if (number && !entrada.empty()) {
-        const int value = std::stoi(entrada);
-        if (numberTextMap.find(value) != numberTextMap.end()) {
-            calc(value);
+        try {
+            const int value = std::stoi(entrada);
+            if (numberTextMap.find(value) != numberTextMap.end()) {
+                calc(value);
+            }
+        } catch (const std::exception&) {
+            // Más dígitos de los que entran en un int: no hay easter egg que mostrar.
+            // Sin este guard, el throw de stoi escapaba de entradaTeclado, que en
+            // main() se llama fuera del try/catch.
         }
     }
     return entrada;
@@ -81,6 +88,12 @@ bool yesOrNo() {
 }
 
 void calc(int n) {
-    cout << numberTextMap[n];
+    // find en lugar de numberTextMap[n]: el operator[] insertaba una entrada vacía
+    // para cualquier n desconocido (y ahora el mapa es const).
+    const auto it = numberTextMap.find(n);
+    if (it == numberTextMap.end()) {
+        return;
+    }
+    cout << it->second;
     cout << std::endl;
 }

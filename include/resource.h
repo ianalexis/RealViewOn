@@ -2,7 +2,7 @@
 // Archivo de inclusi�n generado de Microsoft Visual C++.
 //
 #define IDI_ICON1                       101
-#define IDR_MIDI_FILE                   101
+#define IDR_MIDI_FILE                   102
 
 // Next default values for new objects
 //

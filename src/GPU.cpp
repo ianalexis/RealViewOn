@@ -1,6 +1,7 @@
 #include "GPU.h"
 #include <string>
 #include <algorithm>
+#include <cctype>
 #include <iostream>
 #include <vector>
 #include "Teclado.h"
@@ -42,23 +43,29 @@ void GPU::setBaseData(Current current) {
     baseData.origin = !current.origin.empty() ? "; - **Origin:** " + current.origin : "";
 }
 
-// Busca la marca de la GPU en el mapeo de palabras clave.
-GPU::Brand GPU::buscarEnRenderMap(string buscado) {
+// Pasa a mayúsculas acotando el char a unsigned char: std::toupper con un char
+// negativo (nombres de GPU con acentos, ® o ™) es comportamiento indefinido.
+static void aMayusculas(string& texto) {
+    std::transform(texto.begin(), texto.end(), texto.begin(),
+                   [](char c) { return static_cast<char>(std::toupper(static_cast<unsigned char>(c))); });
+}
+
+// Busca la marca de la GPU en el mapeo de palabras clave y, si la encuentra, la
+// deja en `brand`. Antes devolvía un Brand que siempre valía UNKNOWN (los dos
+// llamadores lo ignoraban y leían el miembro), así que ahora es void.
+void GPU::buscarEnRenderMap(string buscado) {
     // Convierte el renderer a mayúsculas para comparar.
-    Brand brandEncontrada = Brand::UNKNOWN;
-    std::transform(buscado.begin(), buscado.end(), buscado.begin(), ::toupper);
+    aMayusculas(buscado);
     for (const auto& pair : rendererMap) {
         string key = pair.first;
-        //cout << "Key buscada: " << key << "\n";
         // Convertir la clave a mayúsculas para comparar.
-        std::transform(key.begin(), key.end(), key.begin(), ::toupper);
+        aMayusculas(key);
         if (buscado.find(key) != string::npos) {
             brand = pair.second;
             cout << "GPU Brand detected: " << brandToString(brand) << "\n";
-            return brandEncontrada;
+            return;
         }
     }
-    return brandEncontrada;
 }
 
 std::string GPU::brandToString(GPU::Brand brand) {

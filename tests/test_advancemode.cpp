@@ -12,60 +12,12 @@
 #include <string>
 
 #include "AdvanceMode.h"
+#include "registry_fixture.h"
 #include "test_access.h"
 
-namespace {
-
-// Raiz de pruebas. Deliberadamente fuera de SOFTWARE\SolidWorks.
-const char* const kRaizPruebas = "SOFTWARE\\RealViewOnTests";
-
-// getOriginalValue recorta los primeros 20 caracteres del path para quedarse con
-// la subclave, asumiendo el prefijo exacto "\n[HKEY_CURRENT_USER\" que arma
-// setSwVersion, y descarta el "]" final. Estos tests reproducen ese formato para
-// fijar ese contrato.
-std::string comoPathDeReg(const std::string& subKey) {
-    return "\n[HKEY_CURRENT_USER\\" + subKey + "]";
-}
-
-class ClaveDeRegistroTemporal {
-public:
-    explicit ClaveDeRegistroTemporal(const std::string& subKey) {
-        creada_ = RegCreateKeyExA(HKEY_CURRENT_USER, subKey.c_str(), 0, nullptr,
-                                  REG_OPTION_NON_VOLATILE, KEY_READ | KEY_WRITE, nullptr, &hKey_,
-                                  nullptr) == ERROR_SUCCESS;
-    }
-
-    ~ClaveDeRegistroTemporal() {
-        if (hKey_ != nullptr) {
-            RegCloseKey(hKey_);
-        }
-        RegDeleteTreeA(HKEY_CURRENT_USER, kRaizPruebas);
-        RegDeleteKeyA(HKEY_CURRENT_USER, kRaizPruebas);
-    }
-
-    ClaveDeRegistroTemporal(const ClaveDeRegistroTemporal&) = delete;
-    ClaveDeRegistroTemporal& operator=(const ClaveDeRegistroTemporal&) = delete;
-
-    bool creada() const { return creada_; }
-
-    bool escribirTexto(const std::string& nombre, const std::string& valor) {
-        return RegSetValueExA(hKey_, nombre.c_str(), 0, REG_SZ,
-                              reinterpret_cast<const BYTE*>(valor.c_str()),
-                              static_cast<DWORD>(valor.size() + 1)) == ERROR_SUCCESS;
-    }
-
-    bool escribirDword(const std::string& nombre, DWORD valor) {
-        return RegSetValueExA(hKey_, nombre.c_str(), 0, REG_DWORD,
-                              reinterpret_cast<const BYTE*>(&valor),
-                              sizeof(valor)) == ERROR_SUCCESS;
-    }
-
-private:
-    HKEY hKey_ = nullptr;
-    bool creada_ = false;
-};
-
-} // namespace
+using rvotest::ClaveDeRegistroTemporal;
+using rvotest::comoPathDeReg;
+using rvotest::subclaveDePrueba;
 
 TEST_SUITE("AdvanceMode::enableTab") {
 
@@ -160,7 +112,7 @@ TEST_CASE("la ruta versionada respeta el prefijo que espera getOriginalValue") {
 TEST_SUITE("AdvanceMode::getOriginalValue") {
 
 TEST_CASE("lee un REG_SZ existente") {
-    const std::string subKey = std::string(kRaizPruebas) + "\\Sample";
+    const std::string subKey = subclaveDePrueba("Sample");
     ClaveDeRegistroTemporal clave(subKey);
     REQUIRE(clave.creada());
     REQUIRE(clave.escribirTexto("Tab Props", "4,3,0,1"));
@@ -171,7 +123,7 @@ TEST_CASE("lee un REG_SZ existente") {
 }
 
 TEST_CASE("un valor inexistente devuelve vacio") {
-    const std::string subKey = std::string(kRaizPruebas) + "\\Sample";
+    const std::string subKey = subclaveDePrueba("Sample");
     ClaveDeRegistroTemporal clave(subKey);
     REQUIRE(clave.creada());
 
@@ -181,12 +133,66 @@ TEST_CASE("un valor inexistente devuelve vacio") {
 
 TEST_CASE("una clave inexistente devuelve vacio") {
     AdvanceMode am;
-    const std::string subKey = std::string(kRaizPruebas) + "\\NoCreada";
+    const std::string subKey = subclaveDePrueba("NoCreada");
     CHECK(AdvanceModeTestAccess::getOriginalValue(am, comoPathDeReg(subKey), "Tab Props") == "");
 }
 
+TEST_CASE("un REG_SZ de datos vacios devuelve vacio, no revienta") {
+    // bufferSize == 0. El "bufferSize - 1" anterior daba un largo de 0xFFFFFFFF y
+    // hacia fallar la construccion del string, abortando todo el modo avanzado.
+    const std::string subKey = subclaveDePrueba("Sample");
+    ClaveDeRegistroTemporal clave(subKey);
+    REQUIRE(clave.creada());
+    REQUIRE(clave.escribirTextoCrudo("Vacio", "", 0));
+
+    AdvanceMode am;
+    CHECK(AdvanceModeTestAccess::getOriginalValue(am, comoPathDeReg(subKey), "Vacio") == "");
+}
+
+TEST_CASE("un REG_SZ sin terminador nulo no arrastra basura") {
+    const std::string subKey = subclaveDePrueba("Sample");
+    ClaveDeRegistroTemporal clave(subKey);
+    REQUIRE(clave.creada());
+    // 7 bytes exactos, sin el '\0' final.
+    REQUIRE(clave.escribirTextoCrudo("SinNulo", "4,3,0,1", 7));
+
+    AdvanceMode am;
+    CHECK(AdvanceModeTestAccess::getOriginalValue(am, comoPathDeReg(subKey), "SinNulo") == "4,3,0,1");
+}
+
+TEST_CASE("un valor mas grande que el buffer devuelve vacio") {
+    const std::string subKey = subclaveDePrueba("Sample");
+    ClaveDeRegistroTemporal clave(subKey);
+    REQUIRE(clave.creada());
+    REQUIRE(clave.escribirTexto("Enorme", std::string(2048, 'x')));
+
+    AdvanceMode am;
+    CHECK(AdvanceModeTestAccess::getOriginalValue(am, comoPathDeReg(subKey), "Enorme") == "");
+}
+
+TEST_CASE("un path con formato inesperado devuelve vacio en lugar de lanzar") {
+    // Antes se hacia substr(20, size - 21) sin validar: un path mas corto que el
+    // prefijo lanzaba std::out_of_range.
+    AdvanceMode am;
+    const char* pathsInvalidos[] = {
+        "",
+        "]",
+        "corto",
+        "[HKEY_CURRENT_USER\\SOFTWARE\\Test]",   // le falta el "\n" inicial
+        "\n[HKEY_LOCAL_MACHINE\\SOFTWARE\\Test]", // otra raiz
+        "\n[HKEY_CURRENT_USER\\SOFTWARE\\Test",   // sin "]" final
+        "\n[HKEY_CURRENT_USER\\]",                // subclave vacia
+    };
+
+    for (const char* path : pathsInvalidos) {
+        CAPTURE(path);
+        CHECK_NOTHROW(AdvanceModeTestAccess::getOriginalValue(am, path, "Tab Props"));
+        CHECK(AdvanceModeTestAccess::getOriginalValue(am, path, "Tab Props") == "");
+    }
+}
+
 TEST_CASE("un valor que no es REG_SZ se ignora") {
-    const std::string subKey = std::string(kRaizPruebas) + "\\Sample";
+    const std::string subKey = subclaveDePrueba("Sample");
     ClaveDeRegistroTemporal clave(subKey);
     REQUIRE(clave.creada());
     REQUIRE(clave.escribirDword("Numerico", 0x1234));
@@ -196,7 +202,7 @@ TEST_CASE("un valor que no es REG_SZ se ignora") {
 }
 
 TEST_CASE("integracion: leer del registro y habilitar la pestana") {
-    const std::string subKey = std::string(kRaizPruebas) + "\\Tab4";
+    const std::string subKey = subclaveDePrueba("Tab4");
     ClaveDeRegistroTemporal clave(subKey);
     REQUIRE(clave.creada());
     REQUIRE(clave.escribirTexto("Tab Props", "4,3,0,1"));

@@ -81,6 +81,17 @@ TEST_CASE("cae al renderer cuando el vendor esta vacio") {
     }
 }
 
+TEST_CASE("los renderers con caracteres no ASCII se detectan igual") {
+    // Los nombres reales traen (R), (TM) o sus simbolos. Pasar un char negativo a
+    // std::toupper es comportamiento indefinido, asi que la conversion acota el
+    // char a unsigned char antes de convertirlo.
+    GPU registrada(current("Intel\xC2\xAE UHD Graphics 630"));
+    GPU marca(current("NVIDIA\xE2\x84\xA2 GeForce RTX 3060"));
+
+    CHECK(GPUTestAccess::brand(registrada) == GPU::Brand::INTEL);
+    CHECK(GPUTestAccess::brand(marca) == GPU::Brand::NVIDIA);
+}
+
 TEST_CASE("la busqueda no distingue mayusculas") {
     GPU minusculas(current("nvidia geforce rtx 3060"));
     GPU mayusculas(current("NVIDIA GEFORCE RTX 3060"));

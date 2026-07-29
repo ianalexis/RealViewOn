@@ -32,12 +32,13 @@ depurar un test que falla.
 ## Como esta armado
 
 | Archivo | Cubre |
-|---|---|
+| --- | --- |
 | [`test_solidworks.cpp`](test_solidworks.cpp) | `esCompatible`, invariantes del constructor, `obtenerRegBase` y el cambio de raiz de 2023 |
 | [`test_gpu.cpp`](test_gpu.cpp) | Deteccion de marca por vendor/renderer, seleccion de workarounds, armado del contenido del `.reg` |
 | [`test_advancemode.cpp`](test_advancemode.cpp) | `enableTab`, rutas versionadas, `getOriginalValue` contra el registro |
 | [`test_registro.cpp`](test_registro.cpp) | Cabecera y formato del `.reg` que genera `guardarArchivoReg` |
 | [`test_access.h`](test_access.h) | Puentes `friend` para alcanzar las funciones puras privadas |
+| [`registry_fixture.h`](registry_fixture.h) | Helpers RAII para los tests que leen del registro |
 | [`doctest.h`](doctest.h) | Framework vendorizado (v2.4.11, MIT) |
 
 El proyecto compila `src\AdvanceMode.cpp`, `src\GPU.cpp`, `src\Registro.cpp`,
@@ -69,10 +70,11 @@ El paso "Run tests" del workflow tiene `timeout-minutes: 5` como red de
 contencion, pero un test que bloquea igual rompe la corrida.
 
 **2. Los tests que tocan el registro usan su propia raiz.** Los de
-`getOriginalValue` crean y borran
+`getOriginalValue` y `obtenerCurrent(path)` crean y borran
 `HKEY_CURRENT_USER\SOFTWARE\RealViewOnTests` mediante `ClaveDeRegistroTemporal`
-(RAII). No tocan `HKEY_CURRENT_USER\SOFTWARE\SolidWorks`, asi que correr la suite
-en una maquina con SolidWorks instalado es seguro.
+(RAII, en [`registry_fixture.h`](registry_fixture.h)). No tocan
+`HKEY_CURRENT_USER\SOFTWARE\SolidWorks`, asi que correr la suite en una maquina
+con SolidWorks instalado es seguro.
 
 **3. Los tests que escriben archivos usan un directorio temporal.**
 `guardarArchivoReg()` escribe siempre en el directorio actual, asi que

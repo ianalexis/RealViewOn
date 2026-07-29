@@ -34,7 +34,7 @@ private:
 
     void setBrand(string v,string r); // Declarar setBrand
     void setBrWorkarounds(string w); // Eliminar calificación extra
-    Brand buscarEnRenderMap(string buscado); // Declarar buscarEnRenderMap
+    void buscarEnRenderMap(string buscado); // Fija `brand` si encuentra coincidencia.
     Brand selecectBrandManual(); // Selecciona la marca de la GPU en caso de no poder determinarla.
     void setBaseData(Current current); // Setea la baseData de la GPU.
     vector<string> completarRealViewEnabler(string reg);

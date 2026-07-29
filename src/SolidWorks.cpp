@@ -2,8 +2,10 @@
 #include <iostream>
 #include <Windows.h>
 #include <string>
+#include <cstring>
 #include <functional>
 #include <sstream>
+#include <stdexcept>
 #include "Teclado.h"
 
 
@@ -117,13 +119,16 @@ void SolidWorks::obtenerVersionesInstaladas() {
 }
 
 GPU::Current SolidWorks::obtenerCurrent() {
-    current.renderer = "";
-    current.vendor = "";
-    current.workarounds = "";
-    current.origin = "SolidWorks " + std::to_string(swVersion);
+    current = GPU::Current{};
     GPU::Current tempCurrent;
     if (swVersion < vCambioRaiz || generico) {
         current = obtenerCurrentAno();
+        // El origin se asigna sobre el resultado: obtenerCurrent(path) devuelve un
+        // Current nuevo, así que fijarlo antes de esta línea se perdía y el .reg
+        // salía sin la línea "Origin" para las versiones previas a vCambioRaiz.
+        if (!current.renderer.empty()) {
+            current.origin = "SolidWorks " + std::to_string(swVersion);
+        }
     }
     if (current.renderer.empty() || swVersion >= vCambioRaiz || generico) {
         tempCurrent = obtenerCurrentRaiz();
@@ -191,43 +196,72 @@ std::string SolidWorks::rendererManual() {
     return manual;
 }
 
+// Lee un valor del registro en el buffer indicado.
+// bytesLeidos SIEMPRE se reinicia a la capacidad del buffer antes de consultar:
+// RegQueryValueExA escribe ahi la cantidad copiada (y, ante ERROR_MORE_DATA, el
+// tamaño requerido, que puede superar la capacidad real). Reutilizar el valor
+// entre lecturas hacía que la segunda consulta recibiera la capacidad sobrante de
+// la primera, salteando valores en silencio o declarando un buffer mayor que el
+// real.
+static bool leerValorDeRegistro(HKEY hKey, const char* valueName, char* buffer, DWORD capacidad,
+                                DWORD& bytesLeidos, DWORD& tipo) {
+    bytesLeidos = capacidad;
+    tipo = 0;
+    if (RegQueryValueExA(hKey, valueName, NULL, &tipo, reinterpret_cast<LPBYTE>(buffer),
+                         &bytesLeidos) != ERROR_SUCCESS) {
+        return false;
+    }
+    // El valor no entraba en el buffer: se descarta en lugar de leer de más.
+    return bytesLeidos <= capacidad;
+}
+
+// Los valores REG_SZ del registro no tienen garantizado el terminador nulo, así
+// que se acota por strnlen en lugar de asumir bytesLeidos - 1.
+static string comoTexto(const char* buffer, DWORD bytes) {
+    return string(buffer, strnlen(buffer, bytes));
+}
+
 GPU::Current SolidWorks::obtenerCurrent(string path){
     HKEY hKey;
     GPU::Current currentTemp;
-    string regPath = path;
-    if (RegOpenKeyExA(HKEY_CURRENT_USER, regPath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-        char value[256];
-        DWORD bufferSize = sizeof(value);
-        DWORD valueType;
+    if (RegOpenKeyExA(HKEY_CURRENT_USER, path.c_str(), 0, KEY_READ, &hKey) != ERROR_SUCCESS) {
+        return currentTemp;
+    }
 
-        // Obtener renderer
-        if (RegQueryValueExA(hKey, "renderer", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
-            currentTemp.renderer = string(value, bufferSize);
-            currentTemp.renderer.resize(strnlen(value, bufferSize));
-        }
-        if (currentTemp.renderer.empty()) {
-            cout << "Renderer not found in the " << swVersion << " \n";
-            return currentTemp;
-        }
-        // Obtener vendor
-        if (RegQueryValueExA(hKey, "vendor", NULL, NULL, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
-            currentTemp.vendor = string(value, bufferSize);
-            currentTemp.vendor.resize(strnlen(value, bufferSize));
-        }
-        // Obtener workarounds
-        if (RegQueryValueExA(hKey, "workarounds", NULL, &valueType, (LPBYTE)value, &bufferSize) == ERROR_SUCCESS) {
-            if (valueType == REG_DWORD) {
-                DWORD workaroundsValue = *(DWORD*)value;
+    char value[256];
+    DWORD bytesLeidos = 0;
+    DWORD valueType = 0;
+
+    // Obtener renderer
+    if (leerValorDeRegistro(hKey, "renderer", value, sizeof(value), bytesLeidos, valueType)) {
+        currentTemp.renderer = comoTexto(value, bytesLeidos);
+    }
+    if (currentTemp.renderer.empty()) {
+        cout << "Renderer not found in " << path << "\n";
+        RegCloseKey(hKey);
+        return currentTemp;
+    }
+    // Obtener vendor
+    if (leerValorDeRegistro(hKey, "vendor", value, sizeof(value), bytesLeidos, valueType)) {
+        currentTemp.vendor = comoTexto(value, bytesLeidos);
+    }
+    // Obtener workarounds
+    if (leerValorDeRegistro(hKey, "workarounds", value, sizeof(value), bytesLeidos, valueType)) {
+        if (valueType == REG_DWORD) {
+            if (bytesLeidos >= sizeof(DWORD)) {
+                DWORD workaroundsValue = 0;
+                // memcpy en lugar de *(DWORD*)value: el buffer es char[] y no
+                // tiene garantizada la alineación de un DWORD.
+                std::memcpy(&workaroundsValue, value, sizeof(workaroundsValue));
                 std::stringstream ss;
                 ss << std::hex << workaroundsValue;
                 currentTemp.workarounds = ss.str();
-            } else {
-                currentTemp.workarounds = string(value, bufferSize);
-                currentTemp.workarounds.resize(strnlen(value, bufferSize));
             }
+        } else {
+            currentTemp.workarounds = comoTexto(value, bytesLeidos);
         }
-        RegCloseKey(hKey);
     }
+    RegCloseKey(hKey);
     return currentTemp;
 }
 

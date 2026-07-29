@@ -8,7 +8,12 @@
 #include <vector>
 
 #include "SolidWorks.h"
+#include "registry_fixture.h"
 #include "test_access.h"
+
+using rvotest::ClaveDeRegistroTemporal;
+using rvotest::comoPathDeReg;
+using rvotest::subclaveDePrueba;
 
 TEST_SUITE("SolidWorks::esCompatible") {
 
@@ -141,6 +146,113 @@ TEST_CASE("las rutas base abren corchete y no lo cierran") {
         CHECK(base.front() == '[');
         CHECK(base.find(']') == std::string::npos);
     }
+}
+
+} // TEST_SUITE
+
+TEST_SUITE("SolidWorks::obtenerCurrent(path)") {
+
+// Los tres valores (renderer, vendor, workarounds) se leen del mismo buffer.
+// El bug que estos tests fijan: bufferSize se inicializaba una sola vez, asi que
+// cada lectura recibia como capacidad la cantidad de bytes que habia devuelto la
+// lectura anterior.
+
+TEST_CASE("lee los tres valores aunque el vendor sea mas largo que el renderer") {
+    // Con un renderer corto seguido de un vendor largo, la version anterior pasaba
+    // una capacidad de 3 bytes a la consulta de vendor y lo descartaba en silencio.
+    const std::string subKey = subclaveDePrueba("Current");
+    const std::string vendorLargo(200, 'V');
+    ClaveDeRegistroTemporal clave(subKey);
+    REQUIRE(clave.creada());
+    REQUIRE(clave.escribirTexto("renderer", "NV"));
+    REQUIRE(clave.escribirTexto("vendor", vendorLargo));
+    REQUIRE(clave.escribirDword("workarounds", 0x52400c84));
+
+    SolidWorks sw;
+    const GPU::Current current = SolidWorksTestAccess::obtenerCurrent(sw, subKey);
+
+    CHECK(current.renderer == "NV");
+    CHECK(current.vendor == vendorLargo);
+    CHECK(current.workarounds == "52400c84");
+}
+
+TEST_CASE("un valor que no entra en el buffer se descarta sin afectar a los demas") {
+    // Un vendor de mas de 256 bytes no cabe. Antes, ERROR_MORE_DATA dejaba en
+    // bufferSize el tamano requerido (> capacidad real), y la consulta siguiente
+    // se hacia declarando ese tamano sobre el buffer de 256.
+    const std::string subKey = subclaveDePrueba("Current");
+    ClaveDeRegistroTemporal clave(subKey);
+    REQUIRE(clave.creada());
+    REQUIRE(clave.escribirTexto("renderer", "NV"));
+    REQUIRE(clave.escribirTexto("vendor", std::string(300, 'V')));
+    REQUIRE(clave.escribirDword("workarounds", 0x4000000));
+
+    SolidWorks sw;
+    const GPU::Current current = SolidWorksTestAccess::obtenerCurrent(sw, subKey);
+
+    CHECK(current.renderer == "NV");
+    CHECK(current.vendor == "");            // no entraba: se descarta
+    CHECK(current.workarounds == "4000000"); // y la lectura siguiente sigue siendo correcta
+}
+
+TEST_CASE("el workarounds REG_DWORD se formatea en hexadecimal minuscula") {
+    // GPU::setBrWorkarounds compara este string contra brandBaseAvoid, que esta
+    // escrito en minuscula ("52400c84"). Si el formato cambiara a mayuscula, la
+    // sustitucion de la clave problematica dejaria de detectarse.
+    const std::string subKey = subclaveDePrueba("Current");
+    ClaveDeRegistroTemporal clave(subKey);
+    REQUIRE(clave.creada());
+    REQUIRE(clave.escribirTexto("renderer", "AMD Radeon"));
+    REQUIRE(clave.escribirDword("workarounds", 0x52400C84));
+
+    SolidWorks sw;
+    const GPU::Current current = SolidWorksTestAccess::obtenerCurrent(sw, subKey);
+
+    CHECK(current.workarounds == "52400c84");
+}
+
+TEST_CASE("un workarounds de texto se lee tal cual") {
+    const std::string subKey = subclaveDePrueba("Current");
+    ClaveDeRegistroTemporal clave(subKey);
+    REQUIRE(clave.creada());
+    REQUIRE(clave.escribirTexto("renderer", "NV"));
+    REQUIRE(clave.escribirTexto("workarounds", "12000001"));
+
+    SolidWorks sw;
+    CHECK(SolidWorksTestAccess::obtenerCurrent(sw, subKey).workarounds == "12000001");
+}
+
+TEST_CASE("sin renderer devuelve un Current vacio y no mira los demas valores") {
+    const std::string subKey = subclaveDePrueba("Current");
+    ClaveDeRegistroTemporal clave(subKey);
+    REQUIRE(clave.creada());
+    REQUIRE(clave.escribirTexto("vendor", "NVIDIA Corporation"));
+
+    SolidWorks sw;
+    const GPU::Current current = SolidWorksTestAccess::obtenerCurrent(sw, subKey);
+
+    CHECK(current.renderer == "");
+    CHECK(current.vendor == "");
+}
+
+TEST_CASE("una clave inexistente devuelve un Current vacio") {
+    SolidWorks sw;
+    const GPU::Current current =
+        SolidWorksTestAccess::obtenerCurrent(sw, subclaveDePrueba("NoCreada"));
+
+    CHECK(current.renderer == "");
+    CHECK(current.vendor == "");
+    CHECK(current.workarounds == "");
+}
+
+TEST_CASE("no asigna origin: eso queda a cargo de quien llama") {
+    const std::string subKey = subclaveDePrueba("Current");
+    ClaveDeRegistroTemporal clave(subKey);
+    REQUIRE(clave.creada());
+    REQUIRE(clave.escribirTexto("renderer", "NV"));
+
+    SolidWorks sw;
+    CHECK(SolidWorksTestAccess::obtenerCurrent(sw, subKey).origin == "");
 }
 
 } // TEST_SUITE
