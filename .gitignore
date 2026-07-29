@@ -55,6 +55,9 @@ Release/
 *.bak
 *.swp
 
+# Test output
+test-results.xml
+
 # Generated files
 RealViewEnabler.reg
 /.vscode
