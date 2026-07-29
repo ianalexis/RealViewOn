@@ -62,6 +62,11 @@ struct SolidWorksTestAccess {
     static std::string obtenerRegBaseAllowList(SolidWorks& sw) {
         return sw.obtenerRegBaseAllowList();
     }
+    // Sobrecarga privada que lee una clave arbitraria. No pide input (a diferencia
+    // de obtenerCurrent() sin argumentos, que confirma el renderer con yesOrNo()).
+    static GPU::Current obtenerCurrent(SolidWorks& sw, const std::string& path) {
+        return sw.obtenerCurrent(path);
+    }
 };
 
 #endif // RVO_TEST_ACCESS_H

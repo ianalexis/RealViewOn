@@ -2,6 +2,12 @@
 chcp 65001 >nul
 setlocal
 
+REM Este script corre como PostBuildEvent, tambien en CI. Ahi no hay nadie para
+REM apretar una tecla: un "pause" dejaria el job colgado hasta el timeout (6 h en
+REM GitHub Actions) en lugar de fallar. GitHub Actions define CI=true.
+set PAUSA=pause
+if defined CI set PAUSA=echo [CI] Error detectado, se continua sin pausa.
+
 REM Detectar si estamos ejecutando desde la carpeta tools o desde la raíz del proyecto
 if exist ".\upx.exe" (
     REM Ejecutándose desde la carpeta tools (manual)
@@ -22,15 +28,15 @@ set SEVEN_ZIP_EXEC="%TOOLS_PATH%\7zr.exe"
 
 if not exist %SOURCE_FILE% (
     echo Archivo %SOURCE_FILE% no encontrado.
-    pause
+    %PAUSA%
     exit /b
 )
 
 if exist %DEST_FILE% (
     del %DEST_FILE%
-    if %errorlevel% neq 0 (
+    if errorlevel 1 (
         echo Error al eliminar el archivo existente.
-        pause
+        %PAUSA%
         exit /b
     )
 ) else (
@@ -39,9 +45,9 @@ if exist %DEST_FILE% (
 
 if exist %COMPRESSED_FILE% (
     del %COMPRESSED_FILE%
-    if %errorlevel% neq 0 (
+    if errorlevel 1 (
         echo Error al eliminar el archivo ZIP existente.
-        pause
+        %PAUSA%
         exit /b
     )
 ) else (
@@ -49,37 +55,37 @@ if exist %COMPRESSED_FILE% (
 )
 
 copy %SOURCE_FILE% %DEST_FILE%
-if %errorlevel% neq 0 (
+if errorlevel 1 (
     echo Error al copiar el archivo.
-    pause
+    %PAUSA%
     exit /b
 )
 echo Archivo copiado a la raíz del proyecto.
 
 if not exist %UPX_EXEC% (
     echo %UPX_EXEC% no encontrado.
-    pause
+    %PAUSA%
     exit /b
 )
 
 %UPX_EXEC% --ultra-brute %DEST_FILE%
-if %errorlevel% neq 0 (
+if errorlevel 1 (
     echo Error al comprimir el archivo.
-    pause
+    %PAUSA%
     exit /b
 )
 echo Compresión completada.
 
 if not exist %SEVEN_ZIP_EXEC% (
     echo %SEVEN_ZIP_EXEC% no encontrado.
-    pause
+    %PAUSA%
     exit /b
 )
 
 %SEVEN_ZIP_EXEC% a %COMPRESSED_FILE% %DEST_FILE%
-if %errorlevel% neq 0 (
+if errorlevel 1 (
     echo Error al comprimir el archivo con 7-Zip.
-    pause
+    %PAUSA%
     exit /b
 )
 echo Compresión con 7-Zip completada.

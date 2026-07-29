@@ -1,10 +1,20 @@
 #include "AdvanceMode.h"
 #include "Teclado.h"
+#include <algorithm>
+#include <cstring>
 #include <iostream>
 #include <sstream>
 #include <Windows.h>
 
 using std::string;
+
+namespace {
+// Prefijo que produce setSwVersion(): "\n" + rutaBase hasta la raíz HKCU.
+// getOriginalValue() lo recorta para recuperar la subclave real. Si rutaBase
+// cambiara, getOriginalValue deja de encontrar valores (falla en seguro) en lugar
+// de leer subclaves equivocadas.
+const string kPrefijoPath = "\n[HKEY_CURRENT_USER\\";
+} // namespace
 
 AdvanceMode::AdvanceMode(){
 }
@@ -12,8 +22,11 @@ AdvanceMode::AdvanceMode(){
 void AdvanceMode::setSwVersion(int swVersion, bool generico){
     rutaVersionada = "\n" + std::string(rutaBase.begin(), rutaBase.end()) + std::to_string(swVersion) + "\\";
     this->generico = generico;
-    optionsQty = regOptions.size() + (generico ? 0 : 1);
+    optionsQty = static_cast<int>(regOptions.size()) + (generico ? 0 : 1);
     optionNumber = 1;
+    // Se reinicia junto con el resto del estado por versión: main() reutiliza la
+    // misma instancia de AdvanceMode en cada vuelta del bucle.
+    anySelected = false;
 }
 
 string AdvanceMode::completeBase (string complement){
@@ -41,20 +54,26 @@ string AdvanceMode::qolCommands(){
     askToEnable ("QoL Commands");
     if (yesOrNo()){
         tempOptions += "\n;### QoL Commands ###";
+        // enableTabs/enableBtn marcan anySelected solo si agregaron algo. Antes se
+        // forzaba a true acá, así que aceptar QoL sin que hubiera nada que
+        // habilitar igual ocultaba el aviso "No Advance options selected".
         tempOptions += enableTabs();
         tempOptions += enableBtn();
-        anySelected = true;
     }
     return tempOptions;
 }
 
 string AdvanceMode::enableBtn(){
     string tempBtn = "";
-    string tempBtnData = "";
-    std::vector<string> btnsAlreadyEnabled;
-    bool error = false;
-    for (int i = 0 ; i < btnsToEnable.size() ; i++){
+    for (std::size_t i = 0 ; i < btnsToEnable.size() ; i++){
         string path = completeBase(btnsToEnable[i].path) + "]";
+        // Estado por ruta: antes estaba declarado fuera del bucle, así que los
+        // botones ya presentes en una ruta se consideraban presentes en las
+        // siguientes (suprimiendo altas legítimas), y un `error` en la primera
+        // ruta saltaba en silencio todas las demás.
+        std::vector<string> btnsAlreadyEnabled;
+        string tempBtnData = "";
+        bool error = false;
         int btnNumber = 0;
         string originalValue;
         while (!(originalValue = getOriginalValue(path, "Btn" + std::to_string(btnNumber))).empty() && !error){
@@ -63,43 +82,45 @@ string AdvanceMode::enableBtn(){
             error = (btnNumber > 25);
         }
         if (!error){
-            for (int j = 0 ; j < btnsToEnable[i].value.size() ; j++){
-                if (!(std::find(btnsAlreadyEnabled.begin(), btnsAlreadyEnabled.end(), btnsToEnable[i].value[j]) != btnsAlreadyEnabled.end())){
+            for (std::size_t j = 0 ; j < btnsToEnable[i].value.size() ; j++){
+                if (std::find(btnsAlreadyEnabled.begin(), btnsAlreadyEnabled.end(), btnsToEnable[i].value[j]) == btnsAlreadyEnabled.end()){
                     tempBtnData += "\n\"Btn" + std::to_string(btnNumber) + "\"=\"" + btnsToEnable[i].value[j] + "\"";
                     btnNumber++;
                 }
             }
             if (!tempBtnData.empty()){
-                tempBtn += path + tempBtnData+="\n";
-                tempBtnData = "";
+                tempBtn += path + tempBtnData + "\n";
             }
         }
     }
+    anySelected = anySelected || !tempBtn.empty();
     return !tempBtn.empty() ? "\n; - Enable Buttons\n;```" + tempBtn + ";```\n" : ";No buttons added";
 }
 
 string AdvanceMode::selectRegOptions(){
     string tempOptions = "";
-    for (int i = 0 ; i < regOptions.size() ; i++){
+    for (std::size_t i = 0 ; i < regOptions.size() ; i++){
         askToEnable(regOptions[i].name);
         if (yesOrNo()){
             tempOptions += "\n; - " + regOptions[i].name + "\n;```";
-            for (int j = 0 ; j < regOptions[i].content.size() ; j++){
+            for (std::size_t j = 0 ; j < regOptions[i].content.size() ; j++){
                 tempOptions += completeBase(regOptions[i].content[j].path) + "]";
-                for (int k = 0 ; k < regOptions[i].content[j].value.size() ; k++){
+                for (std::size_t k = 0 ; k < regOptions[i].content[j].value.size() ; k++){
                     tempOptions += "\n" + regOptions[i].content[j].value[k];
                 }
             }
             tempOptions += "\n;```\n";
         }
     }
-    anySelected = !tempOptions.empty();
+    // Acumula en lugar de asignar: enableTabs() corre después y sobrescribía este
+    // resultado con el suyo.
+    anySelected = anySelected || !tempOptions.empty();
     return tempOptions;
 }
 
 string AdvanceMode::enableTabs(){
     string tempTabs = "";
-    for (int i = 0; i < tabsToEnable.size(); i++) {
+    for (std::size_t i = 0; i < tabsToEnable.size(); i++) {
         string path = completeBase(rutaTab + std::to_string(tabsToEnable[i])) + "]";
         string value = enableTab(getOriginalValue(path, "Tab Props"));
         if (!value.empty()) {
@@ -107,7 +128,7 @@ string AdvanceMode::enableTabs(){
             tempTabs += path + "\n\"Tab Props\"=\"" + value + "\"\n;```\n";
         }
     }
-    anySelected = !tempTabs.empty();
+    anySelected = anySelected || !tempTabs.empty();
     return !tempTabs.empty() ? tempTabs : ";No tabs added";
 }
 
@@ -136,18 +157,39 @@ string AdvanceMode::enableTab(string value){
 }
 
 string AdvanceMode::getOriginalValue(string path, string valueName) {
-    string cleanPath = path.substr(20, path.size() - 21);
+    // path viene de completeBase() + "]", o sea kPrefijoPath + subclave + "]".
+    // Antes se recortaba con substr(20, size - 21): los números coincidían con el
+    // largo de kPrefijoPath, pero cualquier cambio en rutaBase habría producido
+    // subclaves incorrectas en silencio, y un path más corto que el prefijo
+    // lanzaba std::out_of_range.
+    if (path.rfind(kPrefijoPath, 0) != 0 || path.size() <= kPrefijoPath.size() ||
+        path.back() != ']') {
+        return "";
+    }
+    const string cleanPath =
+        path.substr(kPrefijoPath.size(), path.size() - kPrefijoPath.size() - 1);
+    if (cleanPath.empty()) {
+        return "";
+    }
+
     HKEY hKey;
     if (RegOpenKeyExA(HKEY_CURRENT_USER, cleanPath.c_str(), 0, KEY_READ, &hKey) != ERROR_SUCCESS) {
         return ""; // No se pudo abrir la clave del registro
     }
     char buffer[1024];
     DWORD bufferSize = sizeof(buffer);
-    DWORD type;
-    if (RegQueryValueExA(hKey, valueName.c_str(), nullptr, &type, (LPBYTE)buffer, &bufferSize) == ERROR_SUCCESS && type == REG_SZ) {
-        RegCloseKey(hKey);
-        return std::string(buffer, bufferSize - 1); // Excluir el carácter nulo final
-    }
+    DWORD type = 0;
+    const LSTATUS resultado = RegQueryValueExA(hKey, valueName.c_str(), nullptr, &type,
+                                               reinterpret_cast<LPBYTE>(buffer), &bufferSize);
     RegCloseKey(hKey);
-    return ""; // No se encontró el valor
+
+    // bufferSize == 0 se da con un REG_SZ de datos vacíos: el "bufferSize - 1"
+    // anterior producía un largo de 0xFFFFFFFF y hacía fallar la construcción del
+    // string. bufferSize > sizeof(buffer) es el caso ERROR_MORE_DATA.
+    if (resultado != ERROR_SUCCESS || type != REG_SZ || bufferSize == 0 ||
+        bufferSize > sizeof(buffer)) {
+        return ""; // No se encontró el valor, o no se puede usar
+    }
+    // Los REG_SZ no tienen garantizado el terminador nulo.
+    return string(buffer, strnlen(buffer, bufferSize));
 }

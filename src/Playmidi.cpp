@@ -55,11 +55,10 @@ std::vector<unsigned char> loadEmbeddedMidi() {
 // Función para enviar mensajes MIDI válidos
 void sendMidiMessage(RtMidiOut& midiOut, const std::vector<unsigned char>& message) {
     if (message.size() <= 3 || (message[0] == 0xF0 && message.back() == 0xF7)) {
-        // Mensaje estándar MIDI (máximo 3 bytes)
+        // Mensaje estándar MIDI (máximo 3 bytes), o SysEx completo.
         midiOut.sendMessage(&message);
-    } else {
-        std::cerr << "" ;
     }
+    // Cualquier otra cosa se descarta en silencio: no es un mensaje MIDI válido.
 }
 
 // Función para reproducir datos MIDI directamente desde memoria

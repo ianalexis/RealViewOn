@@ -19,7 +19,9 @@
 #include <ctime>
 
 // Implementation of getVersionFromDateTime function
-std::string getVersionFromDateTime() {
+// inline, igual que releaseType(): sin él, incluir Version.h desde una segunda
+// unidad de traducción daba un símbolo duplicado en el link.
+inline std::string getVersionFromDateTime() {
     std::tm t = {};
     std::istringstream date_ss(__DATE__);
     date_ss >> std::get_time(&t, "%b %d %Y");

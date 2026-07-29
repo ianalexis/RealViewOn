@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <conio.h>
+#include <exception>
 #include <sstream>
 #include <iomanip>
 #include <ctime>
@@ -58,9 +59,18 @@ void configurarConsola() {
 }
 
 void lineaEncabezado(string texto) {
-    int width = 93; // Ancho total de la línea
-    int padding = (width - texto.length()) / 2;
-    cout << " ||" << std::setw(padding) << "" << texto << std::setw(padding) << "" << " ||\n";
+    // El marco es " ||" + interior + " ||" (6 caracteres) y las líneas del
+    // encabezado miden 98, así que el interior son 92. Con el 93 anterior y un
+    // texto de largo impar la línea salía un carácter más ancha y el borde
+    // derecho no cerraba con el resto del cuadro.
+    const int interior = 92;
+    // texto.length() es size_t: restarlo en aritmética unsigned daba un padding
+    // enorme en lugar de negativo cuando el texto superaba el ancho.
+    const int largo = static_cast<int>(texto.length());
+    const int sobra = largo >= interior ? 0 : interior - largo;
+    const int izquierda = sobra / 2;
+    const int derecha = sobra - izquierda; // absorbe el impar
+    cout << " ||" << string(izquierda, ' ') << texto << string(derecha, ' ') << " ||\n";
 }
 
 void encabezado() {
@@ -120,9 +130,8 @@ int main() {
             // Validar entrada
             try {
                 int swVersion = std::stoi(entrada);
-                if (sw.esCompatible(swVersion) == 0) {
-                    throw std::invalid_argument("Incompatible version");
-                }
+                // setVersion() ya valida la compatibilidad y lanza con un mensaje
+                // más claro; no hace falta comprobarla acá también.
                 sw.setVersion(swVersion);
                 GPU gpu(sw.obtenerCurrent());
                 regContent = gpu.completarContenidoReg(sw.obtenerRegBase());
