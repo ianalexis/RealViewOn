@@ -1,0 +1,175 @@
+# Bot de actualizacion de los binarios vendorizados en tools/.
+#
+# Compara tools/upx.exe y tools/7zr.exe contra el ultimo release ESTABLE de
+# upx/upx y ip7z/7zip. Si hay novedad: descarga el asset, verifica arquitectura,
+# corre una prueba funcional real con los mismos flags que usa el pipeline de
+# release y abre un PR con el binario y tools/tools.lock.json actualizados.
+#
+# Toda la logica esta en tools/Update-VendoredTools.ps1, que se puede correr a
+# mano:  pwsh tools/Update-VendoredTools.ps1 -CheckOnly
+#
+# REQUISITO DE CONFIGURACION: Settings > Actions > General > Workflow permissions
+# > "Allow GitHub Actions to create and approve pull requests" tiene que estar
+# habilitado, o `gh pr create` falla con 403.
+
+name: Update vendored tools
+
+on:
+  schedule:
+    # Lunes 06:00 UTC.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      tool:
+        description: 'Herramienta a revisar'
+        type: choice
+        options: [all, upx, 7zr]
+        default: all
+      check_only:
+        description: 'Solo informar la comparacion, sin descargar ni abrir PR'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# Dos corridas simultaneas empujarian la misma rama. No se cancela la que ya
+# estaba: puede estar a mitad de un push.
+concurrency:
+  group: update-tools
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    name: Leer tools.lock.json
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Armar la matriz de herramientas
+        id: set
+        shell: pwsh
+        run: |
+          $lock = Get-Content tools/tools.lock.json -Raw | ConvertFrom-Json
+          $pedido = '${{ inputs.tool }}'
+          if ([string]::IsNullOrWhiteSpace($pedido)) { $pedido = 'all' }  # corridas por schedule
+
+          # @() externo: una rama de if que devuelve un array vacio se colapsa a
+          # $null al asignarla, y el .Count de abajo dejaria de detectarlo.
+          $ids = @(if ($pedido -eq 'all') { $lock.tools | ForEach-Object { $_.id } } else { $pedido })
+          if ($ids.Count -eq 0) { throw "tools.lock.json no define ninguna herramienta." }
+
+          $matrix = '{"id":' + ($ids | ConvertTo-Json -Compress -AsArray) + '}'
+          Write-Host "matriz: $matrix"
+          "matrix=$matrix" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+  update:
+    name: ${{ matrix.id }}
+    needs: discover
+    # windows-latest es obligatorio: la prueba funcional ejecuta los .exe.
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.discover.outputs.matrix) }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Comparar con el origen y actualizar el binario
+        id: update
+        shell: pwsh
+        env:
+          # Solo para el limite de la API de GitHub (60 req/h por IP sin token).
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $p = @{ Id = '${{ matrix.id }}'; PrBodyPath = "$env:RUNNER_TEMP/pr-body.md" }
+          if ('${{ inputs.check_only }}' -eq 'true') { $p['CheckOnly'] = $true }
+          ./tools/Update-VendoredTools.ps1 @p
+
+      - name: Buscar un PR previo para esta version
+        id: existing
+        if: steps.update.outputs.updated == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $branch = 'bot/update-${{ matrix.id }}-${{ steps.update.outputs.latest_version }}'
+          "branch=$branch" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+          # --state all a proposito: si ya se cerro un PR para esta misma version,
+          # el mantenedor ya decidio y el bot no tiene que volver a insistir.
+          $prs = @(gh pr list --head $branch --state all --json url,state --limit 5 | ConvertFrom-Json)
+          if ($prs.Count -gt 0) {
+            Write-Host "::notice::Ya existe un PR para $branch ($($prs[0].state)): $($prs[0].url)"
+            "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          } else {
+            "skip=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          }
+
+      - name: Abrir el pull request
+        id: pr
+        if: steps.update.outputs.updated == 'true' && steps.existing.outputs.skip == 'false'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $branch = '${{ steps.existing.outputs.branch }}'
+          $id     = '${{ matrix.id }}'
+          $nombre = '${{ steps.update.outputs.name }}'
+          $vieja  = '${{ steps.update.outputs.current_version }}'
+          $nueva  = '${{ steps.update.outputs.latest_version }}'
+          $ruta   = '${{ steps.update.outputs.path }}'
+
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout -b $branch
+
+          # Rutas explicitas: tools/ tiene .gitignore para *.exe y no se quiere
+          # arrastrar nada mas que el binario y el lock.
+          git add -- $ruta tools/tools.lock.json
+          $staged = @(git diff --cached --name-only)
+          if ($staged.Count -eq 0) {
+            throw "No quedo nada en el index. Se esperaba $ruta y tools/tools.lock.json."
+          }
+          Write-Host "staged: $($staged -join ', ')"
+
+          $titulo = "chore(tools): $nombre $vieja -> $nueva"
+          git commit -m $titulo -m "Origen: ${{ steps.update.outputs.release_url }}" -m "SHA256: ${{ steps.update.outputs.sha256_new }}"
+          git push --set-upstream origin $branch
+
+          # El cuerpo lo genero el script en el paso anterior (New-CuerpoPr).
+          $cuerpo = "$env:RUNNER_TEMP/pr-body.md"
+          if (-not (Test-Path $cuerpo)) { throw "Falta el cuerpo del PR en $cuerpo." }
+          $url = gh pr create --base main --head $branch --title $titulo --body-file $cuerpo
+          Write-Host "::notice::PR creado: $url"
+          "url=$url" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Resumen
+        if: always()
+        shell: pwsh
+        run: |
+          $tieneNovedad = '${{ steps.update.outputs.has_update }}' -eq 'true'
+          $actualizado  = '${{ steps.update.outputs.updated }}' -eq 'true'
+          $salteado     = '${{ steps.existing.outputs.skip }}' -eq 'true'
+          $vieja = '${{ steps.update.outputs.current_version }}'
+          $nueva = '${{ steps.update.outputs.latest_version }}'
+
+          # if/elseif en una sola linea cada uno: PowerShell no acepta un salto de
+          # linea entre "}" y "elseif".
+          $estado = '⚠️ Sin completar, revisar el log'
+          if (-not $tieneNovedad) { $estado = "✅ Al dia (``$vieja``)" }
+          elseif ('${{ inputs.check_only }}' -eq 'true') { $estado = "🔍 Hay ``$nueva`` disponible (check_only, sin PR)" }
+          elseif ($salteado) { $estado = "⏭️ Ya existe un PR para ``$nueva``" }
+          elseif ($actualizado) { $estado = "🚀 PR abierto: ``$vieja`` → ``$nueva`` — ${{ steps.pr.outputs.url }}" }
+
+          "## ${{ matrix.id }}"  | Out-File $env:GITHUB_STEP_SUMMARY -Append
+          ""                     | Out-File $env:GITHUB_STEP_SUMMARY -Append
+          $estado                | Out-File $env:GITHUB_STEP_SUMMARY -Append
