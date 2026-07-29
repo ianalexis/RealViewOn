@@ -1,5 +1,9 @@
+#ifndef REGISTRO_H
+#define REGISTRO_H
 #include <vector>
 #include <string>
 
 void guardarArchivoReg(const std::string& version, const std::vector<std::string>& contenido, const std::string& RVO_VERSION);
 void guardarBackUp();
+
+#endif // REGISTRO_H

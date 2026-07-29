@@ -30,6 +30,8 @@ class GPU {
     string brandToString(GPU::Brand brand); // Convierte la marca de GPU a string.
 
 private:
+    friend struct GPUTestAccess; // Solo para tests unitarios (tests/test_access.h). No usar en producción.
+
     void setBrand(string v,string r); // Declarar setBrand
     void setBrWorkarounds(string w); // Eliminar calificación extra
     Brand buscarEnRenderMap(string buscado); // Declarar buscarEnRenderMap

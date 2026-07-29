@@ -12,6 +12,8 @@ public:
     string askAdvanceOptions();
 
 private:
+    friend struct AdvanceModeTestAccess; // Solo para tests unitarios (tests/test_access.h). No usar en producción.
+
     bool generico = false;
     int optionsQty = 0;
     int optionNumber = 1;

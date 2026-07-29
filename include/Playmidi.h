@@ -1,3 +1,5 @@
+#ifndef PLAYMIDI_H
+#define PLAYMIDI_H
 #include <iostream>
 #include <sstream>
 #include <thread>
@@ -15,3 +17,5 @@ void sendMidiMessage(RtMidiOut& midiOut, const std::vector<unsigned char>& messa
 
 // Function to play MIDI data
 void playMidi(const std::vector<unsigned char>& midiData);
+
+#endif // PLAYMIDI_H

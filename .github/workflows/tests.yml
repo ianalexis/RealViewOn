@@ -1,0 +1,131 @@
+# Workflow de tests unitarios de RealViewOn.
+#
+# Corre en cada PR a main que toque codigo o tests, y en cada push a main para
+# que la rama principal quede siempre verificada.
+#
+# A diferencia de msbuild.yml, este workflow NO necesita que se actualice
+# include/Version.h: no publica releases, solo compila y ejecuta los tests.
+
+name: Tests
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'tests/**'
+      - 'RealViewOn.vcxproj'
+      - '.github/workflows/tests.yml'
+  pull_request:
+    branches: ["main"]
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'tests/**'
+      - 'RealViewOn.vcxproj'
+      - '.github/workflows/tests.yml'
+  workflow_dispatch:
+
+# Un PR que recibe varios pushes seguidos cancela sus corridas anteriores.
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  TEST_PROJECT: tests\RealViewOn.Tests.vcxproj
+  TEST_EXE: tests\x64\Release\RealViewOn.Tests.exe
+
+jobs:
+  unit-tests:
+    name: Unit tests (x64 Release)
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v3
+        with:
+          msbuild-architecture: x64
+
+      - name: Print clang-cl version
+        run: clang-cl --version
+
+      - name: Build tests
+        run: |
+          msbuild ${{ env.TEST_PROJECT }} `
+            /p:Configuration=Release `
+            /p:Platform=x64 `
+            /p:PlatformToolset=ClangCL `
+            /p:UseMultiToolTask=true `
+            /maxcpucount `
+            /verbosity:minimal
+
+      - name: Verify test binary exists
+        run: |
+          if (-not (Test-Path "${{ env.TEST_EXE }}")) {
+            Write-Host "::error::No se genero el binario de tests: ${{ env.TEST_EXE }}"
+            exit 1
+          }
+          Get-Item "${{ env.TEST_EXE }}" | Select-Object Name, Length, LastWriteTime
+
+      # timeout-minutes acota el riesgo de que un test alcance por error una ruta
+      # que pide input por teclado (_getch()) y quede bloqueado esperando.
+      - name: Run tests
+        timeout-minutes: 5
+        run: |
+          & ".\${{ env.TEST_EXE }}" --no-colors=true --duration=true
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::Fallaron tests unitarios (exit code $LASTEXITCODE)"
+            exit $LASTEXITCODE
+          }
+          Write-Host "✅ Todos los tests unitarios pasaron"
+
+      - name: Generate JUnit report
+        if: always()
+        timeout-minutes: 5
+        continue-on-error: true
+        run: |
+          if (Test-Path "${{ env.TEST_EXE }}") {
+            & ".\${{ env.TEST_EXE }}" --reporters=junit --out=test-results.xml
+            Write-Host "Reporte JUnit generado (exit code $LASTEXITCODE)"
+          }
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: unit-test-results
+          path: test-results.xml
+          if-no-files-found: warn
+
+      - name: Summary
+        if: always()
+        run: |
+          if (Test-Path "test-results.xml") {
+            [xml]$xml = Get-Content "test-results.xml"
+            $suites = $xml.testsuites.testsuite
+            # En el reporter JUnit de doctest el atributo "tests" cuenta
+            # aserciones; los casos (incluyendo subcases) son los <testcase>.
+            $asserts = ($suites | Measure-Object -Property tests -Sum).Sum
+            $casos = $xml.SelectNodes("//testcase").Count
+            $failures = ($suites | Measure-Object -Property failures -Sum).Sum
+            $errors = ($suites | Measure-Object -Property errors -Sum).Sum
+            $estado = if (($failures + $errors) -eq 0) { "✅ SUCCESS" } else { "❌ FAILURE" }
+
+            "## Unit tests"                                        | Out-File $env:GITHUB_STEP_SUMMARY -Append
+            ""                                                     | Out-File $env:GITHUB_STEP_SUMMARY -Append
+            "| Resultado | Casos | Aserciones | Fallos | Errores |" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+            "|---|---|---|---|---|"                                | Out-File $env:GITHUB_STEP_SUMMARY -Append
+            "| $estado | $casos | $asserts | $failures | $errors |" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+          } else {
+            "## Unit tests"                                        | Out-File $env:GITHUB_STEP_SUMMARY -Append
+            ""                                                     | Out-File $env:GITHUB_STEP_SUMMARY -Append
+            "No se genero test-results.xml (revisar el log)."       | Out-File $env:GITHUB_STEP_SUMMARY -Append
+          }

@@ -1,3 +1,5 @@
+#ifndef SOLIDWORKS_H
+#define SOLIDWORKS_H
 #include <string>
 #include <vector>
 #include "GPU.h"
@@ -18,6 +20,8 @@ public:
     string versions = std::to_string(vMin) + ", " + std::to_string(vCambioRaiz) + ", " + std::to_string(vMax); // Versión máxima de SolidWorks soportada.
 
 private:
+    friend struct SolidWorksTestAccess; // Solo para tests unitarios (tests/test_access.h). No usar en producción.
+
     int obtenerAnoActual(); // Obtiene el año actual del sistema operativo + 1.
     bool versionInstalada(int v);
     GPU::Current obtenerCurrent(string path);
@@ -42,3 +46,5 @@ private:
     GPU::Current current;
     vector<string> regBase;
 };
+
+#endif // SOLIDWORKS_H
