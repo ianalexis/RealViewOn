@@ -1,5 +1,5 @@
 {
-  "comment": "Versiones fijadas de los binarios de Windows vendorizados en tools/. Lo actualiza automaticamente .github/workflows/update-tools.yml via tools/Update-VendoredTools.ps1. Ver tools/README.md.",
+  "comment": "Pinned versions of the vendored Windows binaries in tools/. Maintained automatically by .github/workflows/update-tools.yml via tools/Update-VendoredTools.ps1. See tools/README.md.",
   "tools": [
     {
       "id": "upx",
@@ -11,7 +11,7 @@
       "asset": "upx-{version}-win64.zip",
       "archiveMember": "upx-{version}-win64/upx.exe",
       "sha256": "16A29ADBDF3B6FDE74C290205E24CCEB7BEF1A216941922AA73D2D808A699BBB",
-      "usedBy": "tools/ReleaseUPXZIP.bat y el paso \"Compress with UPX\" de .github/workflows/msbuild.yml"
+      "usedBy": "tools/ReleaseUPXZIP.bat and the \"Compress with UPX\" step in .github/workflows/msbuild.yml"
     },
     {
       "id": "7zr",
@@ -23,7 +23,7 @@
       "asset": "7zr.exe",
       "archiveMember": null,
       "sha256": "4BEC0BC59836A890A11568B58BD12A3E7B23A683557340562DA211B6088058BA",
-      "usedBy": "tools/ReleaseUPXZIP.bat y el paso \"Prepare release assets\" de .github/workflows/msbuild.yml"
+      "usedBy": "tools/ReleaseUPXZIP.bat and the \"Prepare release assets\" step in .github/workflows/msbuild.yml"
     }
   ]
 }

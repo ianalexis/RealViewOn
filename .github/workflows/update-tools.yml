@@ -1,47 +1,49 @@
-# Bot de actualizacion de los binarios vendorizados en tools/.
+# Bot that keeps the vendored binaries in tools/ up to date.
 #
-# Compara tools/upx.exe y tools/7zr.exe contra el ultimo release ESTABLE de
-# upx/upx y ip7z/7zip. Si hay novedad: descarga el asset, verifica arquitectura,
-# corre una prueba funcional real con los mismos flags que usa el pipeline de
-# release y abre un PR con el binario y tools/tools.lock.json actualizados.
+# Compares tools/upx.exe and tools/7zr.exe against the latest STABLE release of
+# upx/upx and ip7z/7zip. When there is something new it downloads the asset,
+# verifies its SHA256 against the digest GitHub publishes for that asset, checks
+# the PE architecture, runs a real functional test with the same flags the release
+# pipeline uses, and only then opens a PR with the binary and
+# tools/tools.lock.json updated.
 #
-# Toda la logica esta en tools/Update-VendoredTools.ps1, que se puede correr a
-# mano:  pwsh tools/Update-VendoredTools.ps1 -CheckOnly
+# All the logic lives in tools/Update-VendoredTools.ps1, which can be run by hand:
+#   pwsh tools/Update-VendoredTools.ps1 -CheckOnly
 #
-# REQUISITO DE CONFIGURACION: Settings > Actions > General > Workflow permissions
-# > "Allow GitHub Actions to create and approve pull requests" tiene que estar
-# habilitado, o `gh pr create` falla con 403.
+# REQUIRED SETTING: Settings > Actions > General > Workflow permissions >
+# "Allow GitHub Actions to create and approve pull requests" must be enabled, or
+# `gh pr create` fails with 403.
 
 name: Update vendored tools
 
 on:
   schedule:
-    # Lunes 06:00 UTC.
+    # Mondays at 06:00 UTC.
     - cron: '0 6 * * 1'
   workflow_dispatch:
     inputs:
       tool:
-        description: 'Herramienta a revisar'
+        description: 'Which tool to check'
         type: choice
         options: [all, upx, 7zr]
         default: all
       check_only:
-        description: 'Solo informar la comparacion, sin descargar ni abrir PR'
+        description: 'Only report the comparison; do not download or open a PR'
         type: boolean
         default: false
 
 permissions:
   contents: read
 
-# Dos corridas simultaneas empujarian la misma rama. No se cancela la que ya
-# estaba: puede estar a mitad de un push.
+# Two concurrent runs would push the same branch. The in-flight one is not
+# cancelled: it may be halfway through a push.
 concurrency:
   group: update-tools
   cancel-in-progress: false
 
 jobs:
   discover:
-    name: Leer tools.lock.json
+    name: Read tools.lock.json
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set.outputs.matrix }}
@@ -49,27 +51,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Armar la matriz de herramientas
+      - name: Build the tool matrix
         id: set
         shell: pwsh
         run: |
           $lock = Get-Content tools/tools.lock.json -Raw | ConvertFrom-Json
-          $pedido = '${{ inputs.tool }}'
-          if ([string]::IsNullOrWhiteSpace($pedido)) { $pedido = 'all' }  # corridas por schedule
+          $requested = '${{ inputs.tool }}'
+          if ([string]::IsNullOrWhiteSpace($requested)) { $requested = 'all' }  # scheduled runs
 
-          # @() externo: una rama de if que devuelve un array vacio se colapsa a
-          # $null al asignarla, y el .Count de abajo dejaria de detectarlo.
-          $ids = @(if ($pedido -eq 'all') { $lock.tools | ForEach-Object { $_.id } } else { $pedido })
-          if ($ids.Count -eq 0) { throw "tools.lock.json no define ninguna herramienta." }
+          # Outer @(): an if branch returning an empty array collapses to $null on
+          # assignment, and the .Count check below would stop catching it.
+          $ids = @(if ($requested -eq 'all') { $lock.tools | ForEach-Object { $_.id } } else { $requested })
+          if ($ids.Count -eq 0) { throw "tools.lock.json defines no tools." }
 
           $matrix = '{"id":' + ($ids | ConvertTo-Json -Compress -AsArray) + '}'
-          Write-Host "matriz: $matrix"
+          Write-Host "matrix: $matrix"
           "matrix=$matrix" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
   update:
     name: ${{ matrix.id }}
     needs: discover
-    # windows-latest es obligatorio: la prueba funcional ejecuta los .exe.
+    # windows-latest is required: the functional test executes the .exe files.
     runs-on: windows-latest
     timeout-minutes: 30
     permissions:
@@ -83,18 +85,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Comparar con el origen y actualizar el binario
+      - name: Compare against upstream and update the binary
         id: update
         shell: pwsh
         env:
-          # Solo para el limite de la API de GitHub (60 req/h por IP sin token).
+          # Only for the GitHub API rate limit (60 req/h per IP without a token).
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $p = @{ Id = '${{ matrix.id }}'; PrBodyPath = "$env:RUNNER_TEMP/pr-body.md" }
           if ('${{ inputs.check_only }}' -eq 'true') { $p['CheckOnly'] = $true }
           ./tools/Update-VendoredTools.ps1 @p
 
-      - name: Buscar un PR previo para esta version
+      - name: Look for an existing PR for this version
         id: existing
         if: steps.update.outputs.updated == 'true'
         shell: pwsh
@@ -104,17 +106,17 @@ jobs:
           $branch = 'bot/update-${{ matrix.id }}-${{ steps.update.outputs.latest_version }}'
           "branch=$branch" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
-          # --state all a proposito: si ya se cerro un PR para esta misma version,
-          # el mantenedor ya decidio y el bot no tiene que volver a insistir.
+          # --state all on purpose: if a PR for this exact version was already
+          # closed, the maintainer decided, and the bot should not nag.
           $prs = @(gh pr list --head $branch --state all --json url,state --limit 5 | ConvertFrom-Json)
           if ($prs.Count -gt 0) {
-            Write-Host "::notice::Ya existe un PR para $branch ($($prs[0].state)): $($prs[0].url)"
+            Write-Host "::notice::A PR for $branch already exists ($($prs[0].state)): $($prs[0].url)"
             "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           } else {
             "skip=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           }
 
-      - name: Abrir el pull request
+      - name: Open the pull request
         id: pr
         if: steps.update.outputs.updated == 'true' && steps.existing.outputs.skip == 'false'
         shell: pwsh
@@ -122,54 +124,60 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $branch = '${{ steps.existing.outputs.branch }}'
-          $id     = '${{ matrix.id }}'
-          $nombre = '${{ steps.update.outputs.name }}'
-          $vieja  = '${{ steps.update.outputs.current_version }}'
-          $nueva  = '${{ steps.update.outputs.latest_version }}'
-          $ruta   = '${{ steps.update.outputs.path }}'
+          $name   = '${{ steps.update.outputs.name }}'
+          $old    = '${{ steps.update.outputs.current_version }}'
+          $new    = '${{ steps.update.outputs.latest_version }}'
+          $path   = '${{ steps.update.outputs.path }}'
 
           git config user.name  'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git checkout -b $branch
 
-          # Rutas explicitas: tools/ tiene .gitignore para *.exe y no se quiere
-          # arrastrar nada mas que el binario y el lock.
-          git add -- $ruta tools/tools.lock.json
+          # Explicit paths: .gitignore covers *.exe and nothing beyond the binary
+          # and the lock should be staged.
+          git add -- $path tools/tools.lock.json
           $staged = @(git diff --cached --name-only)
           if ($staged.Count -eq 0) {
-            throw "No quedo nada en el index. Se esperaba $ruta y tools/tools.lock.json."
+            throw "Nothing was staged. Expected $path and tools/tools.lock.json."
           }
           Write-Host "staged: $($staged -join ', ')"
 
-          $titulo = "chore(tools): $nombre $vieja -> $nueva"
-          git commit -m $titulo -m "Origen: ${{ steps.update.outputs.release_url }}" -m "SHA256: ${{ steps.update.outputs.sha256_new }}"
+          $title = "chore(tools): $name $old -> $new"
+          git commit -m $title -m "Upstream: ${{ steps.update.outputs.release_url }}" -m "SHA256: ${{ steps.update.outputs.sha256_new }}"
           git push --set-upstream origin $branch
 
-          # El cuerpo lo genero el script en el paso anterior (New-CuerpoPr).
-          $cuerpo = "$env:RUNNER_TEMP/pr-body.md"
-          if (-not (Test-Path $cuerpo)) { throw "Falta el cuerpo del PR en $cuerpo." }
-          $url = gh pr create --base main --head $branch --title $titulo --body-file $cuerpo
-          Write-Host "::notice::PR creado: $url"
+          # The body was generated by the script in the previous step (New-PrBody).
+          $body = "$env:RUNNER_TEMP/pr-body.md"
+          if (-not (Test-Path $body)) { throw "PR body missing at $body." }
+          $url = gh pr create --base main --head $branch --title $title --body-file $body
+          Write-Host "::notice::PR created: $url"
           "url=$url" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
-      - name: Resumen
+      - name: Summary
         if: always()
         shell: pwsh
         run: |
-          $tieneNovedad = '${{ steps.update.outputs.has_update }}' -eq 'true'
-          $actualizado  = '${{ steps.update.outputs.updated }}' -eq 'true'
-          $salteado     = '${{ steps.existing.outputs.skip }}' -eq 'true'
-          $vieja = '${{ steps.update.outputs.current_version }}'
-          $nueva = '${{ steps.update.outputs.latest_version }}'
+          $hasUpdate = '${{ steps.update.outputs.has_update }}' -eq 'true'
+          $updated   = '${{ steps.update.outputs.updated }}' -eq 'true'
+          $skipped   = '${{ steps.existing.outputs.skip }}' -eq 'true'
+          $verified  = '${{ steps.update.outputs.digest_verified }}' -eq 'true'
+          $old = '${{ steps.update.outputs.current_version }}'
+          $new = '${{ steps.update.outputs.latest_version }}'
 
-          # if/elseif en una sola linea cada uno: PowerShell no acepta un salto de
-          # linea entre "}" y "elseif".
-          $estado = '⚠️ Sin completar, revisar el log'
-          if (-not $tieneNovedad) { $estado = "✅ Al dia (``$vieja``)" }
-          elseif ('${{ inputs.check_only }}' -eq 'true') { $estado = "🔍 Hay ``$nueva`` disponible (check_only, sin PR)" }
-          elseif ($salteado) { $estado = "⏭️ Ya existe un PR para ``$nueva``" }
-          elseif ($actualizado) { $estado = "🚀 PR abierto: ``$vieja`` → ``$nueva`` — ${{ steps.pr.outputs.url }}" }
+          # One if/elseif per line: PowerShell rejects a newline between "}" and
+          # "elseif".
+          $status = '⚠️ Did not complete, check the log'
+          if (-not $hasUpdate) { $status = "✅ Up to date (``$old``)" }
+          elseif ('${{ inputs.check_only }}' -eq 'true') { $status = "🔍 ``$new`` is available (check_only, no PR opened)" }
+          elseif ($skipped) { $status = "⏭️ A PR for ``$new`` already exists" }
+          elseif ($updated) { $status = "🚀 PR opened: ``$old`` → ``$new`` — ${{ steps.pr.outputs.url }}" }
 
-          "## ${{ matrix.id }}"  | Out-File $env:GITHUB_STEP_SUMMARY -Append
-          ""                     | Out-File $env:GITHUB_STEP_SUMMARY -Append
-          $estado                | Out-File $env:GITHUB_STEP_SUMMARY -Append
+          "## ${{ matrix.id }}" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+          ""                    | Out-File $env:GITHUB_STEP_SUMMARY -Append
+          $status               | Out-File $env:GITHUB_STEP_SUMMARY -Append
+          if ($updated) {
+            $checksum = if ($verified) { 'verified against the digest GitHub publishes' } else { '**NOT verified** (no digest published)' }
+            ""                            | Out-File $env:GITHUB_STEP_SUMMARY -Append
+            "- Checksum: $checksum"        | Out-File $env:GITHUB_STEP_SUMMARY -Append
+            "- Asset SHA256: ``${{ steps.update.outputs.asset_sha256 }}``" | Out-File $env:GITHUB_STEP_SUMMARY -Append
+          }
