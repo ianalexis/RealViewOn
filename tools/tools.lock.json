@@ -6,11 +6,11 @@
       "name": "UPX",
       "path": "tools/upx.exe",
       "repo": "upx/upx",
-      "version": "5.1.1",
+      "version": "5.2.0",
       "arch": "x64",
       "asset": "upx-{version}-win64.zip",
       "archiveMember": "upx-{version}-win64/upx.exe",
-      "sha256": "16A29ADBDF3B6FDE74C290205E24CCEB7BEF1A216941922AA73D2D808A699BBB",
+      "sha256": "F4C0CC7ACA0F1FF0D0B750E966B44139F2FA1A2DB7281F48FC52194400712E1D",
       "usedBy": "tools/ReleaseUPXZIP.bat y el paso \"Compress with UPX\" de .github/workflows/msbuild.yml"
     },
     {
