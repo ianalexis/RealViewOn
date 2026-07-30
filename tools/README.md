@@ -1,114 +1,130 @@
 # tools/
 
-Utilidades del pipeline de release.
+Release pipeline utilities.
 
-| Archivo | Que es |
+| File | What it is |
 | --- | --- |
-| [`upx.exe`](upx.exe) | [UPX](https://github.com/upx/upx), comprime `RealViewOn.exe`. Build **x64**. |
-| [`7zr.exe`](7zr.exe) | [7-Zip](https://github.com/ip7z/7zip) consola standalone, arma `RealViewOn.7z`. Build **x86**. |
-| [`tools.lock.json`](tools.lock.json) | Versiones y SHA256 fijados de los dos binarios de arriba. |
-| [`Update-VendoredTools.ps1`](Update-VendoredTools.ps1) | Compara los binarios contra su origen y los actualiza. |
-| [`ReleaseUPXZIP.bat`](ReleaseUPXZIP.bat) | PostBuildEvent: copia, comprime con UPX y empaqueta con 7-Zip. |
-| [`GetWorka.ps1`](GetWorka.ps1) | Script auxiliar para recolectar datos de workarounds. |
+| [`upx.exe`](upx.exe) | [UPX](https://github.com/upx/upx), compresses `RealViewOn.exe`. **x64** build. |
+| [`7zr.exe`](7zr.exe) | [7-Zip](https://github.com/ip7z/7zip) standalone console, builds `RealViewOn.7z`. **x86** build. |
+| [`tools.lock.json`](tools.lock.json) | Pinned versions and SHA256 of the two binaries above. |
+| [`Update-VendoredTools.ps1`](Update-VendoredTools.ps1) | Compares the binaries against upstream and updates them. |
+| [`ReleaseUPXZIP.bat`](ReleaseUPXZIP.bat) | PostBuildEvent: copies, UPX-compresses and 7-Zip-packages the build. |
+| [`GetWorka.ps1`](GetWorka.ps1) | Helper script for collecting workaround data. |
 
-## Actualizacion automatica
+## Automated updates
 
-[`.github/workflows/update-tools.yml`](../.github/workflows/update-tools.yml) corre
-los lunes a las 06:00 UTC. Para cada herramienta de `tools.lock.json`:
+[`.github/workflows/update-tools.yml`](../.github/workflows/update-tools.yml) runs
+Mondays at 06:00 UTC. For every tool in `tools.lock.json` it:
 
-1. Lista los releases del repo de origen y descarta drafts, prereleases y
-   cualquier tag o nombre que parezca `alpha` / `beta` / `rc` / `preview`.
-   El flag `prerelease` de GitHub no alcanza por si solo: ni `upx/upx` ni
-   `ip7z/7zip` lo usan, asi que un "26.03 beta" llegaria como release normal.
-2. Elige el estable mas nuevo **comparando numeros de version**, no fechas: un
-   parche de una linea vieja publicado despues no debe ganarle a una minor nueva.
-3. Si hay novedad, descarga el asset, extrae el ejecutable y **verifica antes de
-   reemplazar nada**:
-   - la arquitectura leida del encabezado PE coincide con la fijada en el lock;
-   - una prueba funcional real con los mismos flags que usa el release.
-4. Reemplaza el binario, actualiza `version` y `sha256` en el lock, y abre un PR.
+1. Lists the upstream releases and discards drafts, prereleases and any tag or
+   name that looks like `alpha` / `beta` / `rc` / `preview`. GitHub's
+   `prerelease` flag is not enough on its own: neither `upx/upx` nor `ip7z/7zip`
+   uses it, so a "26.03 beta" would arrive as a normal release.
+2. Picks the newest stable one by **comparing version numbers**, not dates: a
+   patch for an older line published later must not beat a newer minor.
+3. If there is something new, downloads the asset and **verifies everything
+   before replacing anything**:
+   - the SHA256 matches the digest GitHub publishes for that asset;
+   - the architecture read from the PE header matches the pinned value;
+   - a real functional test passes, using the same flags as the release.
+4. Replaces the binary, updates `version` and `sha256` in the lock, opens a PR.
 
-Si cualquier verificacion falla, el binario del repo **queda intacto** y el job
-falla en rojo.
+If any check fails the repo's binary is **left untouched** and the job goes red.
 
-### Las pruebas funcionales
+### Checksum verification
 
-Un binario que descarga bien pero no comprime no sirve, asi que no alcanza con
-mirar la version:
+The GitHub releases API returns a per-asset `digest` field (`sha256:<hex>`), and
+the bot verifies the download against it before extracting or executing anything.
 
-- **UPX** — comprime una copia de `tools/7zr.exe` (un PE real y chico que ya esta
-  en el repo) con `--ultra-brute`, comprueba que el tamano bajo, valida el
-  resultado con `upx -t` y **ejecuta el binario comprimido** para confirmar que
-  todavia corre. Es exactamente lo que el pipeline le hace a `RealViewOn.exe`.
-- **7zr** — crea un `.7z` con `a -t7z -mx=9 -md=1m -ms=on` (los flags del paso
-  "Prepare release assets"), lo valida con `7zr t`, lo extrae y compara el SHA256
-  del contenido contra el original.
+Two details worth knowing:
 
-### Correrlo a mano
+- For `7zr.exe` the digest covers the executable itself. For UPX it covers the
+  **`.zip`**, so verification happens before extraction and the `upx.exe` inside
+  gets its own SHA256 recorded in the lock afterwards.
+- GitHub only computes digests for assets uploaded after that feature shipped.
+  Current releases have one; older ones (`upx` v4.2.4, `7zip` 24.09 and earlier)
+  return `null`. When the digest is missing the bot **fails by default** rather
+  than quietly skipping the check. Use `-AllowMissingDigest` to accept an
+  unverified asset; the PR body and the job summary then say so explicitly.
+
+What this does and does not prove: matching the digest shows the bytes are exactly
+what GitHub stores for that asset in that release of that repository, which rules
+out corruption or tampering in transit. It is not a build provenance signature, so
+it does not independently prove who produced the binary. The trust anchor is the
+official upstream repository.
+
+### The functional tests
+
+A binary that downloads cleanly but cannot compress is useless, so checking the
+version string is not enough:
+
+- **UPX** — compresses a copy of `tools/7zr.exe` (a real, small PE already in the
+  repo) with `--ultra-brute`, confirms it shrank, validates the result with
+  `upx -t`, and **runs the compressed binary** to confirm it still works. That is
+  exactly what the pipeline does to `RealViewOn.exe`.
+- **7zr** — creates a `.7z` with `a -t7z -mx=9 -md=1m -ms=on` (the flags from the
+  "Prepare release assets" step), validates it with `7zr t`, extracts it and
+  compares the content's SHA256 against the original.
+
+### Running it by hand
 
 ```powershell
-# Solo informar si hay actualizaciones. No toca el working tree.
+# Only report whether updates exist. Does not touch the working tree.
 pwsh tools/Update-VendoredTools.ps1 -CheckOnly
 
-# Actualizar una herramienta (descarga, verifica y reemplaza el binario + el lock).
+# Update one tool (downloads, verifies, replaces the binary and the lock).
 pwsh tools/Update-VendoredTools.ps1 -Id upx
 
-# Todas.
+# All of them.
 pwsh tools/Update-VendoredTools.ps1
 ```
 
-Sin token la API de GitHub permite 60 requests por hora y por IP. Si se agota:
+Without a token the GitHub API allows 60 requests per hour per IP. If you hit it:
 
 ```powershell
-$env:GITHUB_TOKEN = 'ghp_...'   # basta un token sin scopes, solo sube el limite
+$env:GITHUB_TOKEN = 'ghp_...'   # a token with no scopes is enough, it just raises the limit
 pwsh tools/Update-VendoredTools.ps1 -CheckOnly
 ```
 
-### Agregar otra herramienta
+### Adding another tool
 
-Sumar una entrada a `tools.lock.json`; la matriz del workflow se arma leyendo ese
-archivo, no hace falta tocar el YAML. Campos:
+Add an entry to `tools.lock.json`; the workflow matrix is built by reading that
+file, so the YAML needs no changes. Fields:
 
-| Campo | Para que |
+| Field | Purpose |
 | --- | --- |
-| `id` | Identificador corto. Es el valor de `-Id` y el nombre del job. |
-| `path` | Ruta del binario, relativa a la raiz del repo. |
-| `repo` | `owner/name` del repositorio de origen en GitHub. |
-| `version` | Version fijada actualmente. La actualiza el bot. |
-| `arch` | `x64`, `x86` o `ARM64`. Se valida contra el encabezado PE. |
-| `asset` | Nombre del asset del release. `{version}` se reemplaza. |
-| `archiveMember` | Ruta dentro del zip, o `null` si el asset ya es el `.exe`. |
-| `sha256` | Hash del binario fijado. Lo actualiza el bot. |
-| `usedBy` | Texto libre; aparece en el cuerpo del PR. |
+| `id` | Short identifier. It is the `-Id` value and the job name. |
+| `path` | Path to the binary, relative to the repo root. |
+| `repo` | `owner/name` of the upstream GitHub repository. |
+| `version` | Currently pinned version. Maintained by the bot. |
+| `arch` | `x64`, `x86` or `ARM64`. Validated against the PE header. |
+| `asset` | Release asset name. `{version}` is substituted. |
+| `archiveMember` | Path inside the zip, or `null` if the asset is the `.exe` itself. |
+| `sha256` | Hash of the pinned binary. Maintained by the bot. |
+| `usedBy` | Free text; shown in the PR body. |
 
-Para que el bot tenga prueba funcional, agregar un `case` en
-`Invoke-PruebaFuncional`. Sin eso la herramienta se actualiza igual, pero el PR
-dice que no hubo prueba.
+To give the bot a functional test, add a `case` to `Invoke-FunctionalTest`.
+Without one the tool still updates, but the PR states that no test ran.
 
-> El lock se reserializa completo al actualizarse. Si se edita a mano, mantener el
-> formato tal como esta (2 espacios de indentacion, mismo orden de claves) para
-> que el diff del PR muestre solo `version` y `sha256`.
+> The lock is fully reserialised when updated. If you edit it by hand, keep the
+> existing format (2-space indent, same key order) so the PR diff shows only
+> `version` and `sha256`.
 
-## Coherencia entre el lock y los binarios
+## Keeping the lock and the binaries consistent
 
-Antes de comparar contra el origen, el script verifica que el SHA256 del binario
-en disco coincida con el del lock. Si alguien reemplazo un `.exe` sin actualizar
-el lock, falla y lo dice, en lugar de razonar sobre datos que no son ciertos.
+Before comparing against upstream, the script checks that the on-disk binary's
+SHA256 matches the lock. If somebody replaced an `.exe` without updating the lock
+it fails and says so, instead of reasoning from data that is not true.
 
-## Que NO hace el bot
+## What the bot does not do
 
-- **No verifica procedencia criptografica.** Ni `upx/upx` ni `ip7z/7zip` publican
-  un archivo de checksums en sus releases de GitHub. El bot comprueba que el
-  binario venga del repositorio oficial, que tenga la arquitectura esperada y que
-  funcione, y deja el SHA256 en el cuerpo del PR. Comparar ese hash contra el que
-  publica el proveedor ([UPX](https://github.com/upx/upx/releases),
-  [7-Zip](https://www.7-zip.org/download.html)) queda a cargo de quien revisa.
-- **No mergea.** Solo abre el PR.
-- **No insiste.** Si ya existe un PR para esa version, abierto o cerrado, no crea
-  otro: si se cerro, fue una decision del mantenedor.
-- **No dispara los otros workflows.** Los PRs creados con `GITHUB_TOKEN` no
-  disparan workflows, por diseno de GitHub. Ademas `tools/**` no esta en los
-  `paths` de `tests.yml` ni de `msbuild.yml`, asi que estos PRs no traen CI. Para
-  que un cambio de UPX se pruebe compilando y comprimiendo de verdad, agregar
-  `tools/**` a los `paths` del `pull_request` de `msbuild.yml` y crear el PR con
-  un PAT en lugar de `GITHUB_TOKEN`.
+- **It does not merge.** It only opens the PR.
+- **It does not nag.** If a PR for that version already exists, open or closed, it
+  will not create another: a closed one was the maintainer's decision.
+- **It does not trigger the other workflows.** PRs created with `GITHUB_TOKEN` do
+  not trigger workflows, by GitHub's design. On top of that `tools/**` is not in
+  the `paths` filters of `tests.yml` or `msbuild.yml`, so these PRs arrive without
+  CI. To have a UPX change proven by actually building and compressing, add
+  `tools/**` to the `pull_request` paths in `msbuild.yml` and create the PR with a
+  PAT instead of `GITHUB_TOKEN`.
+- **It does not verify build provenance.** See the checksum note above.
