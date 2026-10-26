@@ -18,11 +18,11 @@
       "name": "7-Zip standalone console (7zr)",
       "path": "tools/7zr.exe",
       "repo": "ip7z/7zip",
-      "version": "26.04",
+      "version": "26.05",
       "arch": "x86",
       "asset": "7zr.exe",
       "archiveMember": null,
-      "sha256": "256FECA8E274E5DA655E2A284FABAFD9F554365EB164862089DACD4E8276D282",
+      "sha256": "9BF582B894DFA665F852D7E9112B02290A1C303C2D95A21FCDC41FFCB03143B7",
       "usedBy": "tools/ReleaseUPXZIP.bat and the \"Prepare release assets\" step in .github/workflows/msbuild.yml"
     }
   ]
