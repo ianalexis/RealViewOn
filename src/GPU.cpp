@@ -2,34 +2,45 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
-#include <iostream>
+#include <stdexcept>
 #include <vector>
-#include "Teclado.h"
 
 using std::string;
 using std::vector;
-using std::cout;
 
 // Constructor
 GPU::GPU(Current current) {
     setBaseData(current);
     renderer = current.renderer;
-    setBrand(current.vendor, renderer);
-    setBrWorkarounds(current.workarounds);
+    workaroundsLeidos = current.workarounds;
+    brand = detectarMarca(current.vendor, renderer);
+    // Sin marca no hay claves de referencia: los workarounds se resuelven en
+    // setMarcaManual().
+    if (brand != Brand::UNKNOWN) {
+        setBrWorkarounds(workaroundsLeidos);
+    }
 }
 
-// Setea el fabricante de la GPU si el renderer contiene alguna palabra clave.
-void GPU::setBrand(string v,string r) {
-    brand = Brand::UNKNOWN;
-    buscarEnRenderMap(v);
-    if (brand == Brand::UNKNOWN){
-        buscarEnRenderMap(r);
+GPU::Brand GPU::getBrand() const {
+    return brand;
+}
+
+void GPU::setMarcaManual(Brand marca) {
+    if (marca == Brand::UNKNOWN) {
+        throw std::invalid_argument("A GPU brand must be selected.");
     }
-    if (brand == Brand::UNKNOWN){
-        cout << "GPU Brand not detected. Please select the GPU brand manually.\n";
-        brand = selecectBrandManual();
-        baseData.vendor += brandToString(brand);
+    brand = marca;
+    if (!baseData.vendor.empty()) {
+        baseData.vendor += "\n";
     }
+    baseData.vendor += ";   - Manual selected: " + brandToString(marca);
+    setBrWorkarounds(workaroundsLeidos);
+}
+
+// El vendor tiene prioridad: el renderer solo se mira si el vendor no coincide.
+GPU::Brand GPU::detectarMarca(const string& vendor, const string& renderer) {
+    const Brand porVendor = buscarMarca(vendor);
+    return porVendor != Brand::UNKNOWN ? porVendor : buscarMarca(renderer);
 }
 
 void GPU::setBrWorkarounds(string w) {
@@ -50,10 +61,8 @@ static void aMayusculas(string& texto) {
                    [](char c) { return static_cast<char>(std::toupper(static_cast<unsigned char>(c))); });
 }
 
-// Busca la marca de la GPU en el mapeo de palabras clave y, si la encuentra, la
-// deja en `brand`. Antes devolvía un Brand que siempre valía UNKNOWN (los dos
-// llamadores lo ignoraban y leían el miembro), así que ahora es void.
-void GPU::buscarEnRenderMap(string buscado) {
+// Busca la marca de la GPU en el mapeo de palabras clave.
+GPU::Brand GPU::buscarMarca(string buscado) {
     // Convierte el renderer a mayúsculas para comparar.
     aMayusculas(buscado);
     for (const auto& pair : rendererMap) {
@@ -61,10 +70,17 @@ void GPU::buscarEnRenderMap(string buscado) {
         // Convertir la clave a mayúsculas para comparar.
         aMayusculas(key);
         if (buscado.find(key) != string::npos) {
-            brand = pair.second;
-            cout << "GPU Brand detected: " << brandToString(brand) << "\n";
-            return;
+            return pair.second;
         }
+    }
+    return Brand::UNKNOWN;
+}
+
+// Deja la marca en `brand` solo si encuentra una coincidencia.
+void GPU::buscarEnRenderMap(string buscado) {
+    const Brand encontrada = buscarMarca(buscado);
+    if (encontrada != Brand::UNKNOWN) {
+        brand = encontrada;
     }
 }
 
@@ -78,35 +94,6 @@ std::string GPU::brandToString(GPU::Brand brand) {
         return "Intel";
     default:
         return "Unknown";
-    }
-}
-
-// Selecciona la marca de la GPU en caso de no poder determinarla.
-GPU::Brand GPU::selecectBrandManual() {
-    if (!baseData.vendor.empty()){
-        baseData.vendor += "\n";
-    }
-    baseData.vendor += ";   - Manual selected: ";
-    cout << "Select the GPU brand:\n";
-    cout << "1. NVIDIA\n";
-    cout << "2. AMD\n";
-    cout << "3. Intel\n";
-    //cout << "4. Otra\n";
-    cout << "Select the GPU brand (or press Esc to cancel): ";
-    string input = entradaTeclado(1, true);
-    int opcion = std::stoi(input);
-    switch (opcion) {
-    case 1:
-        return Brand::NVIDIA;
-    case 2:
-        return Brand::AMD;
-    case 3:
-        return Brand::INTEL;
-    //case 4:
-    //    return Brand::UNKNOWN;
-    default:
-        cout << "Invalid option. Please try again. ESC to cancel.\n";
-        return selecectBrandManual();
     }
 }
 
@@ -125,6 +112,9 @@ vector<string> GPU::completarPerformanceFix(string reg){
 }
 
 vector<string> GPU::completarContenidoReg(const vector<string>& regBase) {
+    if (brand == Brand::UNKNOWN) {
+        throw std::runtime_error("GPU brand not set.");
+    }
     vector<string> result;
     result.push_back(baseDataToString());
     result.push_back("\n;## RealView Enabler: ##\n;```");// Completa con RealView Enabler

@@ -1,14 +1,9 @@
-// Tests de GPU: deteccion de marca a partir de vendor/renderer, seleccion de
-// workarounds y armado del contenido del .reg.
-//
-// IMPORTANTE: el constructor de GPU llama a selecectBrandManual() (que a su vez
-// llama a _getch()) cuando NO logra deducir la marca. Todo `GPU` construido en
-// estos tests debe usar un vendor o renderer reconocible, o el runner quedaria
-// bloqueado esperando una tecla. Para probar cadenas que no matchean se usa
-// GPUTestAccess::buscarEnRenderMap, que nunca pide input.
+// Tests de GPU: deteccion de marca a partir de vendor/renderer, marca elegida a
+// mano, seleccion de workarounds y armado del contenido del .reg.
 
 #include "doctest.h"
 
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -27,8 +22,8 @@ GPU::Current current(const std::string& renderer, const std::string& vendor = ""
     return c;
 }
 
-// Cualquier renderer que la tabla reconozca; sirve para instanciar un GPU sin
-// disparar el prompt manual cuando lo que se quiere probar es otra cosa.
+// Cualquier renderer que la tabla reconozca, para cuando lo que se quiere probar
+// es otra cosa.
 GPU makeDetectableGpu() { return GPU(current("NVIDIA GeForce RTX 3060")); }
 
 const std::string kAllowList = "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\AllowList";
@@ -110,10 +105,66 @@ TEST_CASE("una cadena sin coincidencias deja la marca intacta") {
     CHECK(GPUTestAccess::brand(gpu) == GPU::Brand::NVIDIA);
 }
 
+TEST_CASE("sin coincidencias la marca queda UNKNOWN, sin preguntar nada") {
+    GPU gpu(current("Microsoft Basic Render Driver", "Microsoft"));
+    CHECK(gpu.getBrand() == GPU::Brand::UNKNOWN);
+}
+
+TEST_CASE("detectarMarca da lo mismo que el constructor") {
+    CHECK(GPU::detectarMarca("NVIDIA Corporation", "AMD Radeon RX 6800") == GPU::Brand::NVIDIA);
+    CHECK(GPU::detectarMarca("", "Intel(R) UHD Graphics 630") == GPU::Brand::INTEL);
+    CHECK(GPU::detectarMarca("Microsoft", "Basic Render Driver") == GPU::Brand::UNKNOWN);
+}
+
 TEST_CASE("el renderer se conserva tal cual, sin normalizar") {
     const std::string renderer = "NVIDIA GeForce RTX 3060";
     GPU gpu(current(renderer));
     CHECK(GPUTestAccess::renderer(gpu) == renderer);
+}
+
+} // TEST_SUITE
+
+TEST_SUITE("GPU::setMarcaManual") {
+
+TEST_CASE("fija la marca y deja constancia en los datos base") {
+    GPU gpu(current("Matrox G200eW3"));
+    REQUIRE(gpu.getBrand() == GPU::Brand::UNKNOWN);
+
+    gpu.setMarcaManual(GPU::Brand::AMD);
+
+    CHECK(gpu.getBrand() == GPU::Brand::AMD);
+    CHECK(GPUTestAccess::baseDataToString(gpu).find(";   - Manual selected: AMD") != std::string::npos);
+}
+
+TEST_CASE("la linea manual va debajo del vendor leido") {
+    GPU gpu(current("Matrox G200eW3", "Matrox Graphics Inc."));
+    gpu.setMarcaManual(GPU::Brand::INTEL);
+
+    CHECK(GPUTestAccess::baseDataToString(gpu).find(
+              "; - **Vendor:** Matrox Graphics Inc.\n;   - Manual selected: Intel") != std::string::npos);
+}
+
+TEST_CASE("los workarounds se resuelven con la marca elegida") {
+    GPU sinPrevios(current("Matrox G200eW3"));
+    sinPrevios.setMarcaManual(GPU::Brand::INTEL);
+    CHECK(GPUTestAccess::brWorkarounds(sinPrevios) == "4080080");
+
+    GPU aEvitar(current("Matrox G200eW3", "", "52400c84"));
+    aEvitar.setMarcaManual(GPU::Brand::AMD);
+    CHECK(GPUTestAccess::brWorkarounds(aEvitar) == "4000085");
+}
+
+TEST_CASE("corregir una marca detectada la reemplaza") {
+    GPU gpu(current("NVIDIA GeForce RTX 3060"));
+    gpu.setMarcaManual(GPU::Brand::AMD);
+
+    CHECK(gpu.getBrand() == GPU::Brand::AMD);
+    CHECK(GPUTestAccess::brWorkarounds(gpu) == "4000085");
+}
+
+TEST_CASE("UNKNOWN no es una eleccion valida") {
+    GPU gpu(current("Matrox G200eW3"));
+    CHECK_THROWS_AS(gpu.setMarcaManual(GPU::Brand::UNKNOWN), std::invalid_argument);
 }
 
 } // TEST_SUITE
@@ -150,6 +201,11 @@ TEST_CASE("cada marca aporta su propia clave por defecto") {
 } // TEST_SUITE
 
 TEST_SUITE("GPU::completarContenidoReg") {
+
+TEST_CASE("sin marca no arma nada") {
+    GPU gpu(current("Matrox G200eW3"));
+    CHECK_THROWS_AS(gpu.completarContenidoReg({kAllowList}), std::runtime_error);
+}
 
 TEST_CASE("con una ruta base emite las dos secciones esperadas") {
     GPU gpu(current("NVIDIA GeForce RTX 3060", "NVIDIA Corporation"));

@@ -9,11 +9,12 @@
 // structs. Solo se compila dentro del proyecto de tests: el binario de
 // produccion nunca lo incluye y las declaraciones friend no generan codigo.
 //
-// Regla: nada de lo que se exponga aca debe llamar a entradaTeclado()/yesOrNo(),
-// porque _getch() bloquearia la ejecucion en CI. Ver tests/README.md.
+// El core no pide input por teclado (eso vive en Consola.cpp, que los tests no
+// compilan), asi que nada de lo que se exponga aca puede bloquear el runner.
 
 #include <cstddef>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "AdvanceMode.h"
@@ -26,9 +27,7 @@ struct GPUTestAccess {
     static std::string brWorkarounds(const GPU& gpu) { return gpu.brWorkarounds; }
     static std::string baseDataToString(GPU& gpu) { return gpu.baseDataToString(); }
 
-    // No prompt: buscarEnRenderMap solo escribe `brand` cuando encuentra una
-    // coincidencia. Es la via segura para probar strings que NO matchean, ya que
-    // el constructor de GPU llamaria a selecectBrandManual() y bloquearia.
+    // buscarEnRenderMap solo escribe `brand` cuando encuentra una coincidencia.
     static void buscarEnRenderMap(GPU& gpu, const std::string& buscado) {
         gpu.buscarEnRenderMap(buscado);
     }
@@ -46,25 +45,28 @@ struct AdvanceModeTestAccess {
         return am.getOriginalValue(path, valueName);
     }
     static std::string rutaVersionada(const AdvanceMode& am) { return am.rutaVersionada; }
-    static int optionsQty(const AdvanceMode& am) { return am.optionsQty; }
     static std::size_t regOptionsCount(const AdvanceMode& am) { return am.regOptions.size(); }
 };
 
 struct SolidWorksTestAccess {
-    // setVersion() publico consulta yesOrNo() cuando la version no esta
-    // instalada, lo que bloquearia en CI. Los tests fijan el campo directamente.
+    // Fija la version sin la validacion de setVersion(), para probar las rutas de
+    // cualquier anio.
     static void setSwVersion(SolidWorks& sw, int v) { sw.swVersion = v; }
     static int swVersion(const SolidWorks& sw) { return sw.swVersion; }
     static int anoActual(const SolidWorks& sw) { return sw.anoActual; }
     static int vMin() { return SolidWorks::vMin; }
     static int vCambioRaiz() { return SolidWorks::vCambioRaiz; }
     static int vMax() { return SolidWorks::vMax; }
+    // Simula una instalacion sin tocar el registro.
+    static void setVersionesInstaladas(SolidWorks& sw, const std::vector<std::pair<int, int>>& versiones) {
+        sw.versiones = versiones;
+    }
     static std::string obtenerRegBaseAno(SolidWorks& sw) { return sw.obtenerRegBaseAno(); }
     static std::string obtenerRegBaseAllowList(SolidWorks& sw) {
         return sw.obtenerRegBaseAllowList();
     }
-    // Sobrecarga privada que lee una clave arbitraria. No pide input (a diferencia
-    // de obtenerCurrent() sin argumentos, que confirma el renderer con yesOrNo()).
+    // Sobrecarga privada que lee una clave arbitraria; detectarCurrent() solo lee
+    // las claves reales de SolidWorks.
     static GPU::Current obtenerCurrent(SolidWorks& sw, const std::string& path) {
         return sw.obtenerCurrent(path);
     }

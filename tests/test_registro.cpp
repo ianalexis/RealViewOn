@@ -1,11 +1,12 @@
-// Tests de guardarArchivoReg: el archivo .reg es el unico entregable del
-// programa, asi que su cabecera y su formato son contrato.
+// Tests de armarArchivoReg/guardarArchivoReg: el archivo .reg es el unico
+// entregable del programa, asi que su cabecera y su formato son contrato.
 //
-// Cada test corre dentro de un directorio temporal propio (guardarArchivoReg
-// escribe siempre en el directorio actual) y lo borra al terminar.
+// Cada test que escribe corre dentro de un directorio temporal propio
+// (guardarArchivoReg escribe siempre en el directorio actual) y lo borra al
+// terminar.
 //
-// guardarBackUp() no se cubre aca: invoca `reg export` via system() sobre la
-// instalacion real de SolidWorks.
+// guardarBackUp() no se cubre aca: ejecuta `reg export` sobre la instalacion
+// real de SolidWorks.
 
 #include "doctest.h"
 
@@ -161,6 +162,14 @@ TEST_CASE("volver a guardar sobreescribe en lugar de acumular") {
     CHECK(contenido.find("vieja") == std::string::npos);
 }
 
+TEST_CASE("devuelve la ruta completa del archivo creado") {
+    DirectorioTemporal tmp;
+
+    const std::string ruta = guardarArchivoReg("2025", {"x"}, kVersionRvo);
+
+    CHECK(std::filesystem::equivalent(ruta, tmp.ruta() / "RealViewOn2025.reg"));
+}
+
 TEST_CASE("la version forma parte del nombre del archivo") {
     DirectorioTemporal tmp;
 
@@ -169,6 +178,41 @@ TEST_CASE("la version forma parte del nombre del archivo") {
 
     CHECK(std::filesystem::exists(tmp.ruta() / "RealViewOn2019.reg"));
     CHECK(std::filesystem::exists(tmp.ruta() / "RealViewOn2026.reg"));
+}
+
+} // TEST_SUITE
+
+TEST_SUITE("armarArchivoReg") {
+
+TEST_CASE("da exactamente lo que guardarArchivoReg escribe") {
+    // La GUI muestra este texto en la vista previa y despues lo guarda: lo que
+    // el usuario revisa tiene que ser lo que queda en el archivo.
+    DirectorioTemporal tmp;
+    const std::vector<std::string> lineas = {"[HKEY_CURRENT_USER\\Test]", "\"Valor\"=dword:1", ""};
+
+    const std::string texto = armarArchivoReg("2025", lineas, kVersionRvo);
+    guardarArchivoReg("2025", lineas, kVersionRvo);
+
+    CHECK(leerNormalizado(tmp.ruta() / "RealViewOn2025.reg") == texto);
+}
+
+TEST_CASE("no escribe nada en disco") {
+    DirectorioTemporal tmp;
+
+    armarArchivoReg("2025", {"x"}, kVersionRvo);
+
+    CHECK(std::filesystem::is_empty(tmp.ruta()));
+}
+
+TEST_CASE("guardar el texto armado da el mismo archivo que el atajo") {
+    DirectorioTemporal tmp;
+    const std::vector<std::string> lineas = {"primera", "segunda"};
+
+    guardarArchivoReg("2025", armarArchivoReg("2025", lineas, kVersionRvo));
+    const std::string enDosPasos = leerNormalizado(tmp.ruta() / "RealViewOn2025.reg");
+    guardarArchivoReg("2025", lineas, kVersionRvo);
+
+    CHECK(leerNormalizado(tmp.ruta() / "RealViewOn2025.reg") == enDosPasos);
 }
 
 } // TEST_SUITE

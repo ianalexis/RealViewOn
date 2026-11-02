@@ -1,8 +1,7 @@
 #include "AdvanceMode.h"
-#include "Teclado.h"
 #include <algorithm>
+#include <cstddef>
 #include <cstring>
-#include <iostream>
 #include <sstream>
 #include <Windows.h>
 #include <string>
@@ -25,45 +24,49 @@ AdvanceMode::AdvanceMode(){
 void AdvanceMode::setSwVersion(int swVersion, bool generico){
     rutaVersionada = "\n" + std::string(rutaBase.begin(), rutaBase.end()) + std::to_string(swVersion) + "\\";
     this->generico = generico;
-    optionsQty = static_cast<int>(regOptions.size()) + (generico ? 0 : 1);
-    optionNumber = 1;
     // Se reinicia junto con el resto del estado por versión: main() reutiliza la
     // misma instancia de AdvanceMode en cada vuelta del bucle.
     anySelected = false;
+}
+
+std::vector<AdvanceMode::Opcion> AdvanceMode::opciones() const {
+    std::vector<Opcion> resultado;
+    for (const auto& opcion : regOptions) {
+        resultado.push_back({opcion.name, opcion.recomendada, opcion.marcadaPorDefecto, false});
+    }
+    resultado.push_back({"QoL Commands", false, false, true});
+    return resultado;
+}
+
+// En el .reg las recomendadas llevan " (Recommended)" en el nombre.
+string AdvanceMode::nombreEnReg(const string& nombre, bool recomendada) {
+    return recomendada ? nombre + " (Recommended)" : nombre;
 }
 
 string AdvanceMode::completeBase (string complement){
     return rutaVersionada + complement;
 }
 
-string AdvanceMode::askAdvanceOptions(){
+string AdvanceMode::armarOpciones(const std::vector<bool>& elegidas){
+    // Cada llamada arma la sección desde cero: la GUI la pide para la vista previa
+    // y otra vez al generar.
+    anySelected = false;
     string options = "\n\n;## Advance Mode: ##";
-    options += selectRegOptions();
-    if (!generico){
-        options += qolCommands();
+    options += selectRegOptions(elegidas);
+    // QoL Commands va después de las regOptions (ver opciones()).
+    const std::size_t qol = regOptions.size();
+    if (!generico && qol < elegidas.size() && elegidas[qol]){
+        options += "\n;### QoL Commands ###";
+        // enableTabs/enableBtn marcan anySelected solo si agregaron algo. Antes se
+        // forzaba a true acá, así que aceptar QoL sin que hubiera nada que
+        // habilitar igual ocultaba el aviso "No Advance options selected".
+        options += enableTabs();
+        options += enableBtn();
     }
     if (!anySelected){
         options += "\n; - No Advance options selected.";
     }
     return options;
-}
-
-void AdvanceMode::askToEnable(string optionName){
-    std::cout << "(" + std::to_string(optionNumber++) + "/" + std::to_string(optionsQty) + ") Enable " + optionName + "? ";
-}
-
-string AdvanceMode::qolCommands(){
-    string tempOptions = "";
-    askToEnable ("QoL Commands");
-    if (yesOrNo()){
-        tempOptions += "\n;### QoL Commands ###";
-        // enableTabs/enableBtn marcan anySelected solo si agregaron algo. Antes se
-        // forzaba a true acá, así que aceptar QoL sin que hubiera nada que
-        // habilitar igual ocultaba el aviso "No Advance options selected".
-        tempOptions += enableTabs();
-        tempOptions += enableBtn();
-    }
-    return tempOptions;
 }
 
 string AdvanceMode::enableBtn(){
@@ -100,12 +103,11 @@ string AdvanceMode::enableBtn(){
     return !tempBtn.empty() ? "\n; - Enable Buttons\n;```" + tempBtn + ";```\n" : ";No buttons added";
 }
 
-string AdvanceMode::selectRegOptions(){
+string AdvanceMode::selectRegOptions(const std::vector<bool>& elegidas){
     string tempOptions = "";
     for (std::size_t i = 0 ; i < regOptions.size() ; i++){
-        askToEnable(regOptions[i].name);
-        if (yesOrNo()){
-            tempOptions += "\n; - " + regOptions[i].name + "\n;```";
+        if (i < elegidas.size() && elegidas[i]){
+            tempOptions += "\n; - " + nombreEnReg(regOptions[i].name, regOptions[i].recomendada) + "\n;```";
             for (std::size_t j = 0 ; j < regOptions[i].content.size() ; j++){
                 tempOptions += completeBase(regOptions[i].content[j].path) + "]";
                 for (std::size_t k = 0 ; k < regOptions[i].content[j].value.size() ; k++){

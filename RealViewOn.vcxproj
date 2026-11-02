@@ -89,6 +89,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\AdvanceMode.cpp" />
+    <ClCompile Include="src\Consola.cpp" />
     <ClCompile Include="src\GPU.cpp" />
     <ClCompile Include="midifile\src\Binasc.cpp" />
     <ClCompile Include="midifile\src\MidiEvent.cpp" />
@@ -103,6 +104,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\AdvanceMode.h" />
+    <ClInclude Include="include\Consola.h" />
     <ClInclude Include="include\Misc.h" />
     <ClInclude Include="include\GPU.h" />
     <ClInclude Include="include\Playmidi.h" />

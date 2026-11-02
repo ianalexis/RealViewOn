@@ -3,8 +3,9 @@
      RealViewOn.slnx: el workflow de release compila la solucion y no debe
      arrastrar los tests. Se compila solo:
        msbuild tests\RealViewOn.Tests.vcxproj /p:Configuration=Release /p:Platform=x64
-     Solo se incluyen los .cpp que no dependen de rtmidi/midifile; Playmidi.cpp y
-     RealViewOn.cpp (que tiene main) quedan fuera a proposito. -->
+     Solo se incluye el core. Quedan fuera a proposito Playmidi.cpp (depende de
+     rtmidi/midifile), RealViewOn.cpp (tiene main) y Consola.cpp/Teclado.cpp
+     (piden input por teclado). -->
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -82,7 +83,6 @@
     <ClCompile Include="..\src\GPU.cpp" />
     <ClCompile Include="..\src\Registro.cpp" />
     <ClCompile Include="..\src\SolidWorks.cpp" />
-    <ClCompile Include="..\src\Teclado.cpp" />
     <!-- Runner y tests. -->
     <ClCompile Include="main.cpp" />
     <ClCompile Include="test_advancemode.cpp" />

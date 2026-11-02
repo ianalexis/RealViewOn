@@ -11,6 +11,7 @@
 
 #include <cstddef>
 #include <string>
+#include <vector>
 
 #include "AdvanceMode.h"
 #include "registry_fixture.h"
@@ -83,18 +84,108 @@ TEST_CASE("setSwVersion reemplaza la version en llamadas sucesivas") {
     CHECK(ruta.find("SOLIDWORKS 2020") == std::string::npos);
 }
 
-TEST_CASE("el modo generico no ofrece los comandos QoL") {
-    // Las opciones QoL leen claves de la instalacion concreta, por lo que solo
-    // se cuentan cuando NO es generico.
-    AdvanceMode generico;
-    generico.setSwVersion(2025, true);
+TEST_CASE("QoL Commands va ultima y es la unica que necesita una instalacion") {
+    // Lee claves de la instalacion concreta, por lo que las interfaces no la
+    // ofrecen en modo generico.
+    AdvanceMode am;
+    const std::vector<AdvanceMode::Opcion> opciones = am.opciones();
 
-    AdvanceMode instalado;
-    instalado.setSwVersion(2025, false);
+    REQUIRE(opciones.size() == AdvanceModeTestAccess::regOptionsCount(am) + 1);
+    CHECK(opciones.back().nombre == "QoL Commands");
+    CHECK(opciones.back().soloInstalada);
+    for (std::size_t i = 0; i + 1 < opciones.size(); i++) {
+        CAPTURE(opciones[i].nombre);
+        CHECK_FALSE(opciones[i].soloInstalada);
+    }
+}
 
-    const std::size_t base = AdvanceModeTestAccess::regOptionsCount(generico);
-    CHECK(AdvanceModeTestAccess::optionsQty(generico) == static_cast<int>(base));
-    CHECK(AdvanceModeTestAccess::optionsQty(instalado) == static_cast<int>(base) + 1);
+TEST_CASE("las recomendadas son Performance, AntiAliasing y Spin Box") {
+    AdvanceMode am;
+    for (const AdvanceMode::Opcion& opcion : am.opciones()) {
+        CAPTURE(opcion.nombre);
+        const bool esperada = opcion.nombre == "Performance Enhance graphics" ||
+                              opcion.nombre == "Full AntiAliasing" || opcion.nombre == "Spin Box Increment 1mm";
+        CHECK(opcion.recomendada == esperada);
+        // El nombre va limpio: cada interfaz decide como marcar las recomendadas.
+        CHECK(opcion.nombre.find("Recommended") == std::string::npos);
+    }
+}
+
+TEST_CASE("Spin Box es recomendada pero no viene marcada de entrada") {
+    AdvanceMode am;
+    for (const AdvanceMode::Opcion& opcion : am.opciones()) {
+        CAPTURE(opcion.nombre);
+        if (opcion.nombre == "Spin Box Increment 1mm") {
+            CHECK_FALSE(opcion.marcadaPorDefecto);
+        } else {
+            CHECK(opcion.marcadaPorDefecto == opcion.recomendada);
+        }
+    }
+}
+
+} // TEST_SUITE
+
+TEST_SUITE("AdvanceMode::armarOpciones") {
+
+TEST_CASE("sin opciones elegidas lo avisa en el .reg") {
+    AdvanceMode am;
+    am.setSwVersion(2025, true);
+    const std::string seccion = am.armarOpciones({});
+
+    CHECK(seccion.find(";## Advance Mode: ##") != std::string::npos);
+    CHECK(seccion.find("; - No Advance options selected.") != std::string::npos);
+}
+
+TEST_CASE("cada opcion elegida escribe sus claves bajo la version") {
+    AdvanceMode am;
+    am.setSwVersion(2025, true);
+    const std::string seccion = am.armarOpciones({true});
+
+    CHECK(seccion.find("; - Reverse Mouse Wheel") != std::string::npos);
+    CHECK(seccion.find("[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\SOLIDWORKS 2025\\General]\n"
+                       "\"Reverse Zoom Direction\"=dword:00000001") != std::string::npos);
+    CHECK(seccion.find("No Advance options selected") == std::string::npos);
+}
+
+TEST_CASE("en el .reg las recomendadas siguen diciendo (Recommended)") {
+    AdvanceMode am;
+    am.setSwVersion(2025, true);
+    const std::string seccion = am.armarOpciones({false, false, false, true});
+
+    CHECK(seccion.find("; - Performance Enhance graphics (Recommended)\n") != std::string::npos);
+}
+
+TEST_CASE("solo se escriben las opciones elegidas") {
+    AdvanceMode am;
+    am.setSwVersion(2025, true);
+    const std::string seccion = am.armarOpciones({false, true});
+
+    CHECK(seccion.find("; - Reverse Mouse Wheel") == std::string::npos);
+    CHECK(seccion.find("; - DarkMode") != std::string::npos);
+}
+
+TEST_CASE("en modo generico QoL Commands se ignora aunque venga elegida") {
+    AdvanceMode am;
+    am.setSwVersion(2025, true);
+    std::vector<bool> soloQol(am.opciones().size(), false);
+    soloQol.back() = true;
+
+    const std::string seccion = am.armarOpciones(soloQol);
+
+    CHECK(seccion.find("QoL Commands") == std::string::npos);
+    CHECK(seccion.find("; - No Advance options selected.") != std::string::npos);
+}
+
+TEST_CASE("armar dos veces da lo mismo") {
+    // La GUI la llama para la vista previa y otra vez al generar: el aviso de
+    // "ninguna opcion" no puede depender de una llamada anterior.
+    AdvanceMode am;
+    am.setSwVersion(2025, true);
+    const std::string conOpcion = am.armarOpciones({true});
+    const std::string sinOpcion = am.armarOpciones({});
+
+    CHECK(sinOpcion.find("; - No Advance options selected.") != std::string::npos);
+    CHECK(am.armarOpciones({true}) == conOpcion);
 }
 
 TEST_CASE("la ruta versionada respeta el prefijo que espera getOriginalValue") {

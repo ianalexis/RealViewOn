@@ -1,21 +1,31 @@
 #pragma once
 #include <string>
-#include <iostream>
 #include <vector>
-#include "Teclado.h"
 
+// Opciones del modo avanzado. No pregunta nada: las interfaces muestran
+// opciones() y pasan lo elegido a armarOpciones().
 class AdvanceMode {
 public:
+    struct Opcion {
+        std::string nombre;
+        bool recomendada = false;
+        bool marcadaPorDefecto = false; // La GUI la ofrece ya marcada.
+        bool soloInstalada = false;     // No disponible en modo genérico.
+    };
+
     AdvanceMode(); // Constructor
     void setSwVersion(int swVersion, bool generico);
-    std::string askAdvanceOptions();
+    // Todas las opciones, en el orden que espera armarOpciones(). QoL Commands va
+    // última y es la única que necesita una instalación concreta.
+    std::vector<Opcion> opciones() const;
+    // Sección "Advance Mode" del .reg. `elegidas` sigue el orden de opciones();
+    // en modo genérico se ignoran las que tienen soloInstalada.
+    std::string armarOpciones(const std::vector<bool>& elegidas);
 
 private:
     friend struct AdvanceModeTestAccess; // Solo para tests unitarios (tests/test_access.h). No usar en producción.
 
     bool generico = false;
-    int optionsQty = 0;
-    int optionNumber = 1;
     const std::string rutaBase = "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\SOLIDWORKS ";
     std::string rutaVersionada = "";
     const std::string rutaTab = "User Interface\\CommandManager\\PartContext\\Tab";
@@ -23,13 +33,12 @@ private:
     bool anySelected = false;
     std::vector <int> tabsToEnable = {4,5,7,8,11};
 
-    std::string selectRegOptions();
-    std::string qolCommands();
+    std::string selectRegOptions(const std::vector<bool>& elegidas);
+    static std::string nombreEnReg(const std::string& nombre, bool recomendada);
     std::string enableTabs();
     std::string enableTab(std::string value);
     std::string getOriginalValue(std::string tabPath, std::string valueName);
     std::string enableBtn();
-    void askToEnable(std::string optionName);
 
     struct multiRegSetting {
         std::string path;
@@ -39,6 +48,8 @@ private:
     struct RegSetting {
         std::string name;
         std::vector<multiRegSetting> content;
+        bool recomendada = false;
+        bool marcadaPorDefecto = false;
     };
 
     const std::vector<RegSetting> regOptions = {
@@ -54,17 +65,21 @@ private:
         {"FPS Viewer",
             {{"Performance",
                 {"\"OpenGL Print Statistics\"=dword:00000001"}}}},
-        {"Performance Enhance graphics (Recommended)",
+        {"Performance Enhance graphics",
             {{"Performance",
                 {"\"Use Performance Pipeline 2020\"=dword:00000001",
-                "\"Use GPU Silhouette Edges\"=dword:00000001"}}}},
-        {"Full AntiAliasing (Recommended)",
+                "\"Use GPU Silhouette Edges\"=dword:00000001"}}},
+            true, true},
+        {"Full AntiAliasing",
             {{"Edges",
                 {"\"Show Anti Alias Shaded Edges\"=dword:00000000",
-                "\"Show Fullscene Anti Alias\"=dword:00000001"}}}},
-        {"Spin Box Increment 1mm (Recommended)",
+                "\"Show Fullscene Anti Alias\"=dword:00000001"}}},
+            true, true},
+        // Recomendada, pero cambia una preferencia personal: no va marcada de entrada.
+        {"Spin Box Increment 1mm",
             {{"General",
-                {"\"Length Increment (Metric)\"=\"0.001\""}}}}
+                {"\"Length Increment (Metric)\"=\"0.001\""}}},
+            true, false}
     };
 
     const std::vector<multiRegSetting> btnsToEnable = {
