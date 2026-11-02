@@ -10,7 +10,7 @@ Release pipeline and code check utilities.
 | [`7zr.exe`](7zr.exe) | [7-Zip](https://github.com/ip7z/7zip) standalone console, builds `RealViewOn.7z`. **x86** build. |
 | [`tools.lock.json`](tools.lock.json) | Pinned versions and SHA256 of the two binaries above. |
 | [`Update-VendoredTools.ps1`](Update-VendoredTools.ps1) | Compares the binaries against upstream and updates them. |
-| [`ReleaseUPXZIP.bat`](ReleaseUPXZIP.bat) | PostBuildEvent of the console: copies, UPX-compresses and 7-Zip-packages the console and, when it is built, the GUI. In the solution the console depends on the GUI so the GUI is ready by then. |
+| [`ReleaseUPXZIP.bat`](ReleaseUPXZIP.bat) | PostBuildEvent of the console: copies and UPX-compresses the console and, when it is built, the GUI, and 7-Zip-packages each one on its own (`RealViewOn.7z`, `RealViewOnGUI.7z`). In the solution the console depends on the GUI so the GUI is ready by then. |
 | [`GetWorka.ps1`](GetWorka.ps1) | Helper script for collecting workaround data. |
 
 ## Automated updates

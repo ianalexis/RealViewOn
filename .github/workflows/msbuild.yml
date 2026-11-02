@@ -477,6 +477,8 @@ jobs:
             x64/Release/*.pdb
             release-assets/RealViewOn.7z
             release-assets/RealViewOn.zip
+            release-assets/RealViewOnGUI.7z
+            release-assets/RealViewOnGUI.zip
           if-no-files-found: ignore
 
       - name: Prepare release assets
@@ -486,48 +488,50 @@ jobs:
           New-Item -ItemType Directory -Force -Path "release-assets"
           Copy-Item "x64\Release\RealViewOn.exe" "release-assets\RealViewOn.exe"
           Copy-Item "x64\Release\RealViewOnGUI.exe" "release-assets\RealViewOnGUI.exe"
-          # El .7z y el .zip llevan la consola y la GUI.
-          $archivos = @("release-assets\RealViewOn.exe", "release-assets\RealViewOnGUI.exe")
 
-          Write-Host "📦 Assets preparados para release: $($archivos -join ', ')"
-          Get-Item $archivos | Select-Object Name, Length, LastWriteTime
+          Write-Host "📦 Assets preparados para release: RealViewOn.exe, RealViewOnGUI.exe"
+          Get-Item "release-assets\RealViewOn.exe", "release-assets\RealViewOnGUI.exe" | Select-Object Name, Length, LastWriteTime
 
-          # Comprimir con 7zip si está disponible
+          # Comprimir con 7zip si está disponible: un .7z y un .zip por programa,
+          # RealViewOn (consola) y RealViewOnGUI (GUI).
           if (Test-Path "tools\7zr.exe") {
-            Write-Host "📦 Comprimiendo con 7zip..."
-            $originalSize = (Get-Item $archivos | Measure-Object Length -Sum).Sum
-            Write-Host "Tamaño de los ejecutables: $([math]::Round($originalSize/1KB, 2)) KB"
+            foreach ($nombre in @("RealViewOn", "RealViewOnGUI")) {
+              $exe = "release-assets\$nombre.exe"
+              Write-Host "📦 Comprimiendo $nombre con 7zip..."
+              $originalSize = (Get-Item $exe).Length
+              Write-Host "Tamaño del ejecutable: $([math]::Round($originalSize/1KB, 2)) KB"
 
-            # Crear archivo 7z con compresión máxima compatible con 7zr.exe
-            # Usando solo parámetros básicos garantizados para 7zr.exe:
-            # -mx=9: Nivel máximo de compresión
-            # -md=1m: Diccionario de 1MB (óptimo para archivos de ~200KB)
-            # -ms=on: Solid archive activado
-            Write-Host "🗜️ Aplicando compresión 7z máxima compatible con 7zr.exe..."
-            & ".\tools\7zr.exe" a -t7z -mx=9 -md=1m -ms=on "release-assets\RealViewOn.7z" $archivos
+              # Crear archivo 7z con compresión máxima compatible con 7zr.exe
+              # Usando solo parámetros básicos garantizados para 7zr.exe:
+              # -mx=9: Nivel máximo de compresión
+              # -md=1m: Diccionario de 1MB (óptimo para archivos de ~200KB)
+              # -ms=on: Solid archive activado
+              Write-Host "🗜️ Aplicando compresión 7z máxima compatible con 7zr.exe..."
+              & ".\tools\7zr.exe" a -t7z -mx=9 -md=1m -ms=on "release-assets\$nombre.7z" $exe
 
-            if ($LASTEXITCODE -eq 0) {
-              $compressedSize = (Get-Item "release-assets\RealViewOn.7z").Length
-              $compressionRatio = [math]::Round((($originalSize - $compressedSize) / $originalSize) * 100, 1)
-              Write-Host "✅ Compresión 7zip completada"
-              Write-Host "Tamaño comprimido: $([math]::Round($compressedSize/1KB, 2)) KB"
-              Write-Host "Reducción: $compressionRatio%"
-            } else {
-              Write-Host "⚠️ Error en compresión 7zip, continuando..."
-            }
+              if ($LASTEXITCODE -eq 0) {
+                $compressedSize = (Get-Item "release-assets\$nombre.7z").Length
+                $compressionRatio = [math]::Round((($originalSize - $compressedSize) / $originalSize) * 100, 1)
+                Write-Host "✅ Compresión 7zip completada"
+                Write-Host "Tamaño comprimido: $([math]::Round($compressedSize/1KB, 2)) KB"
+                Write-Host "Reducción: $compressionRatio%"
+              } else {
+                Write-Host "⚠️ Error en compresión 7zip, continuando..."
+              }
 
-            # Crear archivo ZIP usando PowerShell (7zr.exe no soporta ZIP)
-            Write-Host "📦 Comprimiendo con ZIP usando PowerShell..."
-            try {
-              Compress-Archive -Path $archivos -DestinationPath "release-assets\RealViewOn.zip" -CompressionLevel Optimal -Force
+              # Crear archivo ZIP usando PowerShell (7zr.exe no soporta ZIP)
+              Write-Host "📦 Comprimiendo $nombre con ZIP usando PowerShell..."
+              try {
+                Compress-Archive -Path $exe -DestinationPath "release-assets\$nombre.zip" -CompressionLevel Optimal -Force
 
-              $zipSize = (Get-Item "release-assets\RealViewOn.zip").Length
-              $zipRatio = [math]::Round((($originalSize - $zipSize) / $originalSize) * 100, 1)
-              Write-Host "✅ Compresión ZIP completada"
-              Write-Host "Tamaño ZIP: $([math]::Round($zipSize/1KB, 2)) KB"
-              Write-Host "Reducción ZIP: $zipRatio%"
-            } catch {
-              Write-Host "⚠️ Error en compresión ZIP: $($_.Exception.Message)"
+                $zipSize = (Get-Item "release-assets\$nombre.zip").Length
+                $zipRatio = [math]::Round((($originalSize - $zipSize) / $originalSize) * 100, 1)
+                Write-Host "✅ Compresión ZIP completada"
+                Write-Host "Tamaño ZIP: $([math]::Round($zipSize/1KB, 2)) KB"
+                Write-Host "Reducción ZIP: $zipRatio%"
+              } catch {
+                Write-Host "⚠️ Error en compresión ZIP: $($_.Exception.Message)"
+              }
             }
           } else {
             Write-Host "⚠️ 7zip no encontrado, solo se subirán los ejecutables"
@@ -550,7 +554,7 @@ jobs:
             Write-Host "⚠️ El release $tagName ya existe (ID: $($response.id))"
 
             # Eliminar assets existentes si existen
-            $assetsToDelete = @("RealViewOn.exe", "RealViewOnGUI.exe", "RealViewOn.7z", "RealViewOn.zip")
+            $assetsToDelete = @("RealViewOn.exe", "RealViewOn.7z", "RealViewOn.zip", "RealViewOnGUI.exe", "RealViewOnGUI.7z", "RealViewOnGUI.zip")
             foreach ($assetName in $assetsToDelete) {
               $existingAsset = $response.assets | Where-Object { $_.name -eq $assetName }
               if ($existingAsset) {
@@ -657,9 +661,11 @@ jobs:
           # Lista de assets a subir
           $assets = @(
             @{ Name = "RealViewOn.exe"; Path = "release-assets\RealViewOn.exe"; Required = $true; Description = "🚀 Console executable" }
+            @{ Name = "RealViewOn.7z"; Path = "release-assets\RealViewOn.7z"; Required = $false; Description = "🗜️ Console, 7-zip archive" }
+            @{ Name = "RealViewOn.zip"; Path = "release-assets\RealViewOn.zip"; Required = $false; Description = "📦 Console, zip archive" }
             @{ Name = "RealViewOnGUI.exe"; Path = "release-assets\RealViewOnGUI.exe"; Required = $true; Description = "🖥️ GUI executable" }
-            @{ Name = "RealViewOn.7z"; Path = "release-assets\RealViewOn.7z"; Required = $false; Description = "🗜️ 7-zip archive (console + GUI)" }
-            @{ Name = "RealViewOn.zip"; Path = "release-assets\RealViewOn.zip"; Required = $false; Description = "📦 Zip archive (console + GUI)" }
+            @{ Name = "RealViewOnGUI.7z"; Path = "release-assets\RealViewOnGUI.7z"; Required = $false; Description = "🗜️ GUI, 7-zip archive" }
+            @{ Name = "RealViewOnGUI.zip"; Path = "release-assets\RealViewOnGUI.zip"; Required = $false; Description = "📦 GUI, zip archive" }
           )
 
           $downloadLinks = @()
