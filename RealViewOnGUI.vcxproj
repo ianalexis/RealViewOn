@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Interfaz grafica (RealViewOnGUI.exe). Mismo core y mismas opciones de
+     compilacion que RealViewOn.vcxproj (la consola), salvo SubSystem Windows.
+     Comparte el directorio de salida con la consola (x64\Release) para que el
+     empaquetado y el workflow de release encuentren los dos .exe juntos, pero
+     no los objetos intermedios. -->
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>18.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{a1755425-8902-472c-abc2-f5a779d8ad28}</ProjectGuid>
+    <RootNamespace>RealViewOnGUI</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>RealViewOnGUI</ProjectName>
+    <WindowsTargetPlatformMinVersion>7.0</WindowsTargetPlatformMinVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>ClangCL</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="ReleaseCommon">
+    <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>false</UseOfMfc>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <EnableUnitySupport>false</EnableUnitySupport>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <OutDir>$(ProjectDir)x64\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)x64\$(Configuration)\RealViewOnGUI\</IntDir>
+    <!-- El manifest se incrusta desde src\gui\RealViewOnGUI.rc. -->
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\gui;$(ProjectDir)\midifile\include;$(ProjectDir)\rtmidi\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>MinSpace</Optimization>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <StringPooling>true</StringPooling>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
+      <OmitFramePointers>true</OmitFramePointers>
+      <FloatingPointModel>Fast</FloatingPointModel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);rtmidi.lib;winmm.lib;comctl32.lib;uxtheme.lib;dwmapi.lib;gdiplus.lib;shlwapi.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\rtmidi\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\src\gui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <!-- Core, compartido con la consola. -->
+    <ClCompile Include="src\AdvanceMode.cpp" />
+    <ClCompile Include="src\GPU.cpp" />
+    <ClCompile Include="src\Playmidi.cpp" />
+    <ClCompile Include="src\Registro.cpp" />
+    <ClCompile Include="src\SolidWorks.cpp" />
+    <ClCompile Include="midifile\src\Binasc.cpp" />
+    <ClCompile Include="midifile\src\MidiEvent.cpp" />
+    <ClCompile Include="midifile\src\MidiEventList.cpp" />
+    <ClCompile Include="midifile\src\MidiFile.cpp" />
+    <ClCompile Include="midifile\src\MidiMessage.cpp" />
+    <!-- Interfaz grafica. -->
+    <ClCompile Include="src\gui\Animacion.cpp" />
+    <ClCompile Include="src\gui\Musica.cpp" />
+    <ClCompile Include="src\gui\RealViewOnGUI.cpp" />
+    <ClCompile Include="src\gui\TemaOscuro.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\AdvanceMode.h" />
+    <ClInclude Include="include\GPU.h" />
+    <ClInclude Include="include\Playmidi.h" />
+    <ClInclude Include="include\Registro.h" />
+    <ClInclude Include="include\resource.h" />
+    <ClInclude Include="include\SolidWorks.h" />
+    <ClInclude Include="include\Version.h" />
+    <ClInclude Include="src\gui\Animacion.h" />
+    <ClInclude Include="src\gui\Musica.h" />
+    <ClInclude Include="src\gui\recursos.h" />
+    <ClInclude Include="src\gui\TemaOscuro.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="src\gui\RealViewOnGUI.rc" />
+    <ResourceCompile Include="include\RTmidi.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="media\icon1.ico" />
+    <Image Include="assets\images\RealViewOnOff.gif" />
+    <None Include="src\gui\app.manifest" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <!-- Commit para la ventana About: git rev-parse al compilar, con "-dirty" si
+       hay cambios sin commitear. Sin git, o fuera de un repositorio, queda
+       "unknown". Solo lo recibe RealViewOnGUI.cpp, para que un commit nuevo
+       recompile ese archivo y no todo el proyecto. -->
+  <Target Name="HashDeGit" BeforeTargets="ClCompile">
+    <Exec Command="git rev-parse --short HEAD 2&gt;nul" WorkingDirectory="$(ProjectDir)" ConsoleToMSBuild="true" IgnoreExitCode="true" EchoOff="true" StandardOutputImportance="low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="HashGit" />
+      <Output TaskParameter="ExitCode" PropertyName="SalidaHashGit" />
+    </Exec>
+    <Exec Command="git status --porcelain --untracked-files=no 2&gt;nul" WorkingDirectory="$(ProjectDir)" ConsoleToMSBuild="true" IgnoreExitCode="true" EchoOff="true" StandardOutputImportance="low" Condition="'$(SalidaHashGit)' == '0'">
+      <Output TaskParameter="ConsoleOutput" PropertyName="CambiosGit" />
+    </Exec>
+    <PropertyGroup>
+      <HashGit Condition="'$(SalidaHashGit)' != '0' Or '$(HashGit)' == ''">unknown</HashGit>
+      <HashGit Condition="'$(CambiosGit)' != ''">$(HashGit)-dirty</HashGit>
+    </PropertyGroup>
+    <ItemGroup>
+      <ClCompile Condition="'%(Filename)' == 'RealViewOnGUI'">
+        <!-- Sin comillas: las escapadas no sobreviven hasta clang-cl. El código lo
+             pasa a texto con TOSTRING. -->
+        <PreprocessorDefinitions>%(PreprocessorDefinitions);RVO_GIT_HASH=$(HashGit)</PreprocessorDefinitions>
+      </ClCompile>
+    </ItemGroup>
+    <Message Importance="normal" Text="Commit para About: $(HashGit)" />
+  </Target>
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

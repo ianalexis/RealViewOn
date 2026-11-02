@@ -1,0 +1,110 @@
+// Recursos de la GUI. Todo el diseño de la ventana está acá: las medidas son
+// unidades de diálogo, que Windows escala con la fuente y el DPI. La música
+// incrustada viene de include\RTmidi.rc, compartido con la consola.
+#include <winres.h>
+#include "resource.h"
+#include "recursos.h"
+#include "Version.h"
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+IDI_ICON1 ICON "media\\icon1.ico"
+
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "src\\gui\\app.manifest"
+
+// La animación del encabezado del README.
+IDR_ANIMACION RCDATA "assets\\images\\RealViewOnOff.gif"
+
+IDD_PRINCIPAL DIALOGEX 0, 0, 280, 248
+STYLE DS_SHELLFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX
+CAPTION "RealViewOn"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    // La barra de color es el botón About; se dibuja en RealViewOnGUI.cpp.
+    CONTROL         "About RealViewOn", IDC_ACERCA, "Button", BS_OWNERDRAW | WS_TABSTOP, 0, 0, 280, 16
+
+    LTEXT           "&SolidWorks:", IDC_STATIC, 10, 27, 48, 8
+    COMBOBOX        IDC_VERSION, 62, 25, 64, 120, CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "", IDC_VERSION_ESTADO, 132, 27, 138, 8, SS_NOPREFIX
+
+    LTEXT           "&Renderer:", IDC_STATIC, 10, 45, 48, 8
+    COMBOBOX        IDC_RENDERER, 62, 43, 208, 140, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "", IDC_RENDERER_ORIGEN, 62, 58, 208, 8, SS_NOPREFIX | SS_ENDELLIPSIS
+
+    LTEXT           "GPU &brand:", IDC_STATIC, 10, 73, 48, 8
+    AUTORADIOBUTTON "NVIDIA", IDC_NVIDIA, 62, 72, 42, 10, WS_GROUP | WS_TABSTOP
+    AUTORADIOBUTTON "AMD", IDC_AMD, 106, 72, 34, 10
+    AUTORADIOBUTTON "Intel", IDC_INTEL, 142, 72, 34, 10
+    LTEXT           "", IDC_MARCA_ESTADO, 180, 73, 90, 8, SS_NOPREFIX
+
+    AUTOCHECKBOX    "Back &up the SolidWorks registry first", IDC_BACKUP, 10, 91, 260, 10, WS_GROUP | WS_TABSTOP
+    AUTOCHECKBOX    "&Advanced mode", IDC_AVANZADO, 10, 104, 260, 10, WS_GROUP | WS_TABSTOP
+    // Las seis primeras opciones terminan antes de la animación; la última va
+    // debajo y usa todo el ancho para el aviso del modo genérico.
+    AUTOCHECKBOX    "", IDC_OPCION0 + 0, 22, 117, 170, 10, WS_TABSTOP
+    AUTOCHECKBOX    "", IDC_OPCION0 + 1, 22, 128, 170, 10, WS_TABSTOP
+    AUTOCHECKBOX    "", IDC_OPCION0 + 2, 22, 139, 170, 10, WS_TABSTOP
+    AUTOCHECKBOX    "", IDC_OPCION0 + 3, 22, 150, 170, 10, WS_TABSTOP
+    AUTOCHECKBOX    "", IDC_OPCION0 + 4, 22, 161, 170, 10, WS_TABSTOP
+    AUTOCHECKBOX    "", IDC_OPCION0 + 5, 22, 172, 170, 10, WS_TABSTOP
+    AUTOCHECKBOX    "", IDC_OPCION0 + 6, 22, 183, 248, 10, WS_TABSTOP
+    CONTROL         "", IDC_ANIMACION, "Static", SS_OWNERDRAW, 196, 114, 74, 68
+    LTEXT           "* Recommended", IDC_NOTA_RECOMENDADA, 22, 196, 248, 8, SS_NOPREFIX
+
+    LTEXT           "", IDC_ESTADO, 10, 209, 260, 16, SS_NOPREFIX
+    AUTOCHECKBOX    "&Music", IDC_MUSICA, 10, 230, 50, 10, WS_GROUP | WS_TABSTOP
+    PUSHBUTTON      "&Open folder", IDC_ABRIR_CARPETA, 104, 228, 54, 14, NOT WS_VISIBLE | WS_GROUP
+    PUSHBUTTON      "&Preview", IDC_VISTA_PREVIA, 162, 228, 50, 14, WS_GROUP
+    DEFPUSHBUTTON   "&Generate .reg", IDC_GENERAR, 216, 228, 54, 14
+END
+
+IDD_ACERCA_DE DIALOGEX 0, 0, 220, 104
+STYLE DS_SHELLFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About RealViewOn"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    ICON            IDI_ICON1, IDC_STATIC, 10, 10, 21, 20
+    LTEXT           "RealViewOn", IDC_ACERCA_NOMBRE, 40, 9, 170, 14, SS_NOPREFIX
+    LTEXT           "", IDC_ACERCA_ETIQUETAS, 40, 27, 44, 36, SS_NOPREFIX
+    LTEXT           "", IDC_ACERCA_VALORES, 86, 27, 124, 36, SS_NOPREFIX
+    CONTROL         "", IDC_ACERCA_REPO, "Button", BS_OWNERDRAW | WS_TABSTOP, 40, 67, 170, 10
+    DEFPUSHBUTTON   "Close", IDOK, 160, 84, 50, 14
+END
+
+IDD_VISTA_PREVIA DIALOGEX 0, 0, 420, 270
+STYLE DS_SHELLFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MAXIMIZEBOX
+CAPTION "Preview"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_TEXTO_REG, 6, 6, 408, 238, ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL | ES_AUTOHSCROLL | WS_VSCROLL | WS_HSCROLL
+    DEFPUSHBUTTON   "Close", IDOK, 364, 250, 50, 14
+END
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION FILE_VERSION_MAJOR,FILE_VERSION_MINOR,FILE_VERSION_PATCH,FILE_VERSION_BUILD
+ PRODUCTVERSION FILE_VERSION_MAJOR,FILE_VERSION_MINOR,FILE_VERSION_PATCH,FILE_VERSION_BUILD
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "CompanyName", "PC Master Race Coalition\0"
+            VALUE "FileDescription", "RealViewOn GUI\0"
+            VALUE "FileVersion", RVO_VERSION "\0"
+            VALUE "InternalName", "RealViewOnGUI\0"
+            VALUE "OriginalFilename", "RealViewOnGUI.exe\0"
+            VALUE "ProductName", "RealViewOn\0"
+            VALUE "ProductVersion", RVO_VERSION "\0"
+            VALUE "LegalCopyright", "2024 PC Master Race Coalition.\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0409, 0x04E4
+    END
+END
