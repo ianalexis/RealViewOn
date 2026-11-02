@@ -11,9 +11,13 @@
 
 #include <Windows.h>
 
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
+#include <ios>
+#include <iterator>
 #include <string>
+#include <system_error>
 #include <vector>
 
 #include "Registro.h"

@@ -4,9 +4,11 @@
 
 #include "doctest.h"
 
+#include <cstddef>
 #include <string>
 #include <vector>
 
+#include "GPU.h"
 #include "SolidWorks.h"
 #include "registry_fixture.h"
 #include "test_access.h"

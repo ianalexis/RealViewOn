@@ -4,12 +4,11 @@
 #include <vector>
 #include "Teclado.h"
 
-using std::string;
 class AdvanceMode {
 public:
     AdvanceMode(); // Constructor
     void setSwVersion(int swVersion, bool generico);
-    string askAdvanceOptions();
+    std::string askAdvanceOptions();
 
 private:
     friend struct AdvanceModeTestAccess; // Solo para tests unitarios (tests/test_access.h). No usar en producción.
@@ -17,28 +16,28 @@ private:
     bool generico = false;
     int optionsQty = 0;
     int optionNumber = 1;
-    const string rutaBase = "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\SOLIDWORKS ";
-    string rutaVersionada = "";
-    const string rutaTab = "User Interface\\CommandManager\\PartContext\\Tab";
-    string completeBase (string complement);
+    const std::string rutaBase = "[HKEY_CURRENT_USER\\SOFTWARE\\SolidWorks\\SOLIDWORKS ";
+    std::string rutaVersionada = "";
+    const std::string rutaTab = "User Interface\\CommandManager\\PartContext\\Tab";
+    std::string completeBase (std::string complement);
     bool anySelected = false;
     std::vector <int> tabsToEnable = {4,5,7,8,11};
 
-    string selectRegOptions();
-    string qolCommands();
-    string enableTabs();
-    string enableTab(string value);
-    string getOriginalValue(string tabPath, string valueName);
-    string enableBtn();
-    void askToEnable(string optionName);
+    std::string selectRegOptions();
+    std::string qolCommands();
+    std::string enableTabs();
+    std::string enableTab(std::string value);
+    std::string getOriginalValue(std::string tabPath, std::string valueName);
+    std::string enableBtn();
+    void askToEnable(std::string optionName);
 
     struct multiRegSetting {
-        string path;
-        std::vector<string> value;
+        std::string path;
+        std::vector<std::string> value;
     };
 
     struct RegSetting {
-        string name;
+        std::string name;
         std::vector<multiRegSetting> content;
     };
 

@@ -9,6 +9,7 @@
 
 #include <Windows.h>
 
+#include <cstddef>
 #include <string>
 
 #include "AdvanceMode.h"
