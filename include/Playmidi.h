@@ -1,21 +1,14 @@
 #ifndef PLAYMIDI_H
 #define PLAYMIDI_H
-#include <iostream>
-#include <sstream>
-#include <thread>
+#include <atomic>
 #include <vector>
-#include <Windows.h>
-#include <RtMidi.h>
-#include "MidiFile.h"
-#include "resource.h"
 
 // Function to load embedded MIDI data
 std::vector<unsigned char> loadEmbeddedMidi();
 
-// Function to send a MIDI message
-void sendMidiMessage(RtMidiOut& midiOut, const std::vector<unsigned char>& message);
-
-// Function to play MIDI data
-void playMidi(const std::vector<unsigned char>& midiData);
+// Function to play MIDI data. Bloquea hasta que termina la canción, o hasta que
+// `detener` pasa a true: en ese caso corta en menos de 50 ms y apaga las notas
+// que estaban sonando.
+void playMidi(const std::vector<unsigned char>& midiData, const std::atomic<bool>* detener = nullptr);
 
 #endif // PLAYMIDI_H

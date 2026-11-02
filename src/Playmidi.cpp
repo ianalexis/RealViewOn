@@ -1,3 +1,5 @@
+#include "Playmidi.h"
+#include <atomic>
 #include <cstddef>
 #include <exception>
 #include <iostream>
@@ -13,18 +15,45 @@
 #include "resource.h"
 
 namespace {
-void sleepUntilInSlices(const std::chrono::steady_clock::time_point& targetTime) {
-    // Keep each wait short to avoid long blocking sleeps in one call.
+bool pedidoDetener(const std::atomic<bool>* detener) {
+    return detener != nullptr && detener->load();
+}
+
+// Devuelve false si se pidió detener antes de llegar a targetTime.
+bool sleepUntilInSlices(const std::chrono::steady_clock::time_point& targetTime, const std::atomic<bool>* detener) {
+    // Keep each wait short to avoid long blocking sleeps in one call, and to
+    // notice a stop request quickly.
     constexpr auto kMaxSleepSlice = std::chrono::milliseconds(50);
 
     while (true) {
+        if (pedidoDetener(detener)) {
+            return false;
+        }
         const auto now = std::chrono::steady_clock::now();
         if (now >= targetTime) {
-            break;
+            return true;
         }
 
         const auto remaining = targetTime - now;
         std::this_thread::sleep_for(remaining > kMaxSleepSlice ? kMaxSleepSlice : remaining);
+    }
+}
+
+// Función para enviar mensajes MIDI válidos
+void sendMidiMessage(RtMidiOut& midiOut, const std::vector<unsigned char>& message) {
+    if (message.size() <= 3 || (message[0] == 0xF0 && message.back() == 0xF7)) {
+        // Mensaje estándar MIDI (máximo 3 bytes), o SysEx completo.
+        midiOut.sendMessage(&message);
+    }
+    // Cualquier otra cosa se descarta en silencio: no es un mensaje MIDI válido.
+}
+
+// Al cortar a mitad de canción las notas en curso quedarían sonando: All Sound
+// Off (CC 120) y All Notes Off (CC 123) en los 16 canales.
+void silenciar(RtMidiOut& midiOut) {
+    for (unsigned char canal = 0; canal < 16; ++canal) {
+        sendMidiMessage(midiOut, {static_cast<unsigned char>(0xB0 | canal), 120, 0});
+        sendMidiMessage(midiOut, {static_cast<unsigned char>(0xB0 | canal), 123, 0});
     }
 }
 }
@@ -57,17 +86,8 @@ std::vector<unsigned char> loadEmbeddedMidi() {
     return std::vector<unsigned char>(static_cast<unsigned char*>(resourceData), static_cast<unsigned char*>(resourceData) + resourceSize);
 }
 
-// Función para enviar mensajes MIDI válidos
-void sendMidiMessage(RtMidiOut& midiOut, const std::vector<unsigned char>& message) {
-    if (message.size() <= 3 || (message[0] == 0xF0 && message.back() == 0xF7)) {
-        // Mensaje estándar MIDI (máximo 3 bytes), o SysEx completo.
-        midiOut.sendMessage(&message);
-    }
-    // Cualquier otra cosa se descarta en silencio: no es un mensaje MIDI válido.
-}
-
 // Función para reproducir datos MIDI directamente desde memoria
-void playMidi(const std::vector<unsigned char>& midiData) {
+void playMidi(const std::vector<unsigned char>& midiData, const std::atomic<bool>* detener) {
     try {
         // Crear RtMidiOut con manejo de errores silencioso
         RtMidiOut midiOut;
@@ -122,7 +142,10 @@ void playMidi(const std::vector<unsigned char>& midiData) {
             );
 
             // Esperar hasta el momento exacto para reproducir el evento
-            sleepUntilInSlices(targetTime);
+            if (!sleepUntilInSlices(targetTime, detener)) {
+                silenciar(midiOut);
+                return;
+            }
 
             // Crear mensaje MIDI
             std::vector<unsigned char> message(event.begin(), event.end());
