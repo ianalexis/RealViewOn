@@ -13,6 +13,10 @@
 
 **RealViewOn** its a tool to enhance and fix your SolidWorks installation.
 
+> [!TIP]
+> **🆕 GUI version, ready to test:** the [3.0.0.0 pre-release](https://github.com/ianalexis/Real-View-On-Releases/releases) brings `RealViewOnGUI.exe`, RealViewOn in a [single window](#gui-️): it detects everything, lets you review and change it, previews the `.reg` before writing it, and follows the Windows dark mode.  
+> Download `RealViewOnGUI.7z` and [let us know](#contribute-) how it works for you. The console version is still `RealViewOn.7z`.
+
 ## Key Features 🌟
 
 - **Enable RealView 🛠️:** [Simplifies RealView Activation](https://github.com/ianalexis/RealViewOn/blob/main/assets/images/BeforeAfter.png) for [any GPU](#gpu), including non-certified ones, by creating a `.reg` file to run in a straightforward way without needing to browse regedit.  
@@ -24,7 +28,7 @@
 - **Advanced Mode 🛠️:** Allows for [additional configurations](#advance-mode-️) to be made to the SolidWorks registry, such as enabling Dark Mode, FPS Viewer, and more.
 - **Supports Old & New Methods 🕰️:** Works with both old and new methods as needed.
 - **FULL USER CONTROL 🖐️:** This tool **DOES NOT apply any changes** directly. It simply generates a `.reg` file for you that you can read and decide to run or not.
-- **Console or GUI 🖥️:** `RealViewOn.exe` asks step by step in the console; `RealViewOnGUI.exe` does the same in a [single window](#gui-️) that follows the Windows dark mode.  
+- **Console or GUI 🖥️:** `RealViewOn.exe` asks step by step in the console; `RealViewOnGUI.exe` (new in the 3.0.0.0 pre-release) does the same in a [single window](#gui-️) that follows the Windows dark mode.  
   <img alt="GUI" src="https://github.com/ianalexis/RealViewOn/blob/main/assets/images/GUI.png?raw=true" height="200">
 
 ## Operation Modes ⚙️
@@ -34,7 +38,7 @@
 
 ## Usage 📋
 
-0. 🧑 MANUAL - [Download the latest version from Releases (exe or 7z) 📥](https://github.com/ianalexis/Real-View-On-Releases/releases). The 7z includes both the console and the GUI.
+0. 🧑 MANUAL - [Download the latest version from Releases (exe or 7z) 📥](https://github.com/ianalexis/Real-View-On-Releases/releases). `RealViewOn` is the console version and `RealViewOnGUI` the GUI (from the 3.0.0.0 pre-release); each comes as `.exe`, `.7z` or `.zip`.
 1. 🤖 AUTO - The tool detects the installed versions of SolidWorks 🔍.
 2. 📑 MANUAL - Select the SolidWorks version.
 3. 🤖 AUTO - Search for the GPU used by that version of SolidWorks 🖥️.
@@ -55,7 +59,7 @@
 
 ### GUI 🖥️
 
-`RealViewOnGUI.exe` runs the same steps in one window:
+Available from the 3.0.0.0 pre-release: download `RealViewOnGUI.7z`. `RealViewOnGUI.exe` runs the same steps in one window:
 
 1. 🤖 AUTO - Detects the installed versions, the renderer and the GPU brand.
 2. 📑 MANUAL - Review them and change anything that is wrong: type another year, pick or type another renderer, pick another brand.
