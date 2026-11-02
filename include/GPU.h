@@ -5,6 +5,9 @@
 #include <vector>
 #include <map>
 
+// Arma las claves del .reg para una GPU. No pregunta ni imprime nada: si la
+// marca no se puede deducir queda UNKNOWN y quien llama la fija con
+// setMarcaManual().
 class GPU {
     public:
     struct Current {
@@ -14,10 +17,6 @@ class GPU {
         std::string origin;
     };
 
-    GPU(Current current);
-
-    std::vector<std::string> completarContenidoReg(const std::vector<std::string>& regBase);
-
     enum class Brand {
         NVIDIA,
         AMD,
@@ -25,15 +24,25 @@ class GPU {
         UNKNOWN
     };
 
-    std::string brandToString(GPU::Brand brand); // Convierte la marca de GPU a string.
+    explicit GPU(Current current);
+
+    Brand getBrand() const;
+    // Marca elegida por el usuario, porque no se detectó o para corregirla.
+    // Agrega la línea "Manual selected" a los datos base del .reg.
+    void setMarcaManual(Brand marca);
+    // Lanza si la marca sigue en UNKNOWN.
+    std::vector<std::string> completarContenidoReg(const std::vector<std::string>& regBase);
+
+    // Marca según el vendor y, si no alcanza, el renderer. UNKNOWN si ninguno coincide.
+    static Brand detectarMarca(const std::string& vendor, const std::string& renderer);
+    static std::string brandToString(GPU::Brand brand); // Convierte la marca de GPU a string.
 
 private:
     friend struct GPUTestAccess; // Solo para tests unitarios (tests/test_access.h). No usar en producción.
 
-    void setBrand(std::string v,std::string r); // Declarar setBrand
     void setBrWorkarounds(std::string w); // Eliminar calificación extra
     void buscarEnRenderMap(std::string buscado); // Fija `brand` si encuentra coincidencia.
-    Brand selecectBrandManual(); // Selecciona la marca de la GPU en caso de no poder determinarla.
+    static Brand buscarMarca(std::string buscado); // UNKNOWN si no hay coincidencia.
     void setBaseData(Current current); // Setea la baseData de la GPU.
     std::vector<std::string> completarRealViewEnabler(std::string reg);
     std::vector<std::string> completarPerformanceFix(std::string reg);
@@ -43,6 +52,7 @@ private:
     Brand brand = Brand::UNKNOWN;
     std::string renderer;
     std::string brWorkarounds;
+    std::string workaroundsLeidos; // Tal como vinieron del registro; setMarcaManual() los vuelve a evaluar.
     Current baseData;
     struct BrandData {
         std::string brPath; // Brand Path para el fix.
@@ -54,7 +64,7 @@ private:
         std::string glKeyAlt; // Clave alternativa para el Gl2Shaders.
     };
 
-    const std::map<Brand, BrandData> brandKeysMap = {
+    static inline const std::map<Brand, BrandData> brandKeysMap = {
         {Brand::NVIDIA, {
             "NVIDIA Corporation",
             "4000000",
@@ -82,7 +92,7 @@ private:
     };
 
     // Mapeo de palabras clave a marcas de GPU EN MAYÚSCULAS.
-    const std::vector<std::pair<std::string, Brand>> rendererMap = {
+    static inline const std::vector<std::pair<std::string, Brand>> rendererMap = {
         // Vendor, Brand
         {"NVIDIA", Brand::NVIDIA},
         {"INTEL", Brand::INTEL},

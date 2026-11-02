@@ -1,19 +1,17 @@
 #include "SolidWorks.h"
-#include <iostream>
 #include <Windows.h>
 #include <string.h>
 #include <string>
 #include <cstring>
 #include <functional>
+#include <ios>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
 #include <vector>
 #include "GPU.h"
-#include "Teclado.h"
 
 
-using std::cout;
 using std::string;
 
 // Constructor
@@ -29,33 +27,20 @@ int SolidWorks::obtenerAnoActual() {
 }
 
 // Configura la versión de SolidWorks.
-void SolidWorks::setVersion(int v) {
-    setGenerico(false);
-    bool instalado = versionInstalada(v);
-    int compatibilidad = esCompatible(v);
-    if (compatibilidad == 0) {
+void SolidWorks::setVersion(int v, bool generico) {
+    if (esCompatible(v) == 0) {
         throw std::runtime_error("The version of SolidWorks is not compatible.");
     }
     swVersion = v;
-    if (!instalado || compatibilidad == 2) {
-        if (!instalado) {
-            cout << "SolidWorks " << v << " is not installed.\n";
-        }
-        if (compatibilidad == 2) {
-            if (v > anoActual) {
-                calc(99999);
-                cout << "WHAT?!?!?! SolidWorks " << v << " really?!\nHow did you get this version? It's from the future!\n";
-            } else{
-                cout << "SolidWorks " << v << " is a future compatibility version.\n";
-            }
-        }
-        cout << "Do you want to continue in generic mode? ";
-        if (yesOrNo()) {
-            setGenerico(true);
-        } else {
-            throw std::runtime_error("Installation canceled by the user.");
-        }
-    }
+    setGenerico(generico);
+}
+
+bool SolidWorks::requiereGenerico(int v) {
+    return !versionInstalada(v) || esCompatible(v) == 2;
+}
+
+bool SolidWorks::esDelFuturo(int v) {
+    return v > anoActual;
 }
 
 // Comprueba si una versión es compatible. 0 = No compatible, 1 = Compatible , 2 = Versión futura.
@@ -69,62 +54,21 @@ void SolidWorks::setGenerico(bool g) {
 }
 
 // Recorre las versiones de SolidWorks instaladas y devuelve un listado con el año de la versión y si es compatible.
-void SolidWorks::obtenerVersionesInstaladas() {
+const std::vector<std::pair<int, int>>& SolidWorks::obtenerVersionesInstaladas() {
     versiones.clear();
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
-    WORD saved_attributes;
-
-    // Guarda los atributos actuales de la consola
-    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
-    saved_attributes = consoleInfo.wAttributes;
-
     for (int i = vMin; i <= anoActual; i++) {
         string versionKey = swRegRuta + std::to_string(i);
         HKEY hKey;
         if (RegOpenKeyExA(HKEY_CURRENT_USER, versionKey.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-            if (versiones.empty()) {
-                cout << "\n SW Installed v  | Compatibility\n";
-                cout << " ----------------|---------------\n";
-            }
-            int compatibilidad = esCompatible(i);
-            cout << " SolidWorks " << i << " | ";
-            // Cambia el color y muestra "[OK]", "[X]" o "[?]" utilizando un switch case
-            switch (compatibilidad) {
-                case 1:  // Compatible
-                    SetConsoleTextAttribute(hConsole, BACKGROUND_GREEN | BACKGROUND_INTENSITY);
-                    cout << "[OK]";
-                    break;
-                case 0:  // No compatible
-                    SetConsoleTextAttribute(hConsole, BACKGROUND_RED | BACKGROUND_INTENSITY);
-                    cout << "[X]";
-                    break;
-                case 2:  // Versión futura
-                    SetConsoleTextAttribute(hConsole, BACKGROUND_BLUE | BACKGROUND_INTENSITY);
-                    cout << "[>" << vMax << "]";
-                    break;
-                default:
-                    SetConsoleTextAttribute(hConsole, saved_attributes);
-                    cout << "[?]";
-                    break;
-            }
-            // Restaura los atributos originales
-            SetConsoleTextAttribute(hConsole, saved_attributes);
-            cout << "\n";
-            versiones.push_back(std::make_pair(i, compatibilidad));
+            versiones.push_back(std::make_pair(i, esCompatible(i)));
             RegCloseKey(hKey);
         }
     }
-    if (versiones.empty()) {
-        cout << "No SolidWorks versions found installed.\n";
-    } else {
-        cout << " ----------------|---------------\n";
-    }
+    return versiones;
 }
 
-GPU::Current SolidWorks::obtenerCurrent() {
-    current = GPU::Current{};
-    GPU::Current tempCurrent;
+GPU::Current SolidWorks::detectarCurrent() {
+    GPU::Current current;
     if (swVersion < vCambioRaiz || generico) {
         current = obtenerCurrentAno();
         // El origin se asigna sobre el resultado: obtenerCurrent(path) devuelve un
@@ -135,29 +79,32 @@ GPU::Current SolidWorks::obtenerCurrent() {
         }
     }
     if (current.renderer.empty() || swVersion >= vCambioRaiz || generico) {
-        tempCurrent = obtenerCurrentRaiz();
+        GPU::Current tempCurrent = obtenerCurrentRaiz();
         if (!tempCurrent.renderer.empty()) {
             current = tempCurrent;
             current.origin = "SolidWorks Root";
         }
     }
-    if (!current.renderer.empty()) {
-        cout << "Renderer detected: " << current.renderer << ". Is this correct? ";
-        if (!yesOrNo()) {
-            current.renderer.clear();
-        }
-    }
-    if (current.renderer.empty()) {
-        current.vendor.clear();
-        current.workarounds.clear();
-        current.origin.clear();
-        current = elegirRenderer();
-    }
-    if (current.renderer.empty()) {
-        throw std::runtime_error("Renderer not found.");
-    }
-    cout << "Renderer: " << current.renderer << "\n";
     return current;
+}
+
+std::vector<std::pair<std::string, std::string>> SolidWorks::candidatosRenderer() {
+    std::vector<std::pair<std::string, std::string>> candidatos;
+    auto agregar = [&candidatos](const std::pair<std::string, std::string>& candidato) {
+        for (const auto& existente : candidatos) {
+            if (existente.first == candidato.first) {
+                return;
+            }
+        }
+        candidatos.push_back(candidato);
+    };
+    for (const auto& renderer : obtenerRendererGenerico()) {
+        agregar(renderer);
+    }
+    for (const auto& adaptador : windowsDisplayAdapters()) {
+        agregar(adaptador);
+    }
+    return candidatos;
 }
 
 std::vector<std::pair<std::string, std::string>> SolidWorks::windowsDisplayAdapters() {
@@ -185,19 +132,6 @@ std::vector<std::pair<std::string, std::string>> SolidWorks::windowsDisplayAdapt
         deviceIndex++;
     }
     return adaptadores;
-}
-
-std::string SolidWorks::rendererManual() {
-    string manual = "";
-    bool correct = false;
-
-    while (manual.empty() || !correct) {
-        cout << "Enter the renderer name manually: ";
-        manual = entradaTeclado(0, false);
-        cout << "Renderer: " << manual << ". Is this correct? ";
-        correct = yesOrNo();
-    }
-    return manual;
 }
 
 // Lee un valor del registro en el buffer indicado.
@@ -241,7 +175,6 @@ GPU::Current SolidWorks::obtenerCurrent(string path){
         currentTemp.renderer = comoTexto(value, bytesLeidos);
     }
     if (currentTemp.renderer.empty()) {
-        cout << "Renderer not found in " << path << "\n";
         RegCloseKey(hKey);
         return currentTemp;
     }
@@ -325,41 +258,8 @@ std::vector<std::pair<std::string, std::string>> SolidWorks::obtenerRendererGene
     if (RegOpenKeyExA(HKEY_CURRENT_USER, basePath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
         buscarRendererEnSubclaves(hKey, basePath);
         RegCloseKey(hKey);
-    } else {
-        std::cerr << "Error opening: " << basePath << std::endl;
     }
     return renderers;
-}
-
-GPU::Current SolidWorks::elegirRenderer() {
-    auto renderers = obtenerRendererGenerico();
-    auto adaptadores = windowsDisplayAdapters();
-    GPU::Current tempCurrent;
-    for (const auto& adaptador : adaptadores) {
-        renderers.push_back(std::make_pair(adaptador.first, adaptador.second));
-    }
-    cout << "Available renderers:\n";
-    cout << "0. Enter manually\n";
-    for (int i = 0; i < renderers.size(); i++) {
-        cout << i + 1 << ". " << renderers[i].first << " (in " << renderers[i].second << ")\n";
-    }
-    while (true) {
-        cout << "Select the renderer (or press Esc to cancel): ";
-        string input = entradaTeclado(std::to_string(renderers.size()).length(), true);
-        int opcion = std::stoi(input);
-        if (opcion >= 1 && opcion <= renderers.size()) {
-            tempCurrent.renderer = renderers[opcion - 1].first;
-            tempCurrent.origin = renderers[opcion - 1].second;
-        }
-        if (opcion == 0){
-            tempCurrent.renderer = rendererManual();
-            tempCurrent.origin = "Manual";
-        }
-        if (!tempCurrent.renderer.empty()) {
-            return tempCurrent;
-        }
-        cout << "Invalid option. Please try again.\n";
-    }
 }
 
 // Obtiene la ruta base del registro para enviarle al completador de contenido de la GPU.

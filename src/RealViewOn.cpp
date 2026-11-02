@@ -7,6 +7,7 @@
 #include <sstream>
 #include <iomanip>
 #include <ctime>
+#include "Consola.h"
 #include "SolidWorks.h"
 #include "GPU.h"
 #include "Teclado.h"
@@ -103,12 +104,12 @@ void modoAvanzado(int swVersion, bool generico) {
     if (yesOrNo()) {
         terminalColorAuto(true);
         try {
-            guardarBackUp();
+            cout << "Backup created successfully: " << guardarBackUp() << std::endl;
         } catch (const std::exception& ex) {
             std::cerr << "Error: " << ex.what() << std::endl;
         }
         advMode.setSwVersion(swVersion, generico);
-        regContent.push_back(advMode.askAdvanceOptions());
+        regContent.push_back(advMode.armarOpciones(preguntarOpcionesAvanzadas(advMode, generico)));
         terminalColorAuto(false);
     }
 }
@@ -118,7 +119,7 @@ int main() {
     configurarConsola();
     encabezado();
     try {
-        sw.obtenerVersionesInstaladas();
+        mostrarVersionesInstaladas(sw.obtenerVersionesInstaladas());
     }
     catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
@@ -133,13 +134,16 @@ int main() {
             // Validar entrada
             try {
                 int swVersion = std::stoi(entrada);
-                // setVersion() ya valida la compatibilidad y lanza con un mensaje
-                // más claro; no hace falta comprobarla acá también.
-                sw.setVersion(swVersion);
-                GPU gpu(sw.obtenerCurrent());
+                // preguntarModoGenerico() ya valida la compatibilidad y lanza con
+                // un mensaje más claro; no hace falta comprobarla acá también.
+                sw.setVersion(swVersion, preguntarModoGenerico(sw, swVersion));
+                GPU gpu(elegirCurrent(sw));
+                confirmarMarca(gpu);
                 regContent = gpu.completarContenidoReg(sw.obtenerRegBase());
                 modoAvanzado(swVersion, sw.getGenerico());
-                guardarArchivoReg(std::to_string(swVersion), regContent, RVO_VERSION);
+                const string version = std::to_string(swVersion);
+                const string ruta = guardarArchivoReg(version, regContent, RVO_VERSION);
+                cout << "\nFile RealViewOn" << version << ".reg created successfully at:\n" << ruta << std::endl;
                 break; // Salir del bucle principal si todo es correcto
             }
             catch (const std::exception& e) {

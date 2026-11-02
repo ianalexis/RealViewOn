@@ -33,41 +33,35 @@ depurar un test que falla.
 
 | Archivo | Cubre |
 | --- | --- |
-| [`test_solidworks.cpp`](test_solidworks.cpp) | `esCompatible`, invariantes del constructor, `obtenerRegBase` y el cambio de raiz de 2023 |
-| [`test_gpu.cpp`](test_gpu.cpp) | Deteccion de marca por vendor/renderer, seleccion de workarounds, armado del contenido del `.reg` |
-| [`test_advancemode.cpp`](test_advancemode.cpp) | `enableTab`, rutas versionadas, `getOriginalValue` contra el registro |
-| [`test_registro.cpp`](test_registro.cpp) | Cabecera y formato del `.reg` que genera `guardarArchivoReg` |
+| [`test_solidworks.cpp`](test_solidworks.cpp) | `esCompatible`, `setVersion`, `requiereGenerico`, invariantes del constructor, `obtenerRegBase` y el cambio de raiz de 2023 |
+| [`test_gpu.cpp`](test_gpu.cpp) | Deteccion de marca por vendor/renderer, marca elegida a mano, seleccion de workarounds, armado del contenido del `.reg` |
+| [`test_advancemode.cpp`](test_advancemode.cpp) | `enableTab`, rutas versionadas, `getOriginalValue` contra el registro, `opciones` y `armarOpciones` |
+| [`test_registro.cpp`](test_registro.cpp) | Cabecera y formato del `.reg` que arman `armarArchivoReg` y `guardarArchivoReg` |
 | [`test_access.h`](test_access.h) | Puentes `friend` para alcanzar las funciones puras privadas |
 | [`registry_fixture.h`](registry_fixture.h) | Helpers RAII para los tests que leen del registro |
 | [`doctest.h`](doctest.h) | Framework vendorizado (v2.4.11, MIT) |
 
-El proyecto compila `src\AdvanceMode.cpp`, `src\GPU.cpp`, `src\Registro.cpp`,
-`src\SolidWorks.cpp` y `src\Teclado.cpp`. Quedan afuera a proposito:
+El proyecto compila el core: `src\AdvanceMode.cpp`, `src\GPU.cpp`,
+`src\Registro.cpp` y `src\SolidWorks.cpp`. Quedan afuera a proposito:
 
 - `src\RealViewOn.cpp`, porque define `main()`.
+- `src\Consola.cpp` y `src\Teclado.cpp`, porque piden input por teclado.
 - `src\Playmidi.cpp`, porque arrastra `rtmidi.lib` y `midifile.lib`.
+- `src\gui\`, la interfaz grafica.
 
 `RealViewOn.Tests.vcxproj` **no** esta agregado a `RealViewOn.slnx`: el workflow
 de release compila la solucion y no debe arrastrar los tests.
 
 ## Reglas al agregar tests
 
-**1. Nunca llamar a codigo que pida input por teclado.** `entradaTeclado()` y
-`yesOrNo()` usan `_getch()`, que bloquea esperando una tecla y colgaria el runner
-en CI. En particular:
-
-- `SolidWorks::setVersion()` pregunta por modo generico cuando la version no esta
-  instalada, lo cual en CI es siempre. Los tests fijan `swVersion` con
-  `SolidWorksTestAccess::setSwVersion()`.
-- El constructor de `GPU` llama a `selecectBrandManual()` si **no** logra deducir
-  la marca. Todo `GPU` que se construya en un test tiene que usar un vendor o
-  renderer que la tabla reconozca. Para probar cadenas que no matchean usar
-  `GPUTestAccess::buscarEnRenderMap()`, que nunca pide input.
-- `AdvanceMode::askAdvanceOptions()` pregunta por cada opcion; se testean sus
-  piezas internas, no ella.
+**1. El core no pide input, y tiene que seguir asi.** Las preguntas viven en
+`src\Consola.cpp` (y las de la GUI en su ventana), que este proyecto no compila.
+Si algo del core llegara a llamar a `entradaTeclado()` o `yesOrNo()`, el link
+falla, porque `Teclado.cpp` tampoco esta en el proyecto. Es a proposito: esas
+funciones usan `_getch()`, que bloquearia el runner en CI esperando una tecla.
 
 El paso "Run tests" del workflow tiene `timeout-minutes: 5` como red de
-contencion, pero un test que bloquea igual rompe la corrida.
+contencion por si algun test igual se colgara.
 
 **2. Los tests que tocan el registro usan su propia raiz.** Los de
 `getOriginalValue` y `obtenerCurrent(path)` crean y borran
@@ -86,9 +80,8 @@ declara `friend struct <Clase>TestAccess;` y ese struct se implementa en
 `test_access.h`, que solo compila dentro de este proyecto. Asi los tests llegan a
 la logica pura sin ensanchar la API publica de las clases.
 
-## Ruido en la salida
+## Salida
 
-Varias funciones bajo prueba escriben en `cout` (`GPU Brand detected: ...`,
-`File RealViewOn2025.reg created successfully at: ...`). Ese texto aparece
-intercalado en la salida del runner. Es esperado y no afecta el resultado: el
-exit code del binario es lo que decide si la corrida pasa o falla.
+El core no escribe en `cout`: los mensajes los muestran la consola y la GUI. La
+salida del runner es solo la de doctest, y el exit code del binario es lo que
+decide si la corrida pasa o falla.

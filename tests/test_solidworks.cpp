@@ -5,6 +5,7 @@
 #include "doctest.h"
 
 #include <cstddef>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -81,6 +82,56 @@ TEST_CASE("la cadena de versiones sugeridas lista min, cambio de raiz y max") {
                                  std::to_string(SolidWorksTestAccess::vCambioRaiz()) + ", " +
                                  std::to_string(SolidWorksTestAccess::vMax());
     CHECK(sw.versions == esperado);
+}
+
+} // TEST_SUITE
+
+TEST_SUITE("SolidWorks::setVersion") {
+
+TEST_CASE("una version no compatible se rechaza") {
+    SolidWorks sw;
+    CHECK_THROWS_AS(sw.setVersion(SolidWorksTestAccess::vMin() - 1, false), std::runtime_error);
+}
+
+TEST_CASE("fija la version y el modo generico elegidos") {
+    SolidWorks sw;
+    sw.setVersion(2022, true);
+    CHECK(SolidWorksTestAccess::swVersion(sw) == 2022);
+    CHECK(sw.getGenerico() == true);
+
+    sw.setVersion(2024, false);
+    CHECK(SolidWorksTestAccess::swVersion(sw) == 2024);
+    CHECK(sw.getGenerico() == false);
+}
+
+} // TEST_SUITE
+
+TEST_SUITE("SolidWorks::requiereGenerico") {
+
+TEST_CASE("una version instalada y soportada no lo requiere") {
+    SolidWorks sw;
+    SolidWorksTestAccess::setVersionesInstaladas(sw, {{2022, 1}, {2024, 1}});
+    CHECK_FALSE(sw.requiereGenerico(2024));
+}
+
+TEST_CASE("una version sin instalar lo requiere") {
+    SolidWorks sw;
+    SolidWorksTestAccess::setVersionesInstaladas(sw, {{2022, 1}});
+    CHECK(sw.requiereGenerico(2024));
+}
+
+TEST_CASE("una version futura lo requiere aunque este instalada") {
+    SolidWorks sw;
+    const int futura = SolidWorksTestAccess::vMax() + 1;
+    SolidWorksTestAccess::setVersionesInstaladas(sw, {{futura, 2}});
+    CHECK(sw.requiereGenerico(futura));
+}
+
+TEST_CASE("esDelFuturo compara contra el anio actual + 1") {
+    SolidWorks sw;
+    const int anoActual = SolidWorksTestAccess::anoActual(sw);
+    CHECK_FALSE(sw.esDelFuturo(anoActual));
+    CHECK(sw.esDelFuturo(anoActual + 1));
 }
 
 } // TEST_SUITE
