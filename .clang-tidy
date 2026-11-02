@@ -1,0 +1,30 @@
+# clang-tidy configuration, enforced on every pull request by
+# .github/workflows/clang-tidy.yml through tools/Run-ClangTidy.ps1, which checks
+# src/, include/ and tests/ (not the vendored midifile/, rtmidi/ or
+# tests/doctest.h). Run that script to reproduce the check locally, and with
+# -Fix to add the missing includes. Two things are reported.
+# Missing includes: a file should include the header for every symbol it uses,
+# not rely on another header's includes.
+# Using-directives and using-declarations in the global namespace of a header:
+# they reach every file that includes the header. Qualify the name in the
+# header, and put the using in the source files that want it.
+# The whole code base passes these checks and every one gates pull requests, so
+# enabling another one means fixing everything it flags in the same change.
+Checks: '-*,misc-include-cleaner,google-global-names-in-headers'
+WarningsAsErrors: '*'
+# Only report on the file clang-tidy was given. The script checks every header
+# on its own, so a finding in one is reported once, not once per includer.
+HeaderFilterRegex: '^$'
+CheckOptions:
+  # Missing includes only.
+  misc-include-cleaner.UnusedIncludes: false
+  # Headers that declare a symbol but are not the one to include: the Windows
+  # SDK's um/ and shared/ headers, which are used through <windows.h>, and the
+  # internals of MSVC's STL and the UCRT.
+  # Write every / as [/\\] so the patterns also match Windows paths.
+  # No comments inside the block below, because a # there silently becomes part of a pattern.
+  misc-include-cleaner.IgnoreHeaders: >-
+    [/\\](um|shared)[/\\].*;
+    corecrt_.*\.h;
+    __msvc_.*\.hpp;
+    sal\.h

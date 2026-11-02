@@ -1,0 +1,59 @@
+# Workflow de clang-tidy de RealViewOn.
+#
+# Corre tools/Run-ClangTidy.ps1, con los checks de .clang-tidy, sobre src/,
+# include/ y tests/ (no sobre el codigo vendorizado). Todo el codigo pasa, asi
+# que revisa archivos enteros y no solo las lineas que cambia el PR. Cada
+# hallazgo aparece como anotacion en el diff del PR. Para reproducirlo local:
+#   pwsh tools/Run-ClangTidy.ps1        reporta lo mismo que este workflow
+#   pwsh tools/Run-ClangTidy.ps1 -Fix   agrega los includes que faltan
+
+name: clang-tidy
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'tests/**'
+      - 'RealViewOn.vcxproj'
+      - '.clang-tidy'
+      - 'tools/Run-ClangTidy.ps1'
+      - 'tools/clang_tidy_requirements.txt'
+      - '.github/workflows/clang-tidy.yml'
+  pull_request:
+    branches: ["main"]
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'tests/**'
+      - 'RealViewOn.vcxproj'
+      - '.clang-tidy'
+      - 'tools/Run-ClangTidy.ps1'
+      - 'tools/clang_tidy_requirements.txt'
+      - '.github/workflows/clang-tidy.yml'
+  workflow_dispatch:
+
+# Un PR que recibe varios pushes seguidos cancela sus corridas anteriores.
+concurrency:
+  group: clang-tidy-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  clang-tidy:
+    name: clang-tidy
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      # El script le pide a MSBuild los comandos de compilacion de los dos
+      # .vcxproj, instala en un venv el clang-tidy fijado en
+      # tools/clang_tidy_requirements.txt y lo corre.
+      - name: Run clang-tidy
+        run: ./tools/Run-ClangTidy.ps1

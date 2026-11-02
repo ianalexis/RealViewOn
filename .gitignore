@@ -45,6 +45,7 @@
 
 # Directories
 x64/
+build-tidy/
 Debug/
 Release/
 
