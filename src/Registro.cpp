@@ -1,8 +1,10 @@
 #include "Registro.h"
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <stdio.h>
 #include <string>
 #include <vector>
 #include <filesystem>

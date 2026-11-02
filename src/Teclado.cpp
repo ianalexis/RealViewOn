@@ -1,4 +1,5 @@
 #include "Teclado.h"
+#include <exception>
 #include <string>
 #include <iostream>
 #include <cctype>

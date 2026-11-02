@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <conio.h>
@@ -13,11 +14,13 @@
 #include "Playmidi.h"
 #include "Version.h"
 #include <thread>
+#include <vector>
 #include "AdvanceMode.h"
 
 using std::cin;
 using std::cout;
 using std::string;
+using std::vector;
 
 void playMidiAsync() {
     // Esta función se ejecutará en un hilo separado

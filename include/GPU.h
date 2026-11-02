@@ -1,24 +1,22 @@
 #ifndef GPU_H
 #define GPU_H
 #include <string>
+#include <utility>
 #include <vector>
 #include <map>
-
-using std::string;
-using std::vector;
 
 class GPU {
     public:
     struct Current {
-        string renderer;
-        string vendor;
-        string workarounds;
-        string origin;
+        std::string renderer;
+        std::string vendor;
+        std::string workarounds;
+        std::string origin;
     };
 
     GPU(Current current);
 
-    vector<string> completarContenidoReg(const vector<string>& regBase);
+    std::vector<std::string> completarContenidoReg(const std::vector<std::string>& regBase);
 
     enum class Brand {
         NVIDIA,
@@ -27,33 +25,33 @@ class GPU {
         UNKNOWN
     };
 
-    string brandToString(GPU::Brand brand); // Convierte la marca de GPU a string.
+    std::string brandToString(GPU::Brand brand); // Convierte la marca de GPU a string.
 
 private:
     friend struct GPUTestAccess; // Solo para tests unitarios (tests/test_access.h). No usar en producción.
 
-    void setBrand(string v,string r); // Declarar setBrand
-    void setBrWorkarounds(string w); // Eliminar calificación extra
-    void buscarEnRenderMap(string buscado); // Fija `brand` si encuentra coincidencia.
+    void setBrand(std::string v,std::string r); // Declarar setBrand
+    void setBrWorkarounds(std::string w); // Eliminar calificación extra
+    void buscarEnRenderMap(std::string buscado); // Fija `brand` si encuentra coincidencia.
     Brand selecectBrandManual(); // Selecciona la marca de la GPU en caso de no poder determinarla.
     void setBaseData(Current current); // Setea la baseData de la GPU.
-    vector<string> completarRealViewEnabler(string reg);
-    vector<string> completarPerformanceFix(string reg);
-    string baseDataToString(); // Convierte la baseData a string.
+    std::vector<std::string> completarRealViewEnabler(std::string reg);
+    std::vector<std::string> completarPerformanceFix(std::string reg);
+    std::string baseDataToString(); // Convierte la baseData a string.
 
 
     Brand brand = Brand::UNKNOWN;
-    string renderer;
-    string brWorkarounds;
+    std::string renderer;
+    std::string brWorkarounds;
     Current baseData;
     struct BrandData {
-        string brPath; // Brand Path para el fix.
-        string brandKey; // Clave para el fix. Va en la carpeta de la marca.
-        string brandKeyAlt; // Clave alternativa para el fix.
-        string brandBaseAvoid; // Clave raiz de la marca para evitar (quizas en un futuro cambiar para que sea un blacklist).
-        string glPath; // GL Path para el RealView.
-        string glKey; // Clave para el RealView. Va en Gl2Shaders.
-        string glKeyAlt; // Clave alternativa para el Gl2Shaders.
+        std::string brPath; // Brand Path para el fix.
+        std::string brandKey; // Clave para el fix. Va en la carpeta de la marca.
+        std::string brandKeyAlt; // Clave alternativa para el fix.
+        std::string brandBaseAvoid; // Clave raiz de la marca para evitar (quizas en un futuro cambiar para que sea un blacklist).
+        std::string glPath; // GL Path para el RealView.
+        std::string glKey; // Clave para el RealView. Va en Gl2Shaders.
+        std::string glKeyAlt; // Clave alternativa para el Gl2Shaders.
     };
 
     const std::map<Brand, BrandData> brandKeysMap = {
@@ -84,7 +82,7 @@ private:
     };
 
     // Mapeo de palabras clave a marcas de GPU EN MAYÚSCULAS.
-    const std::vector<std::pair<string, Brand>> rendererMap = {
+    const std::vector<std::pair<std::string, Brand>> rendererMap = {
         // Vendor, Brand
         {"NVIDIA", Brand::NVIDIA},
         {"INTEL", Brand::INTEL},

@@ -1,7 +1,12 @@
+#include <cstddef>
+#include <exception>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
+#include <string>
 #include <thread>
 #include <chrono>
+#include <vector>
 #include <Windows.h>
 #include <RtMidi.h>
 #include "MidiFile.h"

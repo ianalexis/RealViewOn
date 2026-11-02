@@ -12,6 +12,7 @@
 // Regla: nada de lo que se exponga aca debe llamar a entradaTeclado()/yesOrNo(),
 // porque _getch() bloquearia la ejecucion en CI. Ver tests/README.md.
 
+#include <cstddef>
 #include <string>
 #include <vector>
 

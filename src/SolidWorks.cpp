@@ -1,11 +1,15 @@
 #include "SolidWorks.h"
 #include <iostream>
 #include <Windows.h>
+#include <string.h>
 #include <string>
 #include <cstring>
 #include <functional>
 #include <sstream>
 #include <stdexcept>
+#include <utility>
+#include <vector>
+#include "GPU.h"
 #include "Teclado.h"
 
 
