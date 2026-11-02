@@ -17,6 +17,7 @@ on:
       - 'midifile/include/**'
       - 'rtmidi/include/**'
       - 'RealViewOn.vcxproj'
+      - 'RealViewOnGUI.vcxproj'
       - 'RealViewOn.sln'
       - 'RealViewOn.slnx'
       - '.github/workflows/msbuild.yml'
@@ -81,6 +82,7 @@ jobs:
               $file -like 'midifile/include/*' -or
               $file -like 'rtmidi/include/*' -or
               $file -eq 'RealViewOn.vcxproj' -or
+              $file -eq 'RealViewOnGUI.vcxproj' -or
               $file -eq 'RealViewOn.sln' -or
               $file -eq 'RealViewOn.slnx'
             ) {
@@ -135,36 +137,39 @@ jobs:
             /maxcpucount `
             /verbosity:minimal
 
-      - name: Test executable exists
+      - name: Test executables exist
         run: |
-          $exePath = "x64\Release\RealViewOn.exe"
-
-          if (Test-Path $exePath) {
-            Write-Host "✅ Executable found: $exePath"
-            Get-Item $exePath | Select-Object Name, Length, LastWriteTime
-          } else {
-            Write-Host "❌ Executable not found: $exePath"
-            exit 1
+          # La consola y la GUI salen de la misma solucion.
+          foreach ($exePath in @("x64\Release\RealViewOn.exe", "x64\Release\RealViewOnGUI.exe")) {
+            if (Test-Path $exePath) {
+              Write-Host "✅ Executable found: $exePath"
+              Get-Item $exePath | Select-Object Name, Length, LastWriteTime
+            } else {
+              Write-Host "❌ Executable not found: $exePath"
+              exit 1
+            }
           }
 
       - name: Compress with UPX
         run: |
           # Comprimir con UPX si existe
           if (Test-Path "tools\upx.exe") {
-            Write-Host "🗜️ Comprimiendo con UPX..."
-            $originalSize = (Get-Item "x64\Release\RealViewOn.exe").Length
-            Write-Host "Tamaño original: $([math]::Round($originalSize/1KB, 2)) KB"
+            foreach ($exePath in @("x64\Release\RealViewOn.exe", "x64\Release\RealViewOnGUI.exe")) {
+              Write-Host "🗜️ Comprimiendo $exePath con UPX..."
+              $originalSize = (Get-Item $exePath).Length
+              Write-Host "Tamaño original: $([math]::Round($originalSize/1KB, 2)) KB"
 
-            & ".\tools\upx.exe" --ultra-brute "x64\Release\RealViewOn.exe"
+              & ".\tools\upx.exe" --ultra-brute $exePath
 
-            if ($LASTEXITCODE -eq 0) {
-              $compressedSize = (Get-Item "x64\Release\RealViewOn.exe").Length
-              $compressionRatio = [math]::Round((($originalSize - $compressedSize) / $originalSize) * 100, 1)
-              Write-Host "✅ Compresión UPX completada"
-              Write-Host "Tamaño comprimido: $([math]::Round($compressedSize/1KB, 2)) KB"
-              Write-Host "Reducción: $compressionRatio%"
-            } else {
-              Write-Host "⚠️ Error en compresión UPX, continuando sin comprimir"
+              if ($LASTEXITCODE -eq 0) {
+                $compressedSize = (Get-Item $exePath).Length
+                $compressionRatio = [math]::Round((($originalSize - $compressedSize) / $originalSize) * 100, 1)
+                Write-Host "✅ Compresión UPX completada"
+                Write-Host "Tamaño comprimido: $([math]::Round($compressedSize/1KB, 2)) KB"
+                Write-Host "Reducción: $compressionRatio%"
+              } else {
+                Write-Host "⚠️ Error en compresión UPX, continuando sin comprimir"
+              }
             }
           } else {
             Write-Host "⚠️ UPX no encontrado, saltando compresión"
@@ -468,6 +473,7 @@ jobs:
           name: RealViewOn-x64-${{ env.BUILD_CONFIGURATION }}
           path: |
             x64/Release/RealViewOn.exe
+            x64/Release/RealViewOnGUI.exe
             x64/Release/*.pdb
             release-assets/RealViewOn.7z
             release-assets/RealViewOn.zip
@@ -479,15 +485,18 @@ jobs:
           # Crear directorio de staging para assets
           New-Item -ItemType Directory -Force -Path "release-assets"
           Copy-Item "x64\Release\RealViewOn.exe" "release-assets\RealViewOn.exe"
+          Copy-Item "x64\Release\RealViewOnGUI.exe" "release-assets\RealViewOnGUI.exe"
+          # El .7z y el .zip llevan la consola y la GUI.
+          $archivos = @("release-assets\RealViewOn.exe", "release-assets\RealViewOnGUI.exe")
 
-          Write-Host "📦 Asset preparado para release: release-assets\RealViewOn.exe"
-          Get-Item "release-assets\RealViewOn.exe" | Select-Object Name, Length, LastWriteTime
+          Write-Host "📦 Assets preparados para release: $($archivos -join ', ')"
+          Get-Item $archivos | Select-Object Name, Length, LastWriteTime
 
           # Comprimir con 7zip si está disponible
           if (Test-Path "tools\7zr.exe") {
             Write-Host "📦 Comprimiendo con 7zip..."
-            $originalSize = (Get-Item "release-assets\RealViewOn.exe").Length
-            Write-Host "Tamaño del ejecutable: $([math]::Round($originalSize/1KB, 2)) KB"
+            $originalSize = (Get-Item $archivos | Measure-Object Length -Sum).Sum
+            Write-Host "Tamaño de los ejecutables: $([math]::Round($originalSize/1KB, 2)) KB"
 
             # Crear archivo 7z con compresión máxima compatible con 7zr.exe
             # Usando solo parámetros básicos garantizados para 7zr.exe:
@@ -495,7 +504,7 @@ jobs:
             # -md=1m: Diccionario de 1MB (óptimo para archivos de ~200KB)
             # -ms=on: Solid archive activado
             Write-Host "🗜️ Aplicando compresión 7z máxima compatible con 7zr.exe..."
-            & ".\tools\7zr.exe" a -t7z -mx=9 -md=1m -ms=on "release-assets\RealViewOn.7z" "release-assets\RealViewOn.exe"
+            & ".\tools\7zr.exe" a -t7z -mx=9 -md=1m -ms=on "release-assets\RealViewOn.7z" $archivos
 
             if ($LASTEXITCODE -eq 0) {
               $compressedSize = (Get-Item "release-assets\RealViewOn.7z").Length
@@ -510,7 +519,7 @@ jobs:
             # Crear archivo ZIP usando PowerShell (7zr.exe no soporta ZIP)
             Write-Host "📦 Comprimiendo con ZIP usando PowerShell..."
             try {
-              Compress-Archive -Path "release-assets\RealViewOn.exe" -DestinationPath "release-assets\RealViewOn.zip" -CompressionLevel Optimal -Force
+              Compress-Archive -Path $archivos -DestinationPath "release-assets\RealViewOn.zip" -CompressionLevel Optimal -Force
 
               $zipSize = (Get-Item "release-assets\RealViewOn.zip").Length
               $zipRatio = [math]::Round((($originalSize - $zipSize) / $originalSize) * 100, 1)
@@ -521,7 +530,7 @@ jobs:
               Write-Host "⚠️ Error en compresión ZIP: $($_.Exception.Message)"
             }
           } else {
-            Write-Host "⚠️ 7zip no encontrado, solo se subirá el ejecutable"
+            Write-Host "⚠️ 7zip no encontrado, solo se subirán los ejecutables"
           }
 
       - name: Check and manage existing release
@@ -541,7 +550,7 @@ jobs:
             Write-Host "⚠️ El release $tagName ya existe (ID: $($response.id))"
 
             # Eliminar assets existentes si existen
-            $assetsToDelete = @("RealViewOn.exe", "RealViewOn.7z", "RealViewOn.zip")
+            $assetsToDelete = @("RealViewOn.exe", "RealViewOnGUI.exe", "RealViewOn.7z", "RealViewOn.zip")
             foreach ($assetName in $assetsToDelete) {
               $existingAsset = $response.assets | Where-Object { $_.name -eq $assetName }
               if ($existingAsset) {
@@ -647,9 +656,10 @@ jobs:
 
           # Lista de assets a subir
           $assets = @(
-            @{ Name = "RealViewOn.exe"; Path = "release-assets\RealViewOn.exe"; Required = $true; Description = "🚀 Executable" }
-            @{ Name = "RealViewOn.7z"; Path = "release-assets\RealViewOn.7z"; Required = $false; Description = "🗜️ 7-zip archive" }
-            @{ Name = "RealViewOn.zip"; Path = "release-assets\RealViewOn.zip"; Required = $false; Description = "📦 Zip archive" }
+            @{ Name = "RealViewOn.exe"; Path = "release-assets\RealViewOn.exe"; Required = $true; Description = "🚀 Console executable" }
+            @{ Name = "RealViewOnGUI.exe"; Path = "release-assets\RealViewOnGUI.exe"; Required = $true; Description = "🖥️ GUI executable" }
+            @{ Name = "RealViewOn.7z"; Path = "release-assets\RealViewOn.7z"; Required = $false; Description = "🗜️ 7-zip archive (console + GUI)" }
+            @{ Name = "RealViewOn.zip"; Path = "release-assets\RealViewOn.zip"; Required = $false; Description = "📦 Zip archive (console + GUI)" }
           )
 
           $downloadLinks = @()

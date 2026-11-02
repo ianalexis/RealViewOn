@@ -5,9 +5,10 @@
     the check that gates pull requests (.github/workflows/clang-tidy.yml).
 
 .DESCRIPTION
-    1. Asks MSBuild for the command line of every file RealViewOn.vcxproj and
-       tests/RealViewOn.Tests.vcxproj compile (the GetCompileCommands target that
-       Visual Studio's own clang-tidy integration uses) and writes them to
+    1. Asks MSBuild for the command line of every file RealViewOn.vcxproj,
+       tests/RealViewOn.Tests.vcxproj and RealViewOnGUI.vcxproj compile (the
+       GetCompileCommands target that Visual Studio's own clang-tidy integration uses)
+       and writes them to
        <BuildDir>/compile_commands.json. clang-tidy therefore parses with exactly the
        flags of the build, and a flag changed in a .vcxproj needs no change here.
     2. Installs the clang-tidy pinned in tools/clang_tidy_requirements.txt into a
@@ -54,7 +55,7 @@ Set-Location $Root
 if (-not [System.IO.Path]::IsPathRooted($BuildDir)) { $BuildDir = Join-Path $Root $BuildDir }
 New-Item -ItemType Directory -Force -Path $BuildDir | Out-Null
 
-$Projects = @('RealViewOn.vcxproj', 'tests\RealViewOn.Tests.vcxproj')
+$Projects = @('RealViewOn.vcxproj', 'tests\RealViewOn.Tests.vcxproj', 'RealViewOnGUI.vcxproj')
 $CheckedDirs = @('src', 'include', 'tests')
 $Excluded = @('tests\doctest.h')
 
@@ -99,7 +100,10 @@ foreach ($project in $Projects) {
 # code around it: clang-tidy's own guess drops /std. Parsed as the main file, a header's
 # #pragma once would warn.
 foreach ($header in $files -like '*.h') {
-    $command = $projectCommand[$(if ($header -like 'tests\*') { $Projects[1] } else { $Projects[0] })]
+    $owner = if ($header -like 'tests\*') { 'tests\RealViewOn.Tests.vcxproj' }
+             elseif ($header -like 'src\gui\*') { 'RealViewOnGUI.vcxproj' }
+             else { 'RealViewOn.vcxproj' }
+    $command = $projectCommand[$owner]
     $file = Join-Path $Root $header
     $entries[$file] = [ordered]@{
         directory = $command.Directory
