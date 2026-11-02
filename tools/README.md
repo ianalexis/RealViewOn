@@ -1,9 +1,11 @@
 # tools/
 
-Release pipeline utilities.
+Release pipeline and code check utilities.
 
 | File | What it is |
 | --- | --- |
+| [`Run-ClangTidy.ps1`](Run-ClangTidy.ps1) | Runs clang-tidy over the project's code. See [clang-tidy](#clang-tidy). |
+| [`clang_tidy_requirements.txt`](clang_tidy_requirements.txt) | The clang-tidy version CI and `Run-ClangTidy.ps1` install. |
 | [`upx.exe`](upx.exe) | [UPX](https://github.com/upx/upx), compresses `RealViewOn.exe`. **x64** build. |
 | [`7zr.exe`](7zr.exe) | [7-Zip](https://github.com/ip7z/7zip) standalone console, builds `RealViewOn.7z`. **x86** build. |
 | [`tools.lock.json`](tools.lock.json) | Pinned versions and SHA256 of the two binaries above. |
@@ -128,3 +130,34 @@ it fails and says so, instead of reasoning from data that is not true.
   `tools/**` to the `pull_request` paths in `msbuild.yml` and create the PR with a
   PAT instead of `GITHUB_TOKEN`.
 - **It does not verify build provenance.** See the checksum note above.
+
+## clang-tidy
+
+[`.github/workflows/clang-tidy.yml`](../.github/workflows/clang-tidy.yml) runs
+`Run-ClangTidy.ps1` on every pull request that touches C++ code, with the checks
+in [`.clang-tidy`](../.clang-tidy):
+
+- **Missing includes** (`misc-include-cleaner`): a file includes the header of
+  every symbol it uses instead of getting it through another header.
+- **`using` at global scope in a header** (`google-global-names-in-headers`): it
+  leaks into every file that includes the header. Qualify the name there and put
+  the `using` in the `.cpp`.
+
+The whole code base passes, so the check covers whole files, not only the lines a
+pull request changes. Each finding shows up as an annotation on the PR diff.
+
+```powershell
+# Reports what CI would report.
+pwsh tools/Run-ClangTidy.ps1
+
+# Adds the missing includes, then reports whatever needs a manual fix.
+pwsh tools/Run-ClangTidy.ps1 -Fix
+```
+
+The script needs Visual Studio with the C++ workload and Python 3. It asks MSBuild
+for the compile command of every file in `RealViewOn.vcxproj` and
+`tests/RealViewOn.Tests.vcxproj`, so clang-tidy parses with the build's own flags,
+and writes them to `build-tidy/compile_commands.json`. It installs the clang-tidy
+pinned in `clang_tidy_requirements.txt` into `build-tidy/clang-tidy-venv`, so a
+local run reports exactly what CI does. `-ClangTidy <path>` uses another
+clang-tidy instead.
