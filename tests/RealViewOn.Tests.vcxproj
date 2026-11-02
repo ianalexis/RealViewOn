@@ -49,7 +49,7 @@
       <WarningLevel>Level3</WarningLevel>
       <!-- doctest.h es codigo vendorizado; no se rompe el build por sus avisos. -->
       <TreatWarningAsError>false</TreatWarningAsError>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp23</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
       <ExceptionHandling>Sync</ExceptionHandling>
       <SDLCheck>true</SDLCheck>
