@@ -6,11 +6,11 @@ Release pipeline and code check utilities.
 | --- | --- |
 | [`Run-ClangTidy.ps1`](Run-ClangTidy.ps1) | Runs clang-tidy over the project's code. See [clang-tidy](#clang-tidy). |
 | [`clang_tidy_requirements.txt`](clang_tidy_requirements.txt) | The clang-tidy version CI and `Run-ClangTidy.ps1` install. |
-| [`upx.exe`](upx.exe) | [UPX](https://github.com/upx/upx), compresses `RealViewOn.exe`. **x64** build. |
+| [`upx.exe`](upx.exe) | [UPX](https://github.com/upx/upx), compresses `RealViewOn.exe` and `RealViewOnGUI.exe`. **x64** build. |
 | [`7zr.exe`](7zr.exe) | [7-Zip](https://github.com/ip7z/7zip) standalone console, builds `RealViewOn.7z`. **x86** build. |
 | [`tools.lock.json`](tools.lock.json) | Pinned versions and SHA256 of the two binaries above. |
 | [`Update-VendoredTools.ps1`](Update-VendoredTools.ps1) | Compares the binaries against upstream and updates them. |
-| [`ReleaseUPXZIP.bat`](ReleaseUPXZIP.bat) | PostBuildEvent: copies, UPX-compresses and 7-Zip-packages the build. |
+| [`ReleaseUPXZIP.bat`](ReleaseUPXZIP.bat) | PostBuildEvent of the console: copies, UPX-compresses and 7-Zip-packages the console and, when it is built, the GUI. In the solution the console depends on the GUI so the GUI is ready by then. |
 | [`GetWorka.ps1`](GetWorka.ps1) | Helper script for collecting workaround data. |
 
 ## Automated updates
@@ -155,8 +155,9 @@ pwsh tools/Run-ClangTidy.ps1 -Fix
 ```
 
 The script needs Visual Studio with the C++ workload and Python 3. It asks MSBuild
-for the compile command of every file in `RealViewOn.vcxproj` and
-`tests/RealViewOn.Tests.vcxproj`, so clang-tidy parses with the build's own flags,
+for the compile command of every file in `RealViewOn.vcxproj`,
+`tests/RealViewOn.Tests.vcxproj` and `RealViewOnGUI.vcxproj`, so clang-tidy parses
+with the build's own flags,
 and writes them to `build-tidy/compile_commands.json`. It installs the clang-tidy
 pinned in `clang_tidy_requirements.txt` into `build-tidy/clang-tidy-venv`, so a
 local run reports exactly what CI does. `-ClangTidy <path>` uses another

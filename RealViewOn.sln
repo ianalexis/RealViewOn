@@ -4,6 +4,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 18.0.0.0
 MinimumVisualStudioVersion = 17.0.0.0
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RealViewOn", "RealViewOn.vcxproj", "{36FD3B22-B095-47E5-9E45-A4050E4CC122}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A1755425-8902-472C-ABC2-F5A779D8AD28} = {A1755425-8902-472C-ABC2-F5A779D8AD28}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RealViewOnGUI", "RealViewOnGUI.vcxproj", "{A1755425-8902-472C-ABC2-F5A779D8AD28}"
 EndProject
 
 Global
@@ -13,6 +18,8 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{36FD3B22-B095-47E5-9E45-A4050E4CC122}.Release|x64.ActiveCfg = Release|x64
 		{36FD3B22-B095-47E5-9E45-A4050E4CC122}.Release|x64.Build.0 = Release|x64
+		{A1755425-8902-472C-ABC2-F5A779D8AD28}.Release|x64.ActiveCfg = Release|x64
+		{A1755425-8902-472C-ABC2-F5A779D8AD28}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
