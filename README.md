@@ -24,6 +24,8 @@
 - **Advanced Mode 🛠️:** Allows for [additional configurations](#advance-mode-️) to be made to the SolidWorks registry, such as enabling Dark Mode, FPS Viewer, and more.
 - **Supports Old & New Methods 🕰️:** Works with both old and new methods as needed.
 - **FULL USER CONTROL 🖐️:** This tool **DOES NOT apply any changes** directly. It simply generates a `.reg` file for you that you can read and decide to run or not.
+- **Console or GUI 🖥️:** `RealViewOn.exe` asks step by step in the console; `RealViewOnGUI.exe` does the same in a [single window](#gui-️) that follows the Windows dark mode.  
+  <img alt="GUI" src="https://github.com/ianalexis/RealViewOn/blob/main/assets/images/GUI.png?raw=true" height="200">
 
 ## Operation Modes ⚙️
 
@@ -32,7 +34,7 @@
 
 ## Usage 📋
 
-0. 🧑 MANUAL - [Download the latest version from Releases (exe or 7z) 📥](https://github.com/ianalexis/Real-View-On-Releases/releases).
+0. 🧑 MANUAL - [Download the latest version from Releases (exe or 7z) 📥](https://github.com/ianalexis/Real-View-On-Releases/releases). The 7z includes both the console and the GUI.
 1. 🤖 AUTO - The tool detects the installed versions of SolidWorks 🔍.
 2. 📑 MANUAL - Select the SolidWorks version.
 3. 🤖 AUTO - Search for the GPU used by that version of SolidWorks 🖥️.
@@ -50,6 +52,19 @@
 6. ✨ MANUAL - Execution of the `.reg` file.
    1. 🕵️ OPTIONAL - Review (with any text editor) the `.reg` file.
    2. 🚀 MANUAL - Execute the `.reg` file by double clicking on it.
+
+### GUI 🖥️
+
+`RealViewOnGUI.exe` runs the same steps in one window:
+
+1. 🤖 AUTO - Detects the installed versions, the renderer and the GPU brand.
+2. 📑 MANUAL - Review them and change anything that is wrong: type another year, pick or type another renderer, pick another brand.
+3. 🧑 OPTIONAL - Choose whether to back up the SolidWorks registry, and turn on Advanced Mode to pick its options (both off by default). The recommended options are marked with `*`; all but Spin Box Increment come checked. Advanced Mode always makes the backup.
+4. 🕵️ OPTIONAL - **Preview** shows the `.reg` file before writing it.
+5. 🤖 AUTO - **Generate .reg** writes the backup (if checked) and the `RealViewOn[SWVersion].reg` file next to the program.
+6. ✨ MANUAL - Execution of the `.reg` file, as above.
+
+It follows the Windows light/dark setting; `--dark` or `--light` forces one. The colored bar at the top (or F1) opens **About**: version, compilation, commit and the repository link.
 
 ## Advance Mode 🛠️
 
