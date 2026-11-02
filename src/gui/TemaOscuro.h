@@ -24,6 +24,10 @@ enum class Tono { Normal, Tenue, Exito, Info, Error };
 void inicializar(bool forzarOscuro, bool forzarClaro);
 void liberar();
 bool oscuro();
+// Windows tiene los temas oscuros de los controles (10 1809 en adelante).
+bool disponible();
+// Elección del usuario: deja de seguir la configuración de Windows.
+void forzar(bool activar);
 // Ante WM_SETTINGCHANGE "ImmersiveColorSet": vuelve a leer la configuración de
 // Windows (salvo que el modo esté forzado). Devuelve true si cambió.
 bool actualizarDesdeSistema();

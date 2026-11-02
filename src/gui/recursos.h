@@ -31,6 +31,7 @@
 #define IDC_BACKUP              1035
 #define IDC_NOTA_RECOMENDADA    1036
 #define IDC_ANIMACION           1037
+#define IDC_OSCURO              1038
 #define IDC_ACERCA_NOMBRE       1050
 #define IDC_ACERCA_ETIQUETAS    1051
 #define IDC_ACERCA_VALORES      1052

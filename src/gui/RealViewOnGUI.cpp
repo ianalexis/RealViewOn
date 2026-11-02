@@ -573,6 +573,13 @@ void inicializar(HWND hDlg) {
     g.fondoBarra = FILE_VERSION_STABLE == 1 ? RGB(0, 0, 128) : RGB(128, 0, 0);
     crearFuenteBarra(hDlg);
     SetDlgItemTextW(hDlg, IDC_MUSICA, L"♪ &Music");
+    // Arranca con el modo en uso (el de Windows, o --dark/--light). Sin temas
+    // oscuros en el sistema no hay nada que alternar.
+    SetDlgItemTextW(hDlg, IDC_OSCURO, L"☾ &Dark");
+    CheckDlgButton(hDlg, IDC_OSCURO, tema::oscuro() ? BST_CHECKED : BST_UNCHECKED);
+    if (!tema::disponible()) {
+        ShowWindow(GetDlgItem(hDlg, IDC_OSCURO), SW_HIDE);
+    }
     g.animacion.iniciar(GetDlgItem(hDlg, IDC_ANIMACION), IDR_ANIMACION);
 
     tema::aplicar(hDlg);
@@ -669,6 +676,7 @@ INT_PTR CALLBACK DialogoPrincipal(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lPa
         if (lParam != 0 && wcscmp(reinterpret_cast<const wchar_t*>(lParam), L"ImmersiveColorSet") == 0 &&
             tema::actualizarDesdeSistema()) {
             tema::aplicar(hDlg);
+            CheckDlgButton(hDlg, IDC_OSCURO, tema::oscuro() ? BST_CHECKED : BST_UNCHECKED);
         }
         break;
 
@@ -757,6 +765,11 @@ INT_PTR CALLBACK DialogoPrincipal(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lPa
             return TRUE;
         case IDC_MUSICA:
             alternarMusica(hDlg);
+            return TRUE;
+        case IDC_OSCURO:
+            // Vale hasta cerrar el programa; no se guarda en ningún lado.
+            tema::forzar(marcado(hDlg, IDC_OSCURO));
+            tema::aplicar(hDlg);
             return TRUE;
         case IDC_VISTA_PREVIA:
             mostrarVistaPrevia(hDlg);

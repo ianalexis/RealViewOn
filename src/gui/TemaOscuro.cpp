@@ -15,7 +15,7 @@ constexpr COLORREF kTexto = RGB(255, 255, 255);
 constexpr COLORREF kDeshabilitado = RGB(110, 110, 110);
 
 bool modoOscuro = false;
-bool forzado = false; // --dark / --light: no seguir al sistema.
+bool forzado = false; // --dark, --light o el casillero de la GUI: no seguir al sistema.
 HBRUSH pincelFondo = nullptr;
 HBRUSH pincelCampo = nullptr;
 
@@ -29,7 +29,7 @@ DWORD compilacionWindows() {
 }
 
 bool sistemaOscuro() {
-    if (compilacionWindows() < 17763) { // Windows 10 1809: primera con los temas DarkMode_*.
+    if (!disponible()) {
         return false;
     }
     DWORD claro = 1;
@@ -59,6 +59,9 @@ void temaControl(HWND control) {
     }
     SetWindowTheme(control, subApp, nullptr);
     if (combo) {
+        // Al cambiarle el tema, el combo selecciona su texto y lo deja resaltado
+        // aunque no tenga el foco.
+        SendMessageW(control, CB_SETEDITSEL, 0, MAKELPARAM(-1, -1));
         // La lista desplegable es una ventana aparte, con su propia barra.
         COMBOBOXINFO info = {sizeof(info)};
         if (GetComboBoxInfo(control, &info)) {
@@ -85,6 +88,15 @@ void liberar() {
 
 bool oscuro() {
     return modoOscuro;
+}
+
+bool disponible() {
+    return compilacionWindows() >= 17763; // Windows 10 1809: primera con los temas DarkMode_*.
+}
+
+void forzar(bool activar) {
+    forzado = true;
+    modoOscuro = activar;
 }
 
 bool actualizarDesdeSistema() {
