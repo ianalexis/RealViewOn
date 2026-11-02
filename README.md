@@ -64,7 +64,7 @@
 5. 🤖 AUTO - **Generate .reg** writes the backup (if checked) and the `RealViewOn[SWVersion].reg` file next to the program.
 6. ✨ MANUAL - Execution of the `.reg` file, as above.
 
-It follows the Windows light/dark setting; `--dark` or `--light` forces one. The colored bar at the top (or F1) opens **About**: version, compilation, commit and the repository link.
+It follows the Windows light/dark setting; the ☾ Dark checkbox switches it until the program closes, and `--dark` or `--light` picks one at launch. The colored bar at the top (or F1) opens **About**: version, compilation, commit and the repository link.
 
 ## Advance Mode 🛠️
 
