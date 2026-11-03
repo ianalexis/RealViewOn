@@ -233,6 +233,8 @@ jobs:
       - name: Get changelog since last release
         id: get_changelog
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           Write-Host "📋 Obteniendo changelog detallado desde el último release..."
 
@@ -356,10 +358,6 @@ jobs:
                         Write-Host "  📄 No hay cuerpo para este commit"
                       }
 
-                      # Escapar caracteres especiales
-                      $subject = $subject -replace '"', '\"' -replace '`', '\`'
-                      $commitBody = $commitBody -replace '"', '\"' -replace '`', '\`'
-
                       # Construir entrada del changelog
                       $commitEntry = "- [$shortHash] $subject"
 
@@ -425,19 +423,19 @@ jobs:
                   Write-Host "--- FIN CHANGELOG ---"
                 } else {
                   Write-Host "📋 No se generaron commits válidos, usando commit actual"
-                  $currentCommit = "${{ github.event.head_commit.message }}"
+                  $currentCommit = $env:HEAD_COMMIT_MESSAGE
                   $currentSha = "${{ github.sha }}".Substring(0, 7)
                   $changelogText = "- [$currentSha] $currentCommit"
                 }
               } else {
                 Write-Host "📋 No se encontraron commits, usando commit actual"
-                $currentCommit = "${{ github.event.head_commit.message }}"
+                $currentCommit = $env:HEAD_COMMIT_MESSAGE
                 $currentSha = "${{ github.sha }}".Substring(0, 7)
                 $changelogText = "- [$currentSha] $currentCommit"
               }
             } else {
               Write-Host "📋 No se encontró release anterior, usando commit actual"
-              $currentCommit = "${{ github.event.head_commit.message }}"
+              $currentCommit = $env:HEAD_COMMIT_MESSAGE
               $currentSha = "${{ github.sha }}".Substring(0, 7)
               $changelogText = "- [$currentSha] $currentCommit"
             }
@@ -459,7 +457,7 @@ jobs:
           } catch {
             Write-Host "⚠️ Error al obtener changelog: $($_.Exception.Message)"
             Write-Host "📋 Usando commit actual como fallback"
-            $currentCommit = "${{ github.event.head_commit.message }}"
+            $currentCommit = $env:HEAD_COMMIT_MESSAGE
             $currentSha = "${{ github.sha }}".Substring(0, 7)
             $fallbackText = "- [$currentSha] $currentCommit"
             echo "CHANGELOG<<EOF" >> $env:GITHUB_OUTPUT
@@ -584,6 +582,9 @@ jobs:
       - name: Create or update GitHub Release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: release
+        # El changelog llega por env y no interpolado en el script: así sus comillas, $ o backticks no rompen el PowerShell
+        env:
+          CHANGELOG: ${{ steps.get_changelog.outputs.CHANGELOG }}
         run: |
           $tagName = "v${{ steps.get_version.outputs.VERSION }}"
           $releaseName = "${{ steps.get_version.outputs.RELEASE_NAME }}"
@@ -608,7 +609,7 @@ jobs:
           ⏳ _Download links are being prepared..._
 
           ## What's Changed
-          ${{ steps.get_changelog.outputs.CHANGELOG }}
+          $env:CHANGELOG
 
           ---
           *This is an automated $releaseType generated from the latest commit.*
@@ -868,9 +869,13 @@ jobs:
 
       - name: Update release with download links
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          CHANGELOG: ${{ steps.get_changelog.outputs.CHANGELOG }}
+          DOWNLOAD_LINKS: ${{ steps.upload_assets.outputs.DOWNLOAD_LINKS }}
+          VT_LINKS: ${{ steps.analyze_virustotal.outputs.VT_LINKS }}
         run: |
-          $downloadLinks = "${{ steps.upload_assets.outputs.DOWNLOAD_LINKS }}"
-          $vtLinksString = "${{ steps.analyze_virustotal.outputs.VT_LINKS }}"
+          $downloadLinks = $env:DOWNLOAD_LINKS
+          $vtLinksString = $env:VT_LINKS
           
           if ($downloadLinks -and $downloadLinks.Trim() -ne "") {
             Write-Host "🔗 Actualizando release con enlaces de descarga clicables..."
@@ -954,7 +959,7 @@ jobs:
               $titlePrefix = if ($isStable) { "RealViewOn Release" } else { "$emoji RealViewOn Pre-Release" }
               $titleSuffix = if ($isStable) { " $emoji" } else { " $emoji" }
               
-              $updatedBody = "# $titlePrefix v${{ steps.get_version.outputs.VERSION }} (c${{ steps.compilation_time.outputs.COMPILATION_CODE }})$titleSuffix`n`n## Downloads 📥`n$finalDownloadLinks`n`n## What's Changed`n${{ steps.get_changelog.outputs.CHANGELOG }}`n`n---`n*This is an automated $releaseType generated from the latest commit.*"
+              $updatedBody = "# $titlePrefix v${{ steps.get_version.outputs.VERSION }} (c${{ steps.compilation_time.outputs.COMPILATION_CODE }})$titleSuffix`n`n## Downloads 📥`n$finalDownloadLinks`n`n## What's Changed`n$env:CHANGELOG`n`n---`n*This is an automated $releaseType generated from the latest commit.*"
               
               $updateData = @{
                 body = $updatedBody
